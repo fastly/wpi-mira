@@ -8,12 +8,15 @@ import (
 	"io"
 	"log"
 	"os"
+	"time"
 
 	mrt "github.com/osrg/gobgp/pkg/packet/mrt"
 )
 
 func main() {
-	file, err := os.Open("bgpfiles/rib.20160629.1600.bz2")
+	startTime := time.Now()
+
+	file, err := os.Open("bgpfiles/updates.20160629.0600.bz2")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -23,7 +26,7 @@ func main() {
 	// Put the decompressed data into a byte array
 	var data []byte
 	for {
-		buffer := make([]byte, 1024) // You can adjust the buffer size as needed
+		buffer := make([]byte, 2048)
 		n, err := bz2Scanner.Read(buffer)
 		if err != nil {
 			if err != io.EOF {
@@ -60,10 +63,13 @@ func main() {
 		}
 
 		fmt.Println(msg)
-		fmt.Println()
 
 		count += 1
 	}
 
+	elapsedTime := time.Since(startTime)
+
+	fmt.Println("GoBGP Method: ")
 	fmt.Println("Message Count: ", count)
+	fmt.Println("Total execution time: ", elapsedTime)
 }
