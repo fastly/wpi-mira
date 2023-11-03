@@ -8,8 +8,9 @@ import (
 
 // constants
 const (
-	windowSize = 360 //360 min
-	k          = 5   //# of neighbors
+	windowSize = 391
+	k          = 10 //# of neighbors
+	r          = 15000
 )
 
 // calculate median of a slice of integers
@@ -37,24 +38,34 @@ func findOutliers(bins []float64) []float64 {
 	var outliers []float64
 
 	//iterate thru each time bin
-	for i := windowSize; i < len(bins); i++ {
+	for i := 0; i < len(bins); i++ {
 		currentBin := bins[i]
-		recentBins := bins[i-windowSize : i]
+		//recentBins := bins[i-windowSize : i]
+
+		//fmt.Println(currentBin)
+		//fmt.Println(recentBins)
 
 		// calculate the density-based radius R
-		var counts []float64
-		for _, bin := range recentBins {
-			counts = append(counts, bin)
-		}
-		R := int(math.Abs(float64(median(counts) - currentBin)))
+		/*
+			var counts []float64
+			for _, bin := range recentBins {
+				counts = append(counts, bin)
+				//fmt.Println(counts)
+			}
+		*/
+		//radius := int(math.Abs(float64(median(counts) - currentBin)))
+
+		//fmt.Println(radius)
 
 		// count the number of neighbors within radius R
 		neighborCount := 0
-		for _, bin := range recentBins {
-			if int(math.Abs(float64(bin-currentBin))) < R {
+		for _, bin := range bins {
+			if int(math.Abs(float64(bin-currentBin))) < r {
 				neighborCount++
 			}
 		}
+
+		//fmt.Println(neighborCount)
 
 		// if there are fewer than k neighbors, the current bin is an outlier
 		if neighborCount < k {
