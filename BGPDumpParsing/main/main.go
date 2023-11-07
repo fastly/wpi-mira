@@ -9,12 +9,13 @@ import (
 	"strings"
 	"strconv"
 	"log"
-	"io/ioutil"
 	"path/filepath"
 	"gonum.org/v1/plot"
 	"gonum.org/v1/plot/vg"
 	"gonum.org/v1/plot/plotter"
 	"math"
+	"sort"
+	//"image/color"
 )
 
 /* Examples:
@@ -62,10 +63,10 @@ type BGPMessage struct {
 func main() {
 	startTime := time.Now()
 
-	folderDir := "bgptestgoogleleak"
+	folderDir := "bgpfilesALOT"
 
 	// Gets all files from directory we want to test
-	files, err := ioutil.ReadDir("testdata/"+folderDir)
+	files, err := os.ReadDir("testdata/"+folderDir)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -87,10 +88,8 @@ func main() {
 	}
 
 	// Creates map of total frequencies for timestamp
-	freqMap := make(map[int64]int)
-	for _, msg := range allBGPMessages {
-		freqMap[int64(msg.Timestamp)] += 1
-	}
+	freqMap := buildFrequencyMap(allBGPMessages)
+	
 	//fmt.Println(freqMap)
 
 	// Smallest timestamp is the first BGPMessage we store, largest is the last one
@@ -100,8 +99,6 @@ func main() {
 	// Round timestamps down to nearest multiple of 60 because decimals are annoying 
 	smallestTimestamp = int64(math.Floor(float64(smallestTimestamp)/60.0) * 60)
 	largestTimestamp = int64(math.Floor(float64(largestTimestamp)/60.0) * 60)
-	
-
 
 	// Going to store frequencies in one minute time buckets instead of per second
     bucketMap := make(map[int64]int)
@@ -125,6 +122,10 @@ func main() {
 		bucketTotal += frequency
     }
 
+	// Gets sorted array of timestamps to feed into Analysis
+	sortedFrequencies := getSortedFrequencies(bucketMap)
+
+	fmt.Println("Sorted Frequencies: ", sortedFrequencies)
 	fmt.Println("BucketMap: ", bucketMap)
 	fmt.Println("Sum of frequencies: ", bucketTotal)
 	fmt.Println("Number of buckets: ", len(bucketMap))
@@ -174,6 +175,7 @@ func parseBGPFile(filePath string) ([]BGPMessage, error) {
     return bgpMessages, nil
 }
 
+
 func plotData(bucketMap map[int64]int, folderDir string) {
 	p:= plot.New()
 
@@ -199,6 +201,66 @@ func plotData(bucketMap map[int64]int, folderDir string) {
     }
 }
 
+func buildFrequencyMap(BGPMessages []BGPMessage) map[int64]int {
+	freqMap := make(map[int64]int)
+	for _, msg := range BGPMessages {
+		freqMap[int64(msg.Timestamp)] += 1
+	}
+
+	return freqMap
+}
+
+
+/*
+func plotData(bucketMap map[int64]int, folderDir string) {
+	p := plot.New()
+
+	p.Title.Text = "Frequency vs. Timestamp"
+	p.X.Label.Text = "Timestamp"
+	p.Y.Label.Text = "Frequency"
+
+	// Create a scatter plot with red points
+	pts := make(plotter.XYs, 0)
+	for timestamp, freq := range bucketMap {
+		pts = append(pts, struct{ X, Y float64 }{float64(timestamp), float64(freq)})
+	}
+	s, err := plotter.NewScatter(pts)
+	if err != nil {
+		panic(err)
+	}
+
+	s.GlyphStyle.Color = color.RGBA{255, 0, 0, 255} // Red color
+	//s.GlyphStyle.Color = color.RGBA{255, 0, 0, 0} // Light blue color
+	p.Add(s)
+
+	// Save the plot
+	if err := p.Save(8*vg.Inch, 8*vg.Inch, "plots/"+folderDir+".png"); err != nil {
+		panic(err)
+	}
+}
+*/
+
+func getSortedFrequencies(bucketMap map[int64]int) []int {
+	var timestamps []int64
+
+	// Create a slice of timestamps and a corresponding slice of values in the order of timestamps
+	for timestamp, _ := range bucketMap {
+		timestamps = append(timestamps, timestamp)
+	}
+
+	// Sort the timestamps in ascending order
+	sort.Slice(timestamps, func(i, j int) bool {
+		return timestamps[i] < timestamps[j]
+	})
+
+	// Create a new slice of values in the order of sorted timestamps
+	sortedValues := make([]int, len(timestamps))
+	for i, timestamp := range timestamps {
+		sortedValues[i] = bucketMap[timestamp]
+	}
+	
+	return sortedValues
+}
 
 func parseBGPMessage(data string) (BGPMessage, error) {
     fields := strings.Split(data, "|")
