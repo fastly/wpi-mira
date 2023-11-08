@@ -5,11 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3c1964f4-5b47-4be6-8ceb-8c810891765e" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/blt_mad/bltMad.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/blt_mad/generateBellCurvePlot.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/blt_mad/mad.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/blt_mad/mad_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/blt_mad/blt_mad.go" beforeDir="false" afterPath="$PROJECT_DIR$/src/blt_mad/btlMad_test.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/blt_mad/generateBellCurve.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/src/go.mod" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/src/go.sum" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -70,7 +69,7 @@
       <recent name="$PROJECT_DIR$/BLTMAD" />
     </key>
   </component>
-  <component name="RunManager" selected="Go Build.go build Fastly-MQP23">
+  <component name="RunManager" selected="Go Test.go test BGPAlert/blt_mad">
     <configuration default="true" type="GoApplicationRunConfiguration" factoryName="Go Application">
       <working_directory value="$PROJECT_DIR$" />
       <kind value="FILE" />
@@ -87,15 +86,16 @@
       <filePath value="$PROJECT_DIR$/main.go" />
       <method v="2" />
     </configuration>
-    <configuration name="TestBltMad in Fastly-MQP23" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestBltMad10 in BGPAlert/blt_mad" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="Fastly-MQP23" />
-      <working_directory value="$PROJECT_DIR$" />
+      <working_directory value="$PROJECT_DIR$/src/blt_mad" />
+      <root_directory value="$PROJECT_DIR$/src" />
       <kind value="PACKAGE" />
-      <package value="Fastly-MQP23" />
+      <package value="BGPAlert/blt_mad" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestBltMad\E$" />
+      <pattern value="^\QTestBltMad10\E$" />
       <method v="2" />
     </configuration>
     <configuration name="TestBltMad10 in Fastly-MQP23" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
@@ -107,17 +107,6 @@
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
       <pattern value="^\QTestBltMad10\E$" />
-      <method v="2" />
-    </configuration>
-    <configuration name="TestFindMedian in Fastly-MQP23" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
-      <module name="Fastly-MQP23" />
-      <working_directory value="$PROJECT_DIR$" />
-      <kind value="PACKAGE" />
-      <package value="Fastly-MQP23" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$" />
-      <framework value="gotest" />
-      <pattern value="^\QTestFindMedian\E$" />
       <method v="2" />
     </configuration>
     <configuration name="TestMad in Fastly-MQP23" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
@@ -139,13 +128,24 @@
       <framework value="gotest" />
       <method v="2" />
     </configuration>
+    <configuration name="go test BGPAlert/blt_mad" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="Fastly-MQP23" />
+      <working_directory value="$PROJECT_DIR$/src/blt_mad" />
+      <root_directory value="$PROJECT_DIR$/src" />
+      <kind value="PACKAGE" />
+      <package value="BGPAlert/blt_mad" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <method v="2" />
+    </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Go Test.go test BGPAlert/blt_mad" />
+        <item itemvalue="Go Test.TestBltMad10 in BGPAlert/blt_mad" />
         <item itemvalue="Go Build.go build Fastly-MQP23" />
         <item itemvalue="Go Test.TestMad in Fastly-MQP23" />
         <item itemvalue="Go Test.TestBltMad10 in Fastly-MQP23" />
-        <item itemvalue="Go Test.TestBltMad in Fastly-MQP23" />
-        <item itemvalue="Go Test.TestFindMedian in Fastly-MQP23" />
       </list>
     </recent_temporary>
   </component>
