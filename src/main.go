@@ -8,8 +8,8 @@ import (
 // constants
 const (
 	windowSize = 391
-	k          = 10 //# of neighbors
-	r          = 15000
+	k          = 5 //# of neighbors
+	//r          = 15000
 )
 
 // finds p-th percentile of data
@@ -44,16 +44,28 @@ func findPercentile(data []float64, p float64) float64 {
 	return lowerValue + fraction*(upperValue-lowerValue)
 }
 
+// finds R radius value
+// R = distance between 5th and 95th percentile
+func findR(data []float64) float64 {
+
+	percentile_5 := findPercentile(data, 5.0)
+	percentile_95 := findPercentile(data, 95.0)
+
+	R := percentile_95 - percentile_5
+
+	return R
+}
+
 // detect outliers using the density-based algorithm
 // input: array of ints, where each index represents a time bin and value is the count for that time bin
 // output: values of outliers aka counts
-func findOutliers(bins []float64) []float64 {
+func findOutliers(data []float64) []float64 {
 	//result of outliers
 	var outliers []float64
 
 	//iterate thru each time bin
-	for i := 0; i < len(bins); i++ {
-		currentBin := bins[i]
+	for i := 0; i < len(data); i++ {
+		currentBin := data[i]
 		//recentBins := bins[i-windowSize : i]
 
 		//fmt.Println(currentBin)
@@ -72,9 +84,10 @@ func findOutliers(bins []float64) []float64 {
 		//fmt.Println(radius)
 
 		// count the number of neighbors within radius R
+		R := findR(data)
 		neighborCount := 0
-		for _, bin := range bins {
-			if int(math.Abs(float64(bin-currentBin))) < r {
+		for _, bin := range data {
+			if math.Abs(float64(bin-currentBin)) < R {
 				neighborCount++
 			}
 		}
