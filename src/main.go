@@ -12,21 +12,36 @@ const (
 	r          = 15000
 )
 
-// calculate median of a slice of integers
-func median(data []float64) float64 {
-	var med float64
-	sort.Float64s(data)
-	if len(data)%2 == 1 {
-		//if the length is odd return the number in the middle
-		med = data[len(data)/2]
-	} else {
-		//if the lenght is even take the mean of the middle two numbers
-		left := data[(len(data)/2)-1]
-		right := data[(len(data) / 2)]
-		med = (left + right) / 2
+// finds p-th percentile of data
+func findPercentile(data []float64, p float64) float64 {
+	if len(data) == 0 {
+		return 0.0
 	}
 
-	return med
+	// sort data in ascending order
+	sort.Float64s(data)
+
+	// calc rank
+	n := float64(len(data))
+	rank := (p / 100) * (n + 1)
+
+	// Interpolate to find the requested percentile.
+	lowerIdx := int(rank)
+	upperIdx := lowerIdx + 1
+
+	if lowerIdx == 0 {
+		return data[0]
+	}
+
+	if upperIdx >= len(data) {
+		return data[len(data)-1]
+	}
+
+	fraction := rank - float64(lowerIdx)
+	lowerValue := data[lowerIdx-1]
+	upperValue := data[upperIdx-1]
+
+	return lowerValue + fraction*(upperValue-lowerValue)
 }
 
 // detect outliers using the density-based algorithm

@@ -34,3 +34,53 @@ func AreArraysEqual(arr1, arr2 []float64) bool {
 
 	return true
 }
+
+func TestFindPercentile_5th(t *testing.T) {
+	data := []float64{30, 20, 10, 40, 50, 45, 15, 35, 25}
+	percentile := 5.0
+	expected := 10.0
+	result := findPercentile(data, percentile)
+	if result != expected {
+		t.Errorf("Expected %.2fth percentile to be %.2f, but got %.2f", percentile, expected, result)
+	}
+}
+
+func TestFindPercentile_50th(t *testing.T) {
+	data := []float64{30, 20, 10, 40, 50, 45, 15, 35, 25}
+	percentile := 50.0
+	expected := 30.0
+	result := findPercentile(data, percentile)
+	if result != expected {
+		t.Errorf("Expected %.2fth percentile to be %.2f, but got %.2f", percentile, expected, result)
+	}
+}
+
+func TestFindPercentile_95th(t *testing.T) {
+	data := []float64{30, 20, 10, 40, 50, 45, 15, 35, 25}
+	percentile := 95.0
+	expected := 50.0
+	result := findPercentile(data, percentile)
+	if result != expected {
+		t.Errorf("Expected %.2fth percentile to be %.2f, but got %.2f", percentile, expected, result)
+	}
+}
+
+func TestFindPercentile_EmptyData(t *testing.T) {
+	data := []float64{}
+	percentile := 10.0
+	expected := 0.0
+	result := findPercentile(data, percentile)
+	if result != expected {
+		t.Errorf("Expected %.2fth percentile to be %.2f, but got %.2f", percentile, expected, result)
+	}
+}
+
+func TestFindPercentile_OutOfBounds(t *testing.T) {
+	data := []float64{30, 20, 10, 40, 50, 45, 15, 35, 25}
+	percentile := 110.0 // Out of bounds, should return the maximum value in data.
+	expected := 50.0
+	result := findPercentile(data, percentile)
+	if result != expected {
+		t.Errorf("Expected %.2fth percentile to be %.2f, but got %.2f", percentile, expected, result)
+	}
+}
