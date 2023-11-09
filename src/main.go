@@ -5,10 +5,17 @@ import (
 	"BGPAlert/common"
 	"BGPAlert/parsing"
 	"BGPAlert/processing"
+	"log"
 	"sync"
 )
 
 func main() {
+	config, err := loadConfig("config.json")
+	if err != nil {
+		log.Fatal("Error loading configuration:", err)
+	}
+	validDateConfiguration(config)
+
 	// WaitGroup for waiting on goroutines to finish
 	var wg sync.WaitGroup
 
