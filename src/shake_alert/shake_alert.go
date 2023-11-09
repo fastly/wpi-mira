@@ -59,7 +59,7 @@ func findR(data []float64) float64 {
 // detect outliers using the density-based algorithm
 // input: array of ints, where each index represents a time bin and value is the count for that time bin
 // output: values of outliers aka counts
-func findOutliers(data []float64) []float64 {
+func FindOutliers(data []float64) []float64 {
 	//result of outliers
 	var outliers []float64
 

@@ -1,32 +1,40 @@
 package main
 
 import (
+	"BGPAlert/analyzing"
 	"BGPAlert/common"
 	"BGPAlert/parsing"
 	"BGPAlert/processing"
-	"fmt"
 	"sync"
 )
 
 func main() {
-	fmt.Println("In main")
-
 	// WaitGroup for waiting on goroutines to finish
 	var wg sync.WaitGroup
 
 	// Channel for sending BGP messages between parsing and processing
 	msgChannel := make(chan []common.BGPMessage)
 
-	wg.Add(2)
+	// Channel for sending windows from processing to analyzing
+	windowChannel := make(chan []common.Window)
+
+	wg.Add(3)
 
 	// Start the goroutines
+
+	// Can change folder directory to any folder inside of src/staticdata
 	go func() {
 		parsing.ParseStaticFile("bgptest1", msgChannel)
 		wg.Done()
 	}()
 
 	go func() {
-		processing.ProcessBGPMessages(msgChannel)
+		processing.ProcessBGPMessages(msgChannel, windowChannel)
+		wg.Done()
+	}()
+
+	go func() {
+		analyzing.AnalyzeBGPMessages(windowChannel)
 		wg.Done()
 	}()
 
