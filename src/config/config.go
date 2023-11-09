@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"encoding/json"
@@ -20,7 +20,7 @@ type Configuration struct {
 	Connector                 string `json:"connector"`
 }
 
-func loadConfig(filename string) (*Configuration, error) {
+func LoadConfig(filename string) (*Configuration, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -39,7 +39,7 @@ func parseByComma(data string) []string {
 	return strings.Split(data, ",")
 }
 
-func validDateConfiguration(config *Configuration) {
+func ValidDateConfiguration(config *Configuration) {
 	//check that the fileInputOption is either live or static
 	//convert all strings to lower case to ignore any capitalizations
 	fileInputL := strings.ToLower(config.FileInputOption)
