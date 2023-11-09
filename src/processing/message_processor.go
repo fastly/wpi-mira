@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func ProcessBGPMessages(msgChannel chan []common.BGPMessage) {
+func ProcessBGPMessages(msgChannel chan []common.BGPMessage, windowChannel chan []common.Window) {
 	var bucketMap = make(map[int64][]common.BGPMessage)
 
 	for bgpMessages := range msgChannel {
@@ -23,8 +23,7 @@ func ProcessBGPMessages(msgChannel chan []common.BGPMessage) {
 			// Append the message to the corresponding bucket
 			bucketMap[bucketTimestamp] = append(bucketMap[bucketTimestamp], msg)
 
-			// Your processing logic here
-			fmt.Println("Received BGP Message:", msg)
+			//fmt.Println("Received BGP Message:", msg)
 		}
 	}
 
@@ -32,6 +31,19 @@ func ProcessBGPMessages(msgChannel chan []common.BGPMessage) {
 		frequency := len(messages)
 		fmt.Printf("Timestamp: %d, Frequency: %d\n", timestamp, frequency)
 	}
-	fmt.Println(len(bucketMap))
+	fmt.Println("Minutes Analyzed: ", len(bucketMap))
+
+	var windows []common.Window
+
+	window := common.Window{
+		Filter:    "none",
+		BucketMap: bucketMap,
+	}
+
+	windows = append(windows, window)
+
+	windowChannel <- windows
+
+	close(windowChannel)
 
 }

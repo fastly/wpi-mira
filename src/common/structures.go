@@ -7,3 +7,8 @@ type BGPMessage struct {
 	PeerASN        uint32
 	Prefix         string
 }
+
+type Window struct {
+	Filter    string
+	BucketMap map[int64][]BGPMessage
+}

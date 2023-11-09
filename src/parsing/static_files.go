@@ -13,7 +13,6 @@ import (
 )
 
 func ParseStaticFile(folderDir string, msgChannel chan []common.BGPMessage) {
-	fmt.Println("test")
 	// Gets all files from directory we want to test
 	files, err := os.ReadDir("staticdata/" + folderDir)
 	if err != nil {
@@ -23,7 +22,7 @@ func ParseStaticFile(folderDir string, msgChannel chan []common.BGPMessage) {
 	// Iterate through the files in the directory
 	for _, file := range files {
 		if !file.IsDir() && filepath.Ext(file.Name()) == ".bz2" {
-			filePath := filepath.Join("testdata/"+folderDir, file.Name())
+			filePath := filepath.Join("staticdata/"+folderDir, file.Name())
 			bgpMessages, err := parseBGPFile(filePath)
 			if err != nil {
 				fmt.Println("Error parsing file:", err)

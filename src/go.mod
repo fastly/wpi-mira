@@ -2,6 +2,7 @@ module BGPAlert
 
 go 1.19
 
+require gonum.org/v1/plot v0.14.0
 
 require (
 	git.sr.ht/~sbinet/gg v0.5.0 // indirect
@@ -14,5 +15,4 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	golang.org/x/image v0.11.0 // indirect
 	golang.org/x/text v0.12.0 // indirect
-	gonum.org/v1/plot v0.14.0 // indirect
 )
