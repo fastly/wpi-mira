@@ -1,4 +1,4 @@
-package analyzing
+package analyze
 
 import (
 	"BGPAlert/blt_mad"
