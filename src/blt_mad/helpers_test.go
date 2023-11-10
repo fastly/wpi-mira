@@ -78,7 +78,7 @@ func TestFindMin(t *testing.T) {
 
 	// Test case 2: Empty slice
 	data2 := []float64{}
-	expected2 := 0.0
+	expected2 := math.SmallestNonzeroFloat64
 	result2 := findMin(data2)
 	if result2 != expected2 {
 		t.Errorf("Test case 2 failed. Got: %f, Expected: %f", result2, expected2)
@@ -88,6 +88,32 @@ func TestFindMin(t *testing.T) {
 	data3 := []float64{-3.0, -1.0, -2.0, -5.0}
 	expected3 := -5.0
 	result3 := findMin(data3)
+	if result3 != expected3 {
+		t.Errorf("Test case 3 failed. Got: %f, Expected: %f", result3, expected3)
+	}
+}
+
+func TestFindMax(t *testing.T) {
+	// Test case 1: Non-empty slice
+	data1 := []float64{3.0, 1.0, 2.0, 5.0}
+	expected1 := 5.0
+	result1 := findMax(data1)
+	if result1 != expected1 {
+		t.Errorf("Test case 1 failed. Got: %f, Expected: %f", result1, expected1)
+	}
+
+	// Test case 2: Empty slice
+	data2 := []float64{}
+	expected2 := math.MaxFloat64
+	result2 := findMax(data2)
+	if result2 != expected2 {
+		t.Errorf("Test case 2 failed. Got: %f, Expected: %f", result2, expected2)
+	}
+
+	//Test case 3: Negative slice
+	data3 := []float64{-3.0, -1.0, -2.0, -5.0}
+	expected3 := -1.0
+	result3 := findMax(data3)
 	if result3 != expected3 {
 		t.Errorf("Test case 3 failed. Got: %f, Expected: %f", result3, expected3)
 	}
