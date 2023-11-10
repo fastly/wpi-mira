@@ -62,8 +62,24 @@ func TestFindMedian(t *testing.T) {
 	data3 := []float64{}
 	expected3 := math.SmallestNonzeroFloat64 // You can choose an appropriate default value for an empty slice
 	result3 := findMedian(data3)
-	if result3 != expected3 {
+	if !reflect.DeepEqual(expected3, result3) {
 		t.Errorf("Test case 3 in TestFindMedian failed. Got: %f, Expected: %f", result3, expected3)
+	}
+
+	// Test case 4: Duplicate values
+	data4 := []float64{3.0, 1.0, 8.0, 1.0}
+	expected4 := 2.0 // You can choose an appropriate default value for an empty slice
+	result4 := findMedian(data4)
+	if result4 != expected4 {
+		t.Errorf("Test case 4 in TestFindMedian failed. Got: %f, Expected: %f", result4, expected4)
+	}
+
+	// Test case 4: Duplicate values with the value being a median
+	data5 := []float64{1.0, 2.0, 3.0, 3.0, 4.0}
+	expected5 := 3.0 // You can choose an appropriate default value for an empty slice
+	result5 := findMedian(data5)
+	if result5 != expected5 {
+		t.Errorf("Test case 4 in TestFindMedian failed. Got: %f, Expected: %f", result5, expected5)
 	}
 }
 
