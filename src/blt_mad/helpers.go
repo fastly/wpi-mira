@@ -98,3 +98,24 @@ func equalSlices(a, b []float64) bool {
 	}
 	return true
 }
+
+func containsValue(arr []float64, target float64) bool {
+	for _, value := range arr {
+		if value == target {
+			return true
+		}
+	}
+	return false
+}
+
+//check if one array contains the elements of the other
+func containAllElements(mainArr []float64, subArr []float64) []float64 {
+	//use in BGP testing to check if the result contains the minimum outliers of interest given the parameters
+	var elementsMissing []float64
+	for _, subValue := range subArr {
+		if !containsValue(mainArr, subValue) {
+			elementsMissing = append(elementsMissing, subValue)
+		}
+	}
+	return elementsMissing
+}

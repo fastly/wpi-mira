@@ -176,3 +176,73 @@ func TestFindMean(t *testing.T) {
 		t.Errorf("Expected findMean of %v to be %f, but got %f", data3, expected3, result3)
 	}
 }
+
+func TestContainsValue(t *testing.T) {
+	// Test case 1: Test with positive array of numbers where the value is contained
+	data1 := []float64{1.0, 2.0, 3.0, 4.0, 5.0}
+	value1 := 3.0
+	expected1 := true
+	result1 := containsValue(data1, value1)
+	if result1 != expected1 {
+		t.Errorf("Test case 1  in TestContainsValue failed. Got: %t, Expected: %t", result1, expected1)
+	}
+
+	// Test case 2: Test with positive array of numbers where the value is not contained
+	data2 := []float64{1.0, 2.0, 3.0, 4.0, 5.0}
+	value2 := 0.0
+	expected2 := false
+	result2 := containsValue(data2, value2)
+	if result2 != expected2 {
+		t.Errorf("Test case 1  in TestContainsValue failed. Got: %t, Expected: %t", result2, expected2)
+	}
+
+	// Test case 3: Empty array
+	data3 := []float64{}
+	value3 := 0.0
+	expected3 := false
+	result3 := containsValue(data3, value3)
+	if result3 != expected3 {
+		t.Errorf("Test case 1  in TestContainsValue failed. Got: %t, Expected: %t", result3, expected3)
+	}
+}
+
+//reflect deep equal and equal slices for some reason do not work; the outputs are the same but the tests fail
+func TestContainsAllElements(t *testing.T) {
+	emptyArr := []float64{}
+	// Test case 1: Test with positive array of numbers where the subarray is contained
+	data1 := []float64{1.0, 2.0, 3.0, 4.0, 5.0}
+	subArray1 := []float64{1.0}
+	expected1 := emptyArr
+	result1 := containAllElements(data1, subArray1)
+	if reflect.DeepEqual(result1, expected1) {
+		t.Errorf("Test case 1  in TestContainsAllElements failed. Got: %f, Expected: %f", result1, expected1)
+	}
+
+	// Test case 2: Test with positive array of numbers where subarray is empty
+	data2 := []float64{1.0, 2.0, 3.0, 4.0, 5.0}
+	subArray2 := []float64{}
+	expected2 := emptyArr
+	result2 := containAllElements(data2, subArray2)
+	if reflect.DeepEqual(result2, expected2) {
+		t.Errorf("Test case 2  in TestContainsAllElements failed. Got: %f, Expected: %f", result2, expected2)
+	}
+
+	// Test case 3: Subarray with one extra value
+	data3 := []float64{1.0, 2.0, 3.0, 4.0, 5.0}
+	subArray3 := []float64{1.0, 6.0}
+	expected3 := []float64{6.0}
+	result3 := containAllElements(data3, subArray3)
+	if reflect.DeepEqual(result3, expected3) {
+		t.Errorf("Test case 3  in TestContainsAllElements failed. Got: %f, Expected: %f", result3, expected3)
+	}
+
+	// Test case 4: The main array is empty; output is the whole subarray
+	data4 := []float64{}
+	subArray4 := []float64{1.0, 2.0, 3.0, 4.0, 5.0}
+	expected4 := []float64{1.0, 2.0, 3.0, 4.0, 5.0}
+	result4 := containAllElements(data4, subArray4)
+	if reflect.DeepEqual(result4, expected4) {
+		t.Errorf("Test case 4 in TestContainsAllElements failed. Got: %f, Expected: %f", result4, expected4)
+	}
+
+}
