@@ -1,11 +1,11 @@
 package main
 
 import (
-	"BGPAlert/analyzing"
+	"BGPAlert/analyze"
 	"BGPAlert/common"
 	"BGPAlert/config"
-	"BGPAlert/parsing"
-	"BGPAlert/processing"
+	"BGPAlert/parse"
+	"BGPAlert/process"
 	"log"
 	"sync"
 )
@@ -33,17 +33,17 @@ func main() {
 
 	// Can change folder directory to any folder inside of src/staticdata
 	go func() {
-		parsing.ParseStaticFile("bgptest1", msgChannel)
+		parse.ParseStaticFile("bgptest1", msgChannel)
 		wg.Done()
 	}()
 
 	go func() {
-		processing.ProcessBGPMessages(msgChannel, windowChannel)
+		process.ProcessBGPMessages(msgChannel, windowChannel)
 		wg.Done()
 	}()
 
 	go func() {
-		analyzing.AnalyzeBGPMessages(windowChannel)
+		analyze.AnalyzeBGPMessages(windowChannel)
 		wg.Done()
 	}()
 
