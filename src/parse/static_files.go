@@ -1,4 +1,4 @@
-package parsing
+package parse
 
 import (
 	"BGPAlert/common"
