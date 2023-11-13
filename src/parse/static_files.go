@@ -13,17 +13,21 @@ import (
 	"time"
 )
 
+// Reads in static files from a directory, parses them into BGPMessage struct and puts them into channel for processor to process
 func ParseStaticFile(folderDir string, msgChannel chan []common.BGPMessage) {
+	const directoryPath = "static_data/"
+
 	// Gets all files from directory we want to test
-	files, err := os.ReadDir("static_data/" + folderDir)
+	files, err := os.ReadDir(directoryPath + folderDir)
 	if err != nil {
 		log.Fatal(err)
+		return
 	}
 
 	// Iterate through the files in the directory
 	for _, file := range files {
 		if !file.IsDir() && filepath.Ext(file.Name()) == ".bz2" {
-			filePath := filepath.Join("static_data/"+folderDir, file.Name())
+			filePath := filepath.Join(directoryPath, folderDir, file.Name())
 			bgpMessages, err := parseBGPFile(filePath)
 			if err != nil {
 				fmt.Println("Error parsing file:", err)
@@ -37,17 +41,19 @@ func ParseStaticFile(folderDir string, msgChannel chan []common.BGPMessage) {
 
 	// Close the channel to signal that all messages have been sent
 	close(msgChannel)
-
 }
 
+// Runs BGPDump on individual static bgp files and extracts all BGPMessages from that individual file
 func parseBGPFile(filePath string) ([]common.BGPMessage, error) {
-	cmd := exec.Command("bgpdump", "-m", "-O", "tempbgpdump.txt", filePath)
+	const tempFileName = "tempbgpdump.txt"
+
+	cmd := exec.Command("bgpdump", "-m", "-O", tempFileName, filePath)
 	err := cmd.Run()
 	if err != nil {
 		return nil, err
 	}
 
-	file, err := os.Open("tempbgpdump.txt")
+	file, err := os.Open(tempFileName)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +73,7 @@ func parseBGPFile(filePath string) ([]common.BGPMessage, error) {
 		bgpMessages = append(bgpMessages, bgpMsg)
 	}
 
-	os.Remove("tempbgpdump.txt")
+	os.Remove(tempFileName)
 
 	if scanner.Err() != nil {
 		return nil, scanner.Err()
@@ -76,6 +82,7 @@ func parseBGPFile(filePath string) ([]common.BGPMessage, error) {
 	return bgpMessages, nil
 }
 
+// Takes a line of BGPDumped data and turns it into the BGPMessage struct
 func parseBGPMessage(data string) (common.BGPMessage, error) {
 	const announcementFields = 15
 	const announcmentType = "A"
@@ -86,7 +93,7 @@ func parseBGPMessage(data string) (common.BGPMessage, error) {
 
 	timestamp, err := parseTimestamp(fields[1])
 	if err != nil {
-		return common.BGPMessage{}, fmt.Errorf("Error parsing Timestamp: %v", err)
+		return common.BGPMessage{}, fmt.Errorf("error parsing timestamp: %v", err)
 	}
 
 	bgpMessageType := fields[2]
@@ -94,7 +101,7 @@ func parseBGPMessage(data string) (common.BGPMessage, error) {
 
 	peerASN, err := parseUint32(fields[4])
 	if err != nil {
-		return common.BGPMessage{}, fmt.Errorf("Error parsing PeerASN: %v", err)
+		return common.BGPMessage{}, fmt.Errorf("error parsing peer asn: %v", err)
 	}
 
 	prefix := fields[5]
@@ -118,26 +125,30 @@ func parseBGPMessage(data string) (common.BGPMessage, error) {
 		}, nil
 	}
 
-	return common.BGPMessage{}, fmt.Errorf("Invalid BGP message: %s", data)
+	return common.BGPMessage{}, fmt.Errorf("invalid bgp message: %s", data)
 }
 
+// Converts a string timestamp into a time.Time object
 func parseTimestamp(timestampStr string) (time.Time, error) {
 	timestamp, err := strconv.ParseFloat(timestampStr, 64)
 	if err != nil {
-		return time.Time{}, fmt.Errorf("Error parsing float from timestamp: %v", err)
+		return time.Time{}, fmt.Errorf("error parsing float from timestamp: %v", err)
 	}
 
 	seconds := int64(timestamp)
 	nanoseconds := int64((timestamp - float64(seconds)) * 1e9)
 
 	time := time.Unix(seconds, nanoseconds)
+
 	return time, nil
 }
 
+// Converts a string uint and converts it into an uint32
 func parseUint32(valueStr string) (uint32, error) {
 	value, err := strconv.ParseUint(valueStr, 10, 32)
 	if err != nil {
-		return 0, fmt.Errorf("Error parsing Uint32: %v", err)
+		return 0, fmt.Errorf("error parsing uint32: %v", err)
 	}
+
 	return uint32(value), nil
 }

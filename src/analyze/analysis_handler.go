@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+// Reads in a windowChannel for Window objects, parses the objects, and then calls the specified analysis functions
 func AnalyzeBGPMessages(windowChannel chan []common.Window) {
 	for windows := range windowChannel {
 		for _, w := range windows {
