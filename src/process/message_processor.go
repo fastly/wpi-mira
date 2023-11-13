@@ -7,24 +7,23 @@ import (
 )
 
 // Constantly reads channel of messages and stores them in Window objects to send through windowChannel for analysis
-func ProcessBGPMessages(msgChannel chan []common.BGPMessage, windowChannel chan []common.Window) {
+func ProcessBGPMessages(msgChannel chan common.BGPMessage, windowChannel chan common.Window) {
 	var bucketMap = make(map[time.Time][]common.BGPMessage)
 
-	for bgpMessages := range msgChannel {
-		for _, msg := range bgpMessages {
-			windowSize, _ := time.ParseDuration("60s")
+	for msg := range msgChannel {
 
-			// Round down the timestamp to the nearest multiple of 60 seconds
-			bucketTimestamp := msg.Timestamp.Truncate(windowSize)
+		windowSize, _ := time.ParseDuration("60s")
 
-			// Check if a bucket for the rounded timestamp exists, create it if not
-			if _, ok := bucketMap[bucketTimestamp]; !ok {
-				bucketMap[bucketTimestamp] = make([]common.BGPMessage, 0)
-			}
+		// Round down the timestamp to the nearest multiple of 60 seconds
+		bucketTimestamp := msg.Timestamp.Truncate(windowSize)
 
-			// Append the message to the corresponding bucket
-			bucketMap[bucketTimestamp] = append(bucketMap[bucketTimestamp], msg)
+		// Check if a bucket for the rounded timestamp exists, create it if not
+		if _, ok := bucketMap[bucketTimestamp]; !ok {
+			bucketMap[bucketTimestamp] = make([]common.BGPMessage, 0)
 		}
+
+		// Append the message to the corresponding bucket
+		bucketMap[bucketTimestamp] = append(bucketMap[bucketTimestamp], msg)
 	}
 
 	for timestamp, messages := range bucketMap {
@@ -33,16 +32,12 @@ func ProcessBGPMessages(msgChannel chan []common.BGPMessage, windowChannel chan 
 	}
 	fmt.Println("Minutes Analyzed: ", len(bucketMap))
 
-	var windows []common.Window
-
 	window := common.Window{
 		Filter:    "none",
 		BucketMap: bucketMap,
 	}
 
-	windows = append(windows, window)
-
-	windowChannel <- windows
+	windowChannel <- window
 
 	close(windowChannel)
 
