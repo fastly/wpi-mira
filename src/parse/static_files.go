@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"fmt"
 	"log"
+	"net/netip"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -64,7 +65,6 @@ func parseBGPFile(filePath string) ([]common.BGPMessage, error) {
 
 	for scanner.Scan() {
 		line := scanner.Text()
-		//fmt.Println(line)
 		bgpMsg, err := parseBGPMessage(line)
 		if err != nil {
 			fmt.Printf("Error parsing message: %v\n", err)
@@ -97,14 +97,21 @@ func parseBGPMessage(data string) (common.BGPMessage, error) {
 	}
 
 	bgpMessageType := fields[2]
-	peerIP := fields[3]
+
+	peerIP, err := netip.ParseAddr(fields[3])
+	if err != nil {
+		return common.BGPMessage{}, fmt.Errorf("error parsing address: %v", err)
+	}
 
 	peerASN, err := parseUint32(fields[4])
 	if err != nil {
 		return common.BGPMessage{}, fmt.Errorf("error parsing peer asn: %v", err)
 	}
 
-	prefix := fields[5]
+	prefix, err := netip.ParsePrefix(fields[5])
+	if err != nil {
+		return common.BGPMessage{}, fmt.Errorf("error parsing prefix: %v", err)
+	}
 
 	// Announcment examples: (Has 15 fields and messageType must be "A")
 	// BGP4MP_ET|1638317699.191812|A|206.82.104.185|398465|102.66.116.0/24|398465 5713 37457 37457 37457 37457 37457 37457 37457 328471 328471 328471|IGP|206.82.104.185|0|0|5713:800 65101:1085 65102:1000 65103:276 65104:150|NAG|4200000002 10.102.100.2|
