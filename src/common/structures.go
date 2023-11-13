@@ -1,14 +1,19 @@
 package common
 
+import (
+	"net/netip"
+	"time"
+)
+
 type BGPMessage struct {
-	Timestamp      float64
+	Timestamp      time.Time
 	BGPMessageType string
-	PeerIP         string
+	PeerIP         netip.Addr
 	PeerASN        uint32
-	Prefix         string
+	Prefix         netip.Prefix
 }
 
 type Window struct {
 	Filter    string
-	BucketMap map[int64][]BGPMessage
+	BucketMap map[time.Time][]BGPMessage
 }
