@@ -1,6 +1,7 @@
 package blt_mad
 
 import (
+	"io/ioutil"
 	"math"
 	"reflect"
 	"sort"
@@ -9,7 +10,7 @@ import (
 )
 
 //convert a string of numbers into an array []float64 -> it actually works; all the functions can be called
-func convertToFloat64Array(str string) []float64 {
+func convertToFloat64Array(str string, err error) []float64 {
 	var numbers []float64
 	numbersStr := strings.Fields(str)
 	for i, _ := range numbersStr {
@@ -156,4 +157,15 @@ func withinToleranceFloatSlice(a []float64, b []float64, e float64) bool {
 		}
 	}
 	return true
+}
+
+func readTxtToString(filePath string) (string, error) {
+	// Read the entire file into a byte slice
+	content, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return "", err
+	}
+
+	// Convert the byte slice to a string
+	return string(content), nil
 }
