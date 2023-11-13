@@ -21,10 +21,10 @@ func main() {
 	var wg sync.WaitGroup
 
 	// Channel for sending BGP messages between parsing and processing
-	msgChannel := make(chan []common.BGPMessage)
+	msgChannel := make(chan common.BGPMessage)
 
 	// Channel for sending windows from processing to analyzing
-	windowChannel := make(chan []common.Window)
+	windowChannel := make(chan common.Window)
 
 	wg.Add(3)
 
