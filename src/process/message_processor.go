@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// Constantly reads channel of messages and stores them in Window objects to send through windowChannel for analysis
 func ProcessBGPMessages(msgChannel chan []common.BGPMessage, windowChannel chan []common.Window) {
 	var bucketMap = make(map[time.Time][]common.BGPMessage)
 
@@ -23,8 +24,6 @@ func ProcessBGPMessages(msgChannel chan []common.BGPMessage, windowChannel chan 
 
 			// Append the message to the corresponding bucket
 			bucketMap[bucketTimestamp] = append(bucketMap[bucketTimestamp], msg)
-
-			//fmt.Println("Received BGP Message:", msg)
 		}
 	}
 
