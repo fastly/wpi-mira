@@ -5,18 +5,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/gorilla/websocket"
 )
 
+// RIS Live websocket url
+const socketUrl = "ws://ris-live.ripe.net/v1/ws/"
+
 func main() {
-	// RIS Live websocket url
-	socketUrl := "ws://ris-live.ripe.net/v1/ws/"
 
 	// create websocket connection to ris live websocket
 	conn, _, err := websocket.DefaultDialer.Dial(socketUrl, nil)
 	if err != nil {
 		log.Fatal("Websocket connection error:", err)
+		os.Exit(1)
 	}
 	defer conn.Close()
 
