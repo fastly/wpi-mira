@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func ParseStaticFile(folderDir string, msgChannel chan []common.BGPMessage) {
@@ -76,41 +77,67 @@ func parseBGPFile(filePath string) ([]common.BGPMessage, error) {
 }
 
 func parseBGPMessage(data string) (common.BGPMessage, error) {
+	const announcementFields = 15
+	const announcmentType = "A"
+	const withdrawalFields = 6
+	const withdrawalType = "W"
+
 	fields := strings.Split(data, "|")
 
-	// If message type is withdrawal (W) -> there's only the first 6 fields
-	if len(fields) == 6 && fields[2] == "W" {
+	timestamp, err := parseTimestamp(fields[1])
+	if err != nil {
+		return common.BGPMessage{}, fmt.Errorf("Error parsing Timestamp: %v", err)
+	}
+
+	bgpMessageType := fields[2]
+	peerIP := fields[3]
+
+	peerASN, err := parseUint32(fields[4])
+	if err != nil {
+		return common.BGPMessage{}, fmt.Errorf("Error parsing PeerASN: %v", err)
+	}
+
+	prefix := fields[5]
+
+	// Announcment examples: (Has 15 fields and messageType must be "A")
+	// BGP4MP_ET|1638317699.191812|A|206.82.104.185|398465|102.66.116.0/24|398465 5713 37457 37457 37457 37457 37457 37457 37457 328471 328471 328471|IGP|206.82.104.185|0|0|5713:800 65101:1085 65102:1000 65103:276 65104:150|NAG|4200000002 10.102.100.2|
+	// BGP4MP_ET|1638317699.744853|A|2001:504:36::6:1481:0:1|398465|2a10:cc42:1bb9::/48|398465 174 1299 20473|IGP|2001:504:36::6:1481:0:1|0|0|174:21000 174:22003|NAG||
+	// BGP4MP_ET|1638317700.043880|A|206.82.104.185|398465|102.66.116.0/24|398465 30844 328471 328471 328471|IGP|206.82.104.185|0|0|30844:27 65101:1082 65102:1000 65103:276 65104:150|NAG|4200000002 10.102.100.2|
+
+	// Withdrawal examples: (Has 6 fields and third field messageType must be "W")
+	// BGP4MP_ET|1638317694.706880|W|2001:504:36::6:1481:0:1|398465|2a10:cc42:131c::/48
+	// BGP4MP_ET|1638317679.511516|W|2001:504:36::6:1481:0:1|398465|2804:2688::/33
+
+	if (len(fields) == announcementFields && bgpMessageType == announcmentType) || (len(fields) == withdrawalFields && bgpMessageType == withdrawalType) {
 		return common.BGPMessage{
-			Timestamp:      parseTimestamp(fields[1]),
-			BGPMessageType: fields[2],
-			PeerIP:         fields[3],
-			PeerASN:        parseUint32(fields[4]),
-			Prefix:         fields[5],
-		}, nil
-	} else if len(fields) == 15 && fields[2] == "A" {
-		// If the message is advertisement (A) -> parse like normal
-		return common.BGPMessage{
-			Timestamp:      parseTimestamp(fields[1]),
-			BGPMessageType: fields[2],
-			PeerIP:         fields[3],
-			PeerASN:        parseUint32(fields[4]),
-			Prefix:         fields[5],
+			Timestamp:      timestamp,
+			BGPMessageType: bgpMessageType,
+			PeerIP:         peerIP,
+			PeerASN:        peerASN,
+			Prefix:         prefix,
 		}, nil
 	}
 
 	return common.BGPMessage{}, fmt.Errorf("Invalid BGP message: %s", data)
 }
 
-func parseTimestamp(timestampStr string) float64 {
+func parseTimestamp(timestampStr string) (time.Time, error) {
 	timestamp, err := strconv.ParseFloat(timestampStr, 64)
 	if err != nil {
-		fmt.Println("Error Parsing Float from Timestamp: ", err)
-		return 0.0
+		return time.Time{}, fmt.Errorf("Error parsing float from timestamp: %v", err)
 	}
-	return timestamp
+
+	seconds := int64(timestamp)
+	nanoseconds := int64((timestamp - float64(seconds)) * 1e9)
+
+	time := time.Unix(seconds, nanoseconds)
+	return time, nil
 }
 
-func parseUint32(valueStr string) uint32 {
-	value, _ := strconv.ParseUint(valueStr, 10, 32)
-	return uint32(value)
+func parseUint32(valueStr string) (uint32, error) {
+	value, err := strconv.ParseUint(valueStr, 10, 32)
+	if err != nil {
+		return 0, fmt.Errorf("Error parsing Uint32: %v", err)
+	}
+	return uint32(value), nil
 }

@@ -3,17 +3,18 @@ package process
 import (
 	"BGPAlert/common"
 	"fmt"
+	"time"
 )
 
 func ProcessBGPMessages(msgChannel chan []common.BGPMessage, windowChannel chan []common.Window) {
-	var bucketMap = make(map[int64][]common.BGPMessage)
+	var bucketMap = make(map[time.Time][]common.BGPMessage)
 
 	for bgpMessages := range msgChannel {
 		for _, msg := range bgpMessages {
-			timestamp := int64(msg.Timestamp)
+			windowSize, _ := time.ParseDuration("60s")
 
 			// Round down the timestamp to the nearest multiple of 60 seconds
-			bucketTimestamp := (timestamp / 60) * 60
+			bucketTimestamp := msg.Timestamp.Truncate(windowSize)
 
 			// Check if a bucket for the rounded timestamp exists, create it if not
 			if _, ok := bucketMap[bucketTimestamp]; !ok {
@@ -29,7 +30,7 @@ func ProcessBGPMessages(msgChannel chan []common.BGPMessage, windowChannel chan 
 
 	for timestamp, messages := range bucketMap {
 		frequency := len(messages)
-		fmt.Printf("Timestamp: %d, Frequency: %d\n", timestamp, frequency)
+		fmt.Printf("Timestamp: %s, Frequency: %d\n", timestamp.Format("2006-01-02 15:04:05"), frequency)
 	}
 	fmt.Println("Minutes Analyzed: ", len(bucketMap))
 
