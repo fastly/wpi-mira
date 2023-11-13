@@ -6,6 +6,7 @@ import (
 	"BGPAlert/shake_alert"
 	"fmt"
 	"sort"
+	"time"
 )
 
 func AnalyzeBGPMessages(windowChannel chan []common.Window) {
@@ -15,7 +16,7 @@ func AnalyzeBGPMessages(windowChannel chan []common.Window) {
 			bucketMap := w.BucketMap
 
 			// Convert BucketMap to a map of timestamp to length of messages
-			lengthMap := make(map[int64]int64)
+			lengthMap := make(map[time.Time]int64)
 
 			for timestamp, messages := range bucketMap {
 				lengthMap[timestamp] = int64(len(messages))
@@ -38,8 +39,8 @@ func AnalyzeBGPMessages(windowChannel chan []common.Window) {
 
 }
 
-func getSortedFrequencies(bucketMap map[int64]int64) []int64 {
-	var timestamps []int64
+func getSortedFrequencies(bucketMap map[time.Time]int64) []int64 {
+	var timestamps []time.Time
 
 	// Create a slice of timestamps and a corresponding slice of values in the order of timestamps
 	for timestamp, _ := range bucketMap {
@@ -48,7 +49,7 @@ func getSortedFrequencies(bucketMap map[int64]int64) []int64 {
 
 	// Sort the timestamps in ascending order
 	sort.Slice(timestamps, func(i, j int) bool {
-		return timestamps[i] < timestamps[j]
+		return timestamps[i].Before(timestamps[j])
 	})
 
 	// Create a new slice of values in the order of sorted timestamps

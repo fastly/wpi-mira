@@ -1,7 +1,11 @@
 package common
 
+import (
+	"time"
+)
+
 type BGPMessage struct {
-	Timestamp      float64
+	Timestamp      time.Time
 	BGPMessageType string
 	PeerIP         string
 	PeerASN        uint32
@@ -10,5 +14,5 @@ type BGPMessage struct {
 
 type Window struct {
 	Filter    string
-	BucketMap map[int64][]BGPMessage
+	BucketMap map[time.Time][]BGPMessage
 }
