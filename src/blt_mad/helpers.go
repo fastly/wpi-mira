@@ -2,6 +2,7 @@ package blt_mad
 
 import (
 	"math"
+	"reflect"
 	"sort"
 	"strconv"
 	"strings"
@@ -31,20 +32,31 @@ func removeZeros(data []float64) []float64 {
 /*sort the array in ascending order and all the processing that will be done with an array will be done with it in ascending order*/
 func findMedian(data []float64) float64 {
 	var med float64
-	sort.Float64s(data)
-	if len(data) == 0 {
+	sortedData := sortData(data)
+	if len(sortedData) == 0 {
 		return math.SmallestNonzeroFloat64
-	} else if len(data)%2 == 1 {
+	} else if len(sortedData)%2 == 1 {
 		//if the length is odd return the number in the middle
-		med = data[len(data)/2]
+		med = sortedData[len(sortedData)/2]
 	} else {
 		//if the length is even take the findMean of the middle two numbers
-		left := data[(len(data)/2)-1]
-		right := data[(len(data) / 2)]
+		left := sortedData[(len(sortedData)/2)-1]
+		right := sortedData[(len(sortedData) / 2)]
 		med = (left + right) / 2
 	}
 
 	return med
+}
+
+//if data needs to be sorted use this function to avoid changes in the original input
+func sortData(data []float64) []float64 {
+	// Create a copy of the original array to avoid modifying the input slice
+	sortedData := make([]float64, len(data))
+	copy(sortedData, data)
+
+	// Use the sort package to sort the array
+	sort.Float64s(sortedData)
+	return sortedData
 }
 
 func findMin(data []float64) float64 {
@@ -118,4 +130,30 @@ func containAllElements(mainArr []float64, subArr []float64) []float64 {
 		}
 	}
 	return elementsMissing
+}
+
+//https://medium.com/pragmatic-programmers/testing-floating-point-numbers-in-go-9872fe6de17f
+func withinTolerance(a float64, b float64, e float64) bool {
+	if a == b {
+		return true
+	}
+	d := math.Abs(a - b)
+	if b == 0 {
+		return d < e
+	} else {
+		return (d / math.Abs(b)) < e
+	}
+}
+
+func withinToleranceFloatSlice(a []float64, b []float64, e float64) bool {
+	if reflect.DeepEqual(a, b) {
+		return true
+	} else {
+		for i := 0; i < len(a); i++ {
+			if !withinTolerance(a[i], b[i], e) {
+				return false
+			}
+		}
+	}
+	return true
 }
