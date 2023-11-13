@@ -64,6 +64,8 @@ func downloadFile(url, folderDir string) error {
 }
 
 func main() {
+	folders := []Folder{}
+
 	// Create folder instances
 	bgptest1 := Folder{
 		FolderName: "bgptest1",
@@ -73,6 +75,7 @@ func main() {
 			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211204.1915.bz2",
 		},
 	}
+	folders = append(folders, bgptest1)
 
 	bgptest2 := Folder{
 		FolderName: "bgptest2",
@@ -94,6 +97,7 @@ func main() {
 			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211204.1915.bz2",
 		},
 	}
+	folders = append(folders, bgptest2)
 
 	bgptest3 := Folder{
 		FolderName: "bgptest3",
@@ -104,6 +108,7 @@ func main() {
 			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211209.1615.bz2",
 		},
 	}
+	folders = append(folders, bgptest3)
 
 	bgptest4 := Folder{
 		FolderName: "bgptest4",
@@ -140,6 +145,7 @@ func main() {
 			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211220.2330.bz2",
 		},
 	}
+	folders = append(folders, bgptest4)
 
 	bgptest5 := Folder{
 		FolderName: "bgptest5",
@@ -175,6 +181,7 @@ func main() {
 			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211229.0100.bz2",
 		},
 	}
+	folders = append(folders, bgptest5)
 
 	bgpnyfiles := Folder{
 		FolderName: "bgpnyfiles",
@@ -185,6 +192,7 @@ func main() {
 			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211201.0045.bz2",
 		},
 	}
+	folders = append(folders, bgpnyfiles)
 
 	bgpupdatefiles := Folder{
 		FolderName: "bgpupdatefiles",
@@ -197,40 +205,13 @@ func main() {
 			"http://routeviews.org/route-views.chicago/bgpdata/2016.06/UPDATES/updates.20160629.1445.bz2",
 		},
 	}
+	folders = append(folders, bgpupdatefiles)
 
 	// Download folders
-	err := downloadFolder(bgptest1)
-	if err != nil {
-		fmt.Println("Error downloading folder bgptest1:", err)
-	}
-
-	err = downloadFolder(bgptest2)
-	if err != nil {
-		fmt.Println("Error downloading folder bgptest2:", err)
-	}
-
-	err = downloadFolder(bgptest3)
-	if err != nil {
-		fmt.Println("Error downloading folder bgptest3:", err)
-	}
-
-	err = downloadFolder(bgptest4)
-	if err != nil {
-		fmt.Println("Error downloading folder bgptest4:", err)
-	}
-
-	err = downloadFolder(bgptest5)
-	if err != nil {
-		fmt.Println("Error downloading folder bgptest5:", err)
-	}
-
-	err = downloadFolder(bgpnyfiles)
-	if err != nil {
-		fmt.Println("Error downloading folder bgpnyfiles:", err)
-	}
-
-	err = downloadFolder(bgpupdatefiles)
-	if err != nil {
-		fmt.Println("Error downloading folder bgpupdatefiles:", err)
+	for _, folder := range folders {
+		err := downloadFolder(folder)
+		if err != nil {
+			fmt.Printf("Error downloading folder %s, %v", folder.FolderName, err)
+		}
 	}
 }
