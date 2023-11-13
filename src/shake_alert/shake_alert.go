@@ -9,7 +9,6 @@ import (
 const (
 	windowSize = 391
 	k          = 5 //# of neighbors
-	//r          = 15000
 )
 
 // finds p-th percentile of data
@@ -66,22 +65,6 @@ func FindOutliers(data []float64) []float64 {
 	//iterate thru each time bin
 	for i := 0; i < len(data); i++ {
 		currentBin := data[i]
-		//recentBins := bins[i-windowSize : i]
-
-		//fmt.Println(currentBin)
-		//fmt.Println(recentBins)
-
-		// calculate the density-based radius R
-		/*
-			var counts []float64
-			for _, bin := range recentBins {
-				counts = append(counts, bin)
-				//fmt.Println(counts)
-			}
-		*/
-		//radius := int(math.Abs(float64(median(counts) - currentBin)))
-
-		//fmt.Println(radius)
 
 		// count the number of neighbors within radius R
 		R := findR(data)
@@ -91,8 +74,6 @@ func FindOutliers(data []float64) []float64 {
 				neighborCount++
 			}
 		}
-
-		//fmt.Println(neighborCount)
 
 		// if there are fewer than k neighbors, the current bin is an outlier
 		if neighborCount < k {
