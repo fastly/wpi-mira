@@ -17,30 +17,29 @@ func AnalyzeBGPMessages(windowChannel chan []common.Window) {
 			bucketMap := w.BucketMap
 
 			// Convert BucketMap to a map of timestamp to length of messages
-			lengthMap := make(map[time.Time]int64)
+			lengthMap := make(map[time.Time]float64)
 
 			for timestamp, messages := range bucketMap {
-				lengthMap[timestamp] = int64(len(messages))
+				lengthMap[timestamp] = float64(len(messages))
 			}
 
 			// Turn map into sorted array of frequencies by timestamp
 			sortedFrequencies := getSortedFrequencies(lengthMap)
 
-			// Convert to float array for analysis functions
-			floatArray := int64ArrayToFloat64Array(sortedFrequencies)
-			fmt.Println(floatArray)
+			fmt.Println(sortedFrequencies)
 
 			fmt.Println("BLT MAD Outliers: ")
-			fmt.Println(blt_mad.BltMad(floatArray, 10))
+			fmt.Println(blt_mad.BltMad(sortedFrequencies, 10))
 
 			fmt.Println("ShakeAlert Outliers: ")
-			fmt.Println(shake_alert.FindOutliers(floatArray))
+			fmt.Println(shake_alert.FindOutliers(sortedFrequencies))
 		}
 	}
 
 }
 
-func getSortedFrequencies(bucketMap map[time.Time]int64) []int64 {
+// Takes in map of time objects to frequencies and puts them into an ordered array of frequencies based on increasing timestamps
+func getSortedFrequencies(bucketMap map[time.Time]float64) []float64 {
 	var timestamps []time.Time
 
 	// Create a slice of timestamps and a corresponding slice of values in the order of timestamps
@@ -54,18 +53,10 @@ func getSortedFrequencies(bucketMap map[time.Time]int64) []int64 {
 	})
 
 	// Create a new slice of values in the order of sorted timestamps
-	sortedValues := make([]int64, len(timestamps))
+	sortedValues := make([]float64, len(timestamps))
 	for i, timestamp := range timestamps {
 		sortedValues[i] = bucketMap[timestamp]
 	}
 
 	return sortedValues
-}
-
-func int64ArrayToFloat64Array(intArray []int64) []float64 {
-	floatArray := make([]float64, len(intArray))
-	for i, v := range intArray {
-		floatArray[i] = float64(v)
-	}
-	return floatArray
 }
