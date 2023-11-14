@@ -15,7 +15,9 @@ import (
 const socketUrl = "ws://ris-live.ripe.net/v1/ws/"
 
 // connects to ris live, parsing messages, and putting messages into msgChannel for processor
-func ParseRisLiveData(msgChannel chan common.BGPMessage) {
+func ParseRisLiveData(msgChannel chan []common.BGPMessage) {
+
+	fmt.Println("starting...")
 
 	// create websocket connection to ris live websocket
 	conn, _, err := websocket.DefaultDialer.Dial(socketUrl, nil)
@@ -25,14 +27,21 @@ func ParseRisLiveData(msgChannel chan common.BGPMessage) {
 	}
 	defer conn.Close()
 
+	fmt.Println("made connection")
+
 	//keep reading in new message from connection
 	for {
+
+		fmt.Println("in for loop")
+
 		//take in next msg from connection
 		_, message, err := conn.ReadMessage()
 		if err != nil {
 			log.Println("Websocket read error:", err)
 			return
 		}
+
+		fmt.Println("read message") //NOT REACHING HERE
 
 		//parse message to data structure
 		bgpMsgs, err := parseLiveMessage(message)
@@ -42,10 +51,8 @@ func ParseRisLiveData(msgChannel chan common.BGPMessage) {
 			fmt.Printf("Parsed BGP Message: %+v\n", bgpMsgs) //prints parsed BGP msg
 		}
 
-		//put bgp message into channel
-		for _, bgpMsg := range bgpMsgs {
-			msgChannel <- bgpMsg
-		}
+		//put bgp messages into channel
+		msgChannel <- bgpMsgs
 
 	}
 }
