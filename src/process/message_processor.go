@@ -2,17 +2,20 @@ package process
 
 import (
 	"BGPAlert/common"
+	"errors"
 	"fmt"
 	"time"
 )
 
 // Constantly reads channel of messages and stores them in Window objects to send through windowChannel for analysis
-func ProcessBGPMessages(msgChannel chan common.BGPMessage, windowChannel chan common.Window) {
+func ProcessBGPMessages(msgChannel chan common.BGPMessage, windowChannel chan common.Window) error {
 	var bucketMap = make(map[time.Time][]common.BGPMessage)
 
 	for msg := range msgChannel {
-
-		windowSize, _ := time.ParseDuration("60s")
+		windowSize, err := time.ParseDuration("60s")
+		if err != nil {
+			return errors.New("error creating parsing window, " + err.Error())
+		}
 
 		// Round down the timestamp to the nearest multiple of 60 seconds
 		bucketTimestamp := msg.Timestamp.Truncate(windowSize)
@@ -41,4 +44,5 @@ func ProcessBGPMessages(msgChannel chan common.BGPMessage, windowChannel chan co
 
 	close(windowChannel)
 
+	return nil
 }
