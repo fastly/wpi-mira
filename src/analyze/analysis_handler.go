@@ -25,7 +25,7 @@ func AnalyzeBGPMessages(windowChannel chan common.Window) {
 		// Turn map into sorted array of frequencies by timestamp
 		sortedFrequencies := getSortedFrequencies(lengthMap)
 
-		fmt.Printf("Sorted Array of Frequencies \n%+v\n", sortedFrequencies)
+		fmt.Printf("Sorted Array of Frequencies: \n%+v\n", sortedFrequencies)
 		fmt.Printf("BLT MAD Outliers: \n%+v\n", blt_mad.BltMad(sortedFrequencies, 10))
 		fmt.Printf("ShakeAlert Outliers: \n%+v\n", shake_alert.FindOutliers(sortedFrequencies))
 	}
