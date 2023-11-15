@@ -1,0 +1,10 @@
+{
+  "dataOption": "live",
+  "staticFilePath": "enter the pathway to static binary file with BGP data",
+  "outlierDetectionAlgorithm": "mad",
+  "madParameter": "enter the sensitivity parameter",
+  "prefix": "enter the prefix or prefixes of choice here",
+  "asn": "enter the ASNs of interest here",
+  "peerIp": "enter peer IP",
+  "connector": "enter connector or connectors of interests"
+}
