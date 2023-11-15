@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-var windowSize = 43
+var windowSize = 40
 
 // Constantly reads channel of messages and stores them in Window objects to send through windowChannel for analysis
 func ProcessBGPMessages(msgChannel chan common.BGPMessage, windowChannel chan common.Window) error {
@@ -37,10 +37,6 @@ func ProcessBGPMessages(msgChannel chan common.BGPMessage, windowChannel chan co
 		fmt.Printf("Timestamp: %s, Frequency: %d\n", timestamp.Format("2006-01-02 15:04:05"), frequency)
 	}
 	fmt.Println("Minutes Analyzed: ", len(bucketMap))
-
-	//duration := maxTime.Sub(minTime)
-	//minutes := uint32(duration.Minutes())
-	//return minutes
 
 	minTime, maxTime := getMapMinAndMax(bucketMap)
 	duration := uint32((maxTime.Sub(minTime)).Minutes()) + 1
@@ -110,9 +106,14 @@ func ProcessBGPMessagesLive(msgChannel chan common.BGPMessage, windowChannel cha
 					// Now we know our map is exactly == windSize -> send it to channel for analysis
 					fmt.Println("BucketMap length before channel: ", len(window.BucketMap))
 
-					windowChannel <- window
+					// Need to send copy to avoid two threads interacting with same values
+					tempWindow := common.Window{
+						Filter:    window.Filter,
+						BucketMap: deepCopyBucketMap(window.BucketMap),
+					}
+					windowChannel <- tempWindow
 
-					time.Sleep(1 * time.Second)
+					//time.Sleep(1 * time.Second)
 				} else {
 					window.BucketMap[bucketTimestamp] = make([]common.BGPMessage, 0)
 				}
@@ -153,4 +154,13 @@ func getMapMinAndMax(timestampMap map[time.Time][]common.BGPMessage) (time.Time,
 	//fmt.Println(maxTime)
 
 	return minTime, maxTime
+}
+
+// Creates a deep copy of bucketMap
+func deepCopyBucketMap(original map[time.Time][]common.BGPMessage) map[time.Time][]common.BGPMessage {
+	copyMap := make(map[time.Time][]common.BGPMessage, len(original))
+	for key, value := range original {
+		copyMap[key] = value
+	}
+	return copyMap
 }
