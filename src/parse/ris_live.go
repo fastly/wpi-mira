@@ -7,8 +7,6 @@ import (
 	"log"
 	"net/netip"
 	"os"
-
-	//"os/signal"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -34,16 +32,12 @@ func receiveHandler(msgChannel chan []common.BGPMessage, conn *websocket.Conn) {
 	//keep reading in new message from connection
 	for {
 
-		fmt.Println("in for loop")
-
 		//take in next msg from connection
 		_, message, err := conn.ReadMessage()
 		if err != nil {
 			log.Println("Websocket read error:", err)
 			return
 		}
-
-		fmt.Println("read message") //NOT REACHING HERE
 
 		//parse message to data structure
 		bgpMsgs, err := parseLiveMessage(message)
