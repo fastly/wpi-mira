@@ -13,8 +13,10 @@ const (
 
 // finds p-th percentile of data
 func findPercentile(data []float64, p float64) float64 {
+
+	//if there are no values in the array, then return unuasble value
 	if len(data) == 0 {
-		return 0.0
+		return math.NaN()
 	}
 
 	// sort data in ascending order
