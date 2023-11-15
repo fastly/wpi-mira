@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"net/netip"
+	"os"
+	//"os/signal"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -14,21 +16,22 @@ import (
 // RIS Live websocket url
 const socketUrl = "ws://ris-live.ripe.net/v1/ws/"
 
-// connects to ris live, parsing messages, and putting messages into msgChannel for processor
-func ParseRisLiveData(msgChannel chan []common.BGPMessage) {
 
-	fmt.Println("starting...")
+var done chan interface{}
+var interrupt chan os.Signal
 
-	// create websocket connection to ris live websocket
-	conn, _, err := websocket.DefaultDialer.Dial(socketUrl, nil)
-	if err != nil {
-		log.Fatal("Websocket connection error:", err)
-		return
-	}
-	defer conn.Close()
+type RisMessageData struct {
+	Host string  `json:"host,omitempty"`
+	Prefix string  `json:"prefix,omitempty"`
+}
 
-	fmt.Println("made connection")
+type RisMessage struct {
+	Type string `json:"type"`
+	Data *RisMessageData `json:"data"`
+}
 
+
+func receiveHandler(msgChannel chan []common.BGPMessage, conn *websocket.Conn) {
 	//keep reading in new message from connection
 	for {
 
@@ -55,6 +58,81 @@ func ParseRisLiveData(msgChannel chan []common.BGPMessage) {
 		msgChannel <- bgpMsgs
 
 	}
+}
+
+// connects to ris live, parsing messages, and putting messages into msgChannel for processor
+func ParseRisLiveData(msgChannel chan []common.BGPMessage) {
+
+	fmt.Println("starting...")
+
+	// create websocket connection to ris live websocket
+	conn, _, err := websocket.DefaultDialer.Dial(socketUrl, nil)
+	if err != nil {
+		log.Fatal("Websocket connection error:", err)
+		return
+	}
+	defer conn.Close()
+
+	go receiveHandler(msgChannel, conn)
+
+	fmt.Println("made connection")
+
+
+
+	/* Ping message (re-send this every minute or so */
+	ping := RisMessage{"ping", nil}
+	pingstr, err := json.Marshal(ping)
+	if err != nil {
+		log.Fatal("Error marshalling ping message (!)")
+		return
+	}
+
+	/* Subscribe */
+	subscription1 := RisMessage{"ris_subscribe", &RisMessageData{"", "0.0.0.0/0"}}
+
+	// alternatives:
+	// this would listen to one of Fastly's blocks of address space, from all collectors:
+	//subscription1 := RisMessage{"ris_subscribe", &RisMessageData{"", "151.101.0.0/16"}}
+	// this would listen to all of the IPv4 address space, but from only one collector:
+	//subscription1 := RisMessage{"ris_subscribe", &RisMessageData{"rrc21", "0.0.0.0/0"}}
+
+	out1, err := json.Marshal(subscription1)
+	if err != nil {
+		log.Fatal("Error marshalling subscription message (!)")
+		return
+	}
+	log.Println("Subscribing to: ", subscription1)
+	conn.WriteMessage(websocket.TextMessage, out1)
+
+	for {
+		select {
+		case <-time.After(time.Duration(60) * time.Millisecond * 1000):
+			// Send an echo packet 60 seconds
+			err := conn.WriteMessage(websocket.TextMessage, pingstr)
+			if err != nil {
+				log.Println("Error during writing to websocket:", err)
+				return
+			}
+
+		case <-interrupt:
+			// We received a SIGINT; clean up
+			log.Println("Received SIGINT interrupt signal. Closing all pending connections")
+			err := conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+			if err != nil {
+				log.Println("Error during closing websocket: ", err)
+				return
+			}
+
+			select {
+			case <-done:
+				log.Println("Receiver channel closed, exiting")
+			case <-time.After(time.Duration(1) * time.Second):
+				log.Println("Timeout in closing receiving channel; exiting")
+			}
+			return
+		}
+	}
+
 }
 
 //example ris message
