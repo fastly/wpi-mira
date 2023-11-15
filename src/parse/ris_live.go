@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/netip"
 	"os"
+
 	//"os/signal"
 	"time"
 
@@ -16,20 +17,18 @@ import (
 // RIS Live websocket url
 const socketUrl = "ws://ris-live.ripe.net/v1/ws/"
 
-
 var done chan interface{}
 var interrupt chan os.Signal
 
 type RisMessageData struct {
-	Host string  `json:"host,omitempty"`
-	Prefix string  `json:"prefix,omitempty"`
+	Host   string `json:"host,omitempty"`
+	Prefix string `json:"prefix,omitempty"`
 }
 
 type RisMessage struct {
-	Type string `json:"type"`
+	Type string          `json:"type"`
 	Data *RisMessageData `json:"data"`
 }
-
 
 func receiveHandler(msgChannel chan []common.BGPMessage, conn *websocket.Conn) {
 	//keep reading in new message from connection
@@ -77,16 +76,6 @@ func ParseRisLiveData(msgChannel chan []common.BGPMessage) {
 
 	fmt.Println("made connection")
 
-
-
-	/* Ping message (re-send this every minute or so */
-	ping := RisMessage{"ping", nil}
-	pingstr, err := json.Marshal(ping)
-	if err != nil {
-		log.Fatal("Error marshalling ping message (!)")
-		return
-	}
-
 	/* Subscribe */
 	subscription1 := RisMessage{"ris_subscribe", &RisMessageData{"", "0.0.0.0/0"}}
 
@@ -103,6 +92,14 @@ func ParseRisLiveData(msgChannel chan []common.BGPMessage) {
 	}
 	log.Println("Subscribing to: ", subscription1)
 	conn.WriteMessage(websocket.TextMessage, out1)
+
+	/* Ping message (re-send this every minute or so */
+	ping := RisMessage{"ping", nil}
+	pingstr, err := json.Marshal(ping)
+	if err != nil {
+		log.Fatal("Error marshalling ping message (!)")
+		return
+	}
 
 	for {
 		select {
@@ -159,10 +156,6 @@ type RisAnnouncement struct {
 	Prefixes []string `json:prefixes`
 }
 
-type RisWithdrawal struct {
-	Withdrawal string //withdrawn IP prefix
-}
-
 type RisLiveMessageData struct {
 	Timestamp     float64           `json:timestamp`
 	Peer          string            `json:peer`
@@ -175,7 +168,7 @@ type RisLiveMessageData struct {
 	Origin        string            `json:origin`
 	Med           int               `json:med`
 	Announcements []RisAnnouncement `json:announcements`
-	Withdrawals   []RisWithdrawal   `json:withdrawals`
+	Withdrawals   []string          `json:withdrawals` //string of prefixes being withdrawn
 }
 
 type RisLiveMessage struct {
@@ -249,7 +242,7 @@ func parseLiveMessage(data []byte) ([]common.BGPMessage, error) {
 				parsedMsg.BGPMessageType = "W"
 
 				//prefix
-				parsedMsg.Prefix, err = netip.ParsePrefix(withdrawal.Withdrawal)
+				parsedMsg.Prefix, err = netip.ParsePrefix(withdrawal)
 				if err != nil {
 					return []common.BGPMessage{}, fmt.Errorf("error parsing prefix: %v", err)
 				}
