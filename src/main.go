@@ -33,8 +33,7 @@ func main() {
 
 	// Can change folder directory to any folder inside of src/staticdata
 	go func() {
-		parse.ParseRisLiveData(msgChannel)
-		//parse.ParseStaticFile("bgptest1", msgChannel)
+		parse.ParseStaticFile("bgptest1", msgChannel)
 		wg.Done()
 	}()
 
