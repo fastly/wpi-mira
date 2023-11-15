@@ -28,7 +28,7 @@ type RisMessage struct {
 	Data *RisMessageData `json:"data"`
 }
 
-func receiveHandler(msgChannel chan []common.BGPMessage, conn *websocket.Conn) {
+func receiveHandler(msgChannel chan common.BGPMessage, conn *websocket.Conn) {
 	//keep reading in new message from connection
 	for {
 
@@ -48,13 +48,15 @@ func receiveHandler(msgChannel chan []common.BGPMessage, conn *websocket.Conn) {
 		}
 
 		//put bgp messages into channel
-		msgChannel <- bgpMsgs
+		for _, msg := range bgpMsgs {
+			msgChannel <- msg
+		}
 
 	}
 }
 
 // connects to ris live, parsing messages, and putting messages into msgChannel for processor
-func ParseRisLiveData(msgChannel chan []common.BGPMessage) {
+func ParseRisLiveData(msgChannel chan common.BGPMessage) {
 
 	fmt.Println("starting...")
 
