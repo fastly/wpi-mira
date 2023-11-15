@@ -38,7 +38,7 @@ func main() {
 	}()
 
 	go func() {
-		process.ProcessBGPMessages(msgChannel, windowChannel)
+		process.ProcessBGPMessagesLive(msgChannel, windowChannel)
 		wg.Done()
 	}()
 

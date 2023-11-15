@@ -14,6 +14,7 @@ func AnalyzeBGPMessages(windowChannel chan common.Window) {
 	for window := range windowChannel {
 		fmt.Println("Received Window: ")
 		bucketMap := window.BucketMap
+		fmt.Println("BucketMap length after channel: ", len(bucketMap))
 
 		// Convert BucketMap to a map of timestamp to length of messages
 		lengthMap := make(map[time.Time]float64)
@@ -26,8 +27,10 @@ func AnalyzeBGPMessages(windowChannel chan common.Window) {
 		sortedFrequencies := getSortedFrequencies(lengthMap)
 
 		fmt.Printf("Sorted Array of Frequencies: \n%+v\n", sortedFrequencies)
+		//fmt.Println("Length of Frequencies: ", len(sortedFrequencies))
 		fmt.Printf("BLT MAD Outliers: \n%+v\n", blt_mad.BltMad(sortedFrequencies, 10))
 		fmt.Printf("ShakeAlert Outliers: \n%+v\n", shake_alert.FindOutliers(sortedFrequencies))
+
 	}
 
 }
