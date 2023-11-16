@@ -12,8 +12,10 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-// RIS Live websocket url
-const socketUrl = "ws://ris-live.ripe.net/v1/ws/"
+const (
+	socketUrl  = "ws://ris-live.ripe.net/v1/ws/" // RIS Live websocket url
+	risMsgType = "ris_message"
+)
 
 var done chan interface{}
 var interrupt chan os.Signal
@@ -28,34 +30,52 @@ type RisMessage struct {
 	Data *RisMessageData `json:"data"`
 }
 
-func receiveHandler(msgChannel chan common.BGPMessage, conn *websocket.Conn) {
-	//keep reading in new message from connection
-	for {
-
-		//take in next msg from connection
-		_, message, err := conn.ReadMessage()
-		if err != nil {
-			log.Println("Websocket read error:", err)
-			return
-		}
-
-		//parse message to data structure
-		bgpMsgs, err := parseLiveMessage(message)
-		if err != nil {
-			log.Println("Error parsing BGP message", err)
-		} else {
-			fmt.Printf("Parsed BGP Message: %+v\n", bgpMsgs) //prints parsed BGP msg
-		}
-
-		//put bgp messages into channel
-		for _, msg := range bgpMsgs {
-			msgChannel <- msg
-		}
-
+/*example ris message
+{
+	"type":"ris_message",
+	"data": {
+		"timestamp":1695269583.730,
+		"peer":"217.29.66.158",
+		"peer_asn":"24482",
+		"id":"217.29.66.158-018ab5f0fb720005",
+		"host":"rrc10.ripe.net",
+		"type":"UPDATE",
+		"path":[24482,6939,38040,23969],
+		"community":[[24482,2],[24482,200],[24482,12000],[24482,12040],[24482,12041],[24482,20100]],
+		"origin":"IGP",
+		"med":0,
+		"announcements":[{"next_hop":"217.29.66.158","prefixes":["1.1.249.0/24"]}],
+		"withdrawals":[]
 	}
 }
+*/
 
-// connects to ris live, parsing messages, and putting messages into msgChannel for processor
+type RisAnnouncement struct {
+	NextHop  string   `json:next_hop`
+	Prefixes []string `json:prefixes`
+}
+
+type RisLiveMessageData struct {
+	Timestamp     float64           `json:timestamp`
+	Peer          string            `json:peer`
+	PeerAsn       string            `json:"peer_asn"` //"peer_asn":"396998"
+	Id            string            `json:id`
+	Host          string            `json:host`
+	Type          string            `json:type`
+	Path          []int             `json:path`
+	Community     [][]int           `json:community`
+	Origin        string            `json:origin`
+	Med           int               `json:med`
+	Announcements []RisAnnouncement `json:announcements`
+	Withdrawals   []string          `json:withdrawals` //string of prefixes being withdrawn
+}
+
+type RisLiveMessage struct {
+	Type string             `json:"type"`
+	Data RisLiveMessageData `json:"data"`
+}
+
+// connects to ris live, starts go routine receiverHandler, manages connection and subscription
 func ParseRisLiveData(msgChannel chan common.BGPMessage) {
 
 	fmt.Println("starting...")
@@ -74,6 +94,8 @@ func ParseRisLiveData(msgChannel chan common.BGPMessage) {
 
 	/* Subscribe */
 	subscription1 := RisMessage{"ris_subscribe", &RisMessageData{"", "0.0.0.0/0"}}
+	//TODO: connect subscription to config file
+	//		keep an array of subscriptions
 
 	// alternatives:
 	// this would listen to one of Fastly's blocks of address space, from all collectors:
@@ -128,50 +150,35 @@ func ParseRisLiveData(msgChannel chan common.BGPMessage) {
 
 }
 
-//example ris message
-//{
-//	"type":"ris_message",
-//	"data": {
-//		"timestamp":1695269583.730,
-//		"peer":"217.29.66.158",
-//		"peer_asn":"24482",
-//		"id":"217.29.66.158-018ab5f0fb720005",
-//		"host":"rrc10.ripe.net",
-//		"type":"UPDATE",
-//		"path":[24482,6939,38040,23969],
-//		"community":[[24482,2],[24482,200],[24482,12000],[24482,12040],[24482,12041],[24482,20100]],
-//		"origin":"IGP",
-//		"med":0,
-//		"announcements":[{"next_hop":"217.29.66.158","prefixes":["1.1.249.0/24"]}],
-//		"withdrawals":[]
-//	}
-//}
+// keep reading in new message from connection, send msg to parser, put parsed messages into channel
+func receiveHandler(msgChannel chan common.BGPMessage, conn *websocket.Conn) {
 
-type RisAnnouncement struct {
-	NextHop  string   `json:next_hop`
-	Prefixes []string `json:prefixes`
+	for {
+		//take in next msg from connection
+		_, message, err := conn.ReadMessage()
+		if err != nil {
+			log.Println("Websocket read error:", err)
+			return
+		}
+
+		//parse message to data structure
+		bgpMsgs, err := parseLiveMessage(message)
+		if err != nil {
+			log.Println("Error parsing BGP message", err)
+		} else {
+			fmt.Printf("Parsed BGP Message: %+v\n", bgpMsgs) //prints parsed BGP msg
+		}
+
+		//put bgp messages into channel
+		for _, msg := range bgpMsgs {
+			msgChannel <- msg
+		}
+
+	}
 }
 
-type RisLiveMessageData struct {
-	Timestamp     float64           `json:timestamp`
-	Peer          string            `json:peer`
-	PeerAsn       string            `json:"peer_asn"` //,"peer_asn":"396998"
-	Id            string            `json:id`
-	Host          string            `json:host`
-	Type          string            `json:type`
-	Path          []int             `json:path`
-	Community     [][]int           `json:community`
-	Origin        string            `json:origin`
-	Med           int               `json:med`
-	Announcements []RisAnnouncement `json:announcements`
-	Withdrawals   []string          `json:withdrawals` //string of prefixes being withdrawn
-}
-
-type RisLiveMessage struct {
-	Type string             `json:"type"`
-	Data RisLiveMessageData `json:"data"`
-}
-
+// parses json message into common.BGPmessage struct
+// returns array of common.BGPMessage because it separates by prefix and type of update (A or W)
 func parseLiveMessage(data []byte) ([]common.BGPMessage, error) {
 	var parsedMsgs []common.BGPMessage
 	var parsedMsg common.BGPMessage
@@ -185,9 +192,7 @@ func parseLiveMessage(data []byte) ([]common.BGPMessage, error) {
 	}
 
 	//check is TYPE is ris message
-	if message.Type != "ris_message" {
-		log.Println("Received unhandled message:", message)
-	} else {
+	if message.Type == risMsgType {
 		payload := message.Data
 
 		//check if message data is of type UPDATE - meaning announcement or withdrawal (or both)
@@ -219,7 +224,7 @@ func parseLiveMessage(data []byte) ([]common.BGPMessage, error) {
 				for _, prefix := range announcement.Prefixes {
 
 					//bgpmessagetype
-					parsedMsg.BGPMessageType = "A"
+					parsedMsg.BGPMessageType = common.AnnouncementType
 
 					//prefix
 					parsedMsg.Prefix, err = netip.ParsePrefix(prefix)
@@ -235,7 +240,7 @@ func parseLiveMessage(data []byte) ([]common.BGPMessage, error) {
 			//for each withdrawal in the JSON message - make a new parsed message
 			for _, withdrawal := range payload.Withdrawals {
 				//bgpmessagetype
-				parsedMsg.BGPMessageType = "W"
+				parsedMsg.BGPMessageType = common.WithdrawalType
 
 				//prefix
 				parsedMsg.Prefix, err = netip.ParsePrefix(withdrawal)
@@ -248,6 +253,8 @@ func parseLiveMessage(data []byte) ([]common.BGPMessage, error) {
 			}
 
 		}
+	} else { //if not ris message type
+		log.Println("Received unhandled message:", message)
 	}
 
 	return parsedMsgs, nil
@@ -260,7 +267,7 @@ func float64ToTime(timestamp float64) (time.Time, error) {
 	nanos := int64((timestamp - float64(seconds)) * 1e9)
 
 	// Perform error handling
-	if nanos < 0 || nanos >= int64(time.Second) {
+	if nanos < 0 || nanos >= 1e9 {
 		return time.Time{}, fmt.Errorf("invalid timestamp: %f", timestamp)
 	}
 
