@@ -1,16 +1,18 @@
 package main
 
 import (
-	"BGPAlert/analyze"
 	"BGPAlert/common"
 	"BGPAlert/config"
 	"BGPAlert/parse"
 	"BGPAlert/process"
+	"fmt"
 	"log"
 	"sync"
+	"time"
 )
 
 func main() {
+	startTime := time.Now()
 
 	configStruct, err := config.LoadConfig("config.json")
 	if err != nil {
@@ -27,13 +29,13 @@ func main() {
 	// Channel for sending windows from processing to analyzing
 	windowChannel := make(chan common.Window)
 
-	wg.Add(3)
+	wg.Add(2)
 
 	// Start the goroutines
 
 	// Can change folder directory to any folder inside of src/staticdata
 	go func() {
-		parse.ParseStaticFile("bgptest1", msgChannel)
+		parse.ParseStaticFile("bgptest5", msgChannel)
 		wg.Done()
 	}()
 
@@ -42,12 +44,17 @@ func main() {
 		wg.Done()
 	}()
 
-	go func() {
-		analyze.AnalyzeBGPMessages(windowChannel)
-		wg.Done()
-	}()
+	/*
+		go func() {
+			analyze.AnalyzeBGPMessages(windowChannel)
+			wg.Done()
+		}()
+	*/
 
 	// Wait for all goroutines to finish
 	wg.Wait()
+
+	elapsedTime := time.Now().Sub(startTime)
+	fmt.Println("Elapsed Time: ", elapsedTime)
 
 }

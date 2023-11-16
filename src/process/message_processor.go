@@ -1,6 +1,7 @@
 package process
 
 import (
+	"BGPAlert/analyze"
 	"BGPAlert/common"
 	"errors"
 	"fmt"
@@ -8,7 +9,7 @@ import (
 	"time"
 )
 
-var windowSize = 40
+var windowSize = 360
 
 // Constantly reads channel of messages and stores them in Window objects to send through windowChannel for analysis
 func ProcessBGPMessages(msgChannel chan common.BGPMessage, windowChannel chan common.Window) error {
@@ -106,21 +107,25 @@ func ProcessBGPMessagesLive(msgChannel chan common.BGPMessage, windowChannel cha
 					// Now we know our map is exactly == windSize -> send it to channel for analysis
 					fmt.Println("BucketMap length before channel: ", len(window.BucketMap))
 
-					// Need to send copy to avoid two threads interacting with same values
-					tempWindow := common.Window{
-						Filter:    window.Filter,
-						BucketMap: deepCopyBucketMap(window.BucketMap),
-					}
-					windowChannel <- tempWindow
+					// Make a deep copy and send over channel (slow, and requires commenting in thread in main.go)
+					/*
+						tempWindow := common.Window{
+							Filter:    window.Filter,
+							BucketMap: deepCopyBucketMap(window.BucketMap),
+						}
+
+						windowChannel <- tempWindow
+					*/
+
+					analyze.AnalyzeBGPMessages2(window)
 
 					//time.Sleep(1 * time.Second)
-				} else {
+				} else { // If our window size is not big enough for analysis, just create the new bin
 					window.BucketMap[bucketTimestamp] = make([]common.BGPMessage, 0)
 				}
-			} else {
+			} else { // If our window size is less than one, just create a new bin
 				window.BucketMap[bucketTimestamp] = make([]common.BGPMessage, 0)
 			}
-
 		}
 
 		// Append the message to the corresponding bucket
@@ -160,7 +165,18 @@ func getMapMinAndMax(timestampMap map[time.Time][]common.BGPMessage) (time.Time,
 func deepCopyBucketMap(original map[time.Time][]common.BGPMessage) map[time.Time][]common.BGPMessage {
 	copyMap := make(map[time.Time][]common.BGPMessage, len(original))
 	for key, value := range original {
-		copyMap[key] = value
+		copySlice := make([]common.BGPMessage, len(value))
+		for i, msg := range value {
+			copySlice[i] = common.BGPMessage{
+				Timestamp:      msg.Timestamp,
+				BGPMessageType: msg.BGPMessageType,
+				PeerIP:         msg.PeerIP,
+				PeerASN:        msg.PeerASN,
+				Prefix:         msg.Prefix,
+			}
+		}
+		copyMap[key] = copySlice
 	}
+
 	return copyMap
 }
