@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/netip"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -76,7 +77,7 @@ type RisLiveMessage struct {
 }
 
 // connects to ris live, starts go routine receiverHandler, manages connection and subscription
-func ParseRisLiveData(msgChannel chan common.BGPMessage) {
+func ParseRisLiveData(msgChannel chan common.BGPMessage, configPrefixes string) {
 
 	fmt.Println("starting...")
 
@@ -93,23 +94,27 @@ func ParseRisLiveData(msgChannel chan common.BGPMessage) {
 	fmt.Println("made connection")
 
 	/* Subscribe */
-	subscription1 := RisMessage{"ris_subscribe", &RisMessageData{"", "0.0.0.0/0"}}
-	//TODO: connect subscription to config file
-	//		keep an array of subscriptions
+	subscriptionPrefixes := strings.Split(configPrefixes, ",")
+
+	if len(subscriptionPrefixes) == 0 {
+		subscriptionPrefixes = append(subscriptionPrefixes, "0.0.0.0/0")
+	}
+
+	for _, prefix := range subscriptionPrefixes {
+		subscription := RisMessage{"ris_subscribe", &RisMessageData{"", prefix}}
+		out, err := json.Marshal(subscription)
+		if err != nil {
+			log.Fatal("error marshalling subscription message (!)")
+		}
+		log.Println("Subscribing to: ", subscription)
+		conn.WriteMessage(websocket.TextMessage, out)
+	}
 
 	// alternatives:
 	// this would listen to one of Fastly's blocks of address space, from all collectors:
 	//subscription1 := RisMessage{"ris_subscribe", &RisMessageData{"", "151.101.0.0/16"}}
 	// this would listen to all of the IPv4 address space, but from only one collector:
 	//subscription1 := RisMessage{"ris_subscribe", &RisMessageData{"rrc21", "0.0.0.0/0"}}
-
-	out1, err := json.Marshal(subscription1)
-	if err != nil {
-		log.Fatal("Error marshalling subscription message (!)")
-		return
-	}
-	log.Println("Subscribing to: ", subscription1)
-	conn.WriteMessage(websocket.TextMessage, out1)
 
 	/* Ping message (re-send this every minute or so */
 	ping := RisMessage{"ping", nil}
