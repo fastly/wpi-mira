@@ -5,6 +5,11 @@ import (
 	"time"
 )
 
+const (
+	AnnouncementType = "A"
+	WithdrawalType   = "W"
+)
+
 type BGPMessage struct {
 	Timestamp      time.Time
 	BGPMessageType string
