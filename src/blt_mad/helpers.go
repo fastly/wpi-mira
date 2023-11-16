@@ -89,7 +89,7 @@ func findMax(data []float64) float64 {
 func findMean(data []float64) float64 {
 	sum := 0.0
 	if len(data) == 0 {
-		return -1.0 //invalid findMean in the context of BGP message counts
+		return math.NaN() //invalid findMean in the context of BGP message counts
 	} else {
 		for _, num := range data {
 			sum += num
