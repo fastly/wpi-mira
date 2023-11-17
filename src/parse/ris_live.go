@@ -78,7 +78,7 @@ type RisLiveMessage struct {
 }
 
 // connects to ris live, starts go routine receiverHandler, manages connection and subscription
-func ParseRisLiveData(msgChannel chan common.BGPMessage) error {
+func ParseRisLiveData(msgChannel chan common.BGPMessage, configPrefixes string) error {
 
 	fmt.Println("starting...")
 
@@ -104,7 +104,7 @@ func ParseRisLiveData(msgChannel chan common.BGPMessage) error {
 		subscription := RisMessage{"ris_subscribe", &RisMessageData{"", prefix}}
 		out, err := json.Marshal(subscription)
 		if err != nil {
-			log.Fatal("error marshalling subscription message (!)")
+			return errors.New("Error marshalling subscription message, " + err.Error())
 		}
 		log.Println("Subscribing to: ", prefix)
 		conn.WriteMessage(websocket.TextMessage, out)
@@ -115,13 +115,6 @@ func ParseRisLiveData(msgChannel chan common.BGPMessage) error {
 	//subscription1 := RisMessage{"ris_subscribe", &RisMessageData{"", "151.101.0.0/16"}}
 	// this would listen to all of the IPv4 address space, but from only one collector:
 	//subscription1 := RisMessage{"ris_subscribe", &RisMessageData{"rrc21", "0.0.0.0/0"}}
-
-	out1, err := json.Marshal(subscription1)
-	if err != nil {
-		return errors.New("Error marshalling subscription message, " + err.Error())
-	}
-	log.Println("Subscribing to: ", subscription1)
-	conn.WriteMessage(websocket.TextMessage, out1)
 
 	/* Ping message (re-send this every minute or so */
 	ping := RisMessage{"ping", nil}
