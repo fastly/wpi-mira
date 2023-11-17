@@ -32,10 +32,7 @@ func main() {
 	// Start the goroutines
 
 	go func() {
-		//parse.ParseRisLiveData(msgChannel, "") //no prefix - should default to 0.0.0.0/0
-		//parse.ParseRisLiveData(msgChannel, "0.0.0.0/0") //one prefix
-		//parse.ParseRisLiveData(msgChannel, "151.101.0.0/16,63.135.66.0/23") //mult prefixes
-		parse.ParseRisLiveData(msgChannel, configStruct.Prefix) //prefixes from config
+		parse.ParseStaticFile("bgptest1", msgChannel)
 		wg.Done()
 	}()
 
