@@ -87,9 +87,7 @@ func parseBGPFile(filePath string) ([]common.BGPMessage, error) {
 // Takes a line of BGPDumped data and turns it into the BGPMessage struct
 func parseBGPMessage(data string) (common.BGPMessage, error) {
 	const announcementFields = 15
-	const announcmentType = "A"
 	const withdrawalFields = 6
-	const withdrawalType = "W"
 
 	fields := strings.Split(data, "|")
 
@@ -124,7 +122,7 @@ func parseBGPMessage(data string) (common.BGPMessage, error) {
 	// BGP4MP_ET|1638317694.706880|W|2001:504:36::6:1481:0:1|398465|2a10:cc42:131c::/48
 	// BGP4MP_ET|1638317679.511516|W|2001:504:36::6:1481:0:1|398465|2804:2688::/33
 
-	if (len(fields) == announcementFields && bgpMessageType == announcmentType) || (len(fields) == withdrawalFields && bgpMessageType == withdrawalType) {
+	if (len(fields) == announcementFields && bgpMessageType == common.AnnouncementType) || (len(fields) == withdrawalFields && bgpMessageType == common.WithdrawalType) {
 		return common.BGPMessage{
 			Timestamp:      timestamp,
 			BGPMessageType: bgpMessageType,
