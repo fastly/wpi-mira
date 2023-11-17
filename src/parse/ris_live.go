@@ -106,7 +106,7 @@ func ParseRisLiveData(msgChannel chan common.BGPMessage, configPrefixes string) 
 		if err != nil {
 			log.Fatal("error marshalling subscription message (!)")
 		}
-		log.Println("Subscribing to: ", subscription)
+		log.Println("Subscribing to: ", prefix)
 		conn.WriteMessage(websocket.TextMessage, out)
 	}
 
