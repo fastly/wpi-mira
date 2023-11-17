@@ -3,6 +3,7 @@ package parse
 import (
 	"BGPAlert/common"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/netip"
@@ -76,15 +77,14 @@ type RisLiveMessage struct {
 }
 
 // connects to ris live, starts go routine receiverHandler, manages connection and subscription
-func ParseRisLiveData(msgChannel chan common.BGPMessage) {
+func ParseRisLiveData(msgChannel chan common.BGPMessage) error {
 
 	fmt.Println("starting...")
 
 	// create websocket connection to ris live websocket
 	conn, _, err := websocket.DefaultDialer.Dial(socketUrl, nil)
 	if err != nil {
-		log.Fatal("Websocket connection error:", err)
-		return
+		return errors.New("websocket connection err, " + err.Error())
 	}
 	defer conn.Close()
 
@@ -105,8 +105,7 @@ func ParseRisLiveData(msgChannel chan common.BGPMessage) {
 
 	out1, err := json.Marshal(subscription1)
 	if err != nil {
-		log.Fatal("Error marshalling subscription message (!)")
-		return
+		return errors.New("Error marshalling subscription message, " + err.Error())
 	}
 	log.Println("Subscribing to: ", subscription1)
 	conn.WriteMessage(websocket.TextMessage, out1)
@@ -115,8 +114,7 @@ func ParseRisLiveData(msgChannel chan common.BGPMessage) {
 	ping := RisMessage{"ping", nil}
 	pingstr, err := json.Marshal(ping)
 	if err != nil {
-		log.Fatal("Error marshalling ping message (!)")
-		return
+		return errors.New("Error marshalling ping message (!), " + err.Error())
 	}
 
 	for {
@@ -125,8 +123,7 @@ func ParseRisLiveData(msgChannel chan common.BGPMessage) {
 			// Send an echo packet 60 seconds
 			err := conn.WriteMessage(websocket.TextMessage, pingstr)
 			if err != nil {
-				log.Println("Error during writing to websocket:", err)
-				return
+				return errors.New("Error during writing to websocket " + err.Error())
 			}
 
 		case <-interrupt:
@@ -134,8 +131,7 @@ func ParseRisLiveData(msgChannel chan common.BGPMessage) {
 			log.Println("Received SIGINT interrupt signal. Closing all pending connections")
 			err := conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 			if err != nil {
-				log.Println("Error during closing websocket: ", err)
-				return
+				return errors.New("Error during closing websocket: " + err.Error())
 			}
 
 			select {
@@ -144,7 +140,7 @@ func ParseRisLiveData(msgChannel chan common.BGPMessage) {
 			case <-time.After(time.Duration(1) * time.Second):
 				log.Println("Timeout in closing receiving channel; exiting")
 			}
-			return
+			return nil
 		}
 	}
 
@@ -188,7 +184,8 @@ func parseLiveMessage(data []byte) ([]common.BGPMessage, error) {
 	err := json.Unmarshal(data, &message) //decode data from JSON to a struct
 	if err != nil {
 		log.Println("Bad parse:", err)
-		log.Println("Original message:", data)
+		return nil, err
+		//log.Println("Original message:", data)
 	}
 
 	//check is TYPE is ris message
