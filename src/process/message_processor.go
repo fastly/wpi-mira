@@ -2,31 +2,29 @@ package process
 
 import (
 	"BGPAlert/common"
-	"errors"
 	"fmt"
 	"time"
 )
 
 // Constantly reads channel of messages and stores them in Window objects to send through windowChannel for analysis
-func ProcessBGPMessages(msgChannel chan common.BGPMessage, windowChannel chan common.Window) error {
+func ProcessBGPMessages(msgChannel chan []common.BGPMessage, windowChannel chan []common.Window) {
 	var bucketMap = make(map[time.Time][]common.BGPMessage)
 
-	for msg := range msgChannel {
-		windowSize, err := time.ParseDuration("60s")
-		if err != nil {
-			return errors.New("error creating parsing window, " + err.Error())
+	for bgpMessages := range msgChannel {
+		for _, msg := range bgpMessages {
+			windowSize, _ := time.ParseDuration("60s")
+
+			// Round down the timestamp to the nearest multiple of 60 seconds
+			bucketTimestamp := msg.Timestamp.Truncate(windowSize)
+
+			// Check if a bucket for the rounded timestamp exists, create it if not
+			if _, ok := bucketMap[bucketTimestamp]; !ok {
+				bucketMap[bucketTimestamp] = make([]common.BGPMessage, 0)
+			}
+
+			// Append the message to the corresponding bucket
+			bucketMap[bucketTimestamp] = append(bucketMap[bucketTimestamp], msg)
 		}
-
-		// Round down the timestamp to the nearest multiple of 60 seconds
-		bucketTimestamp := msg.Timestamp.Truncate(windowSize)
-
-		// Check if a bucket for the rounded timestamp exists, create it if not
-		if _, ok := bucketMap[bucketTimestamp]; !ok {
-			bucketMap[bucketTimestamp] = make([]common.BGPMessage, 0)
-		}
-
-		// Append the message to the corresponding bucket
-		bucketMap[bucketTimestamp] = append(bucketMap[bucketTimestamp], msg)
 	}
 
 	for timestamp, messages := range bucketMap {
@@ -35,14 +33,17 @@ func ProcessBGPMessages(msgChannel chan common.BGPMessage, windowChannel chan co
 	}
 	fmt.Println("Minutes Analyzed: ", len(bucketMap))
 
+	var windows []common.Window
+
 	window := common.Window{
 		Filter:    "none",
 		BucketMap: bucketMap,
 	}
 
-	windowChannel <- window
+	windows = append(windows, window)
+
+	windowChannel <- windows
 
 	close(windowChannel)
 
-	return nil
 }

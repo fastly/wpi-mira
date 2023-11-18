@@ -3,7 +3,6 @@ package parse
 import (
 	"BGPAlert/common"
 	"bufio"
-	"errors"
 	"fmt"
 	"log"
 	"net/netip"
@@ -16,7 +15,7 @@ import (
 )
 
 // Reads in static files from a directory, parses them into BGPMessage struct and puts them into channel for processor to process
-func ParseStaticFile(folderDir string, msgChannel chan common.BGPMessage) {
+func ParseStaticFile(folderDir string, msgChannel chan []common.BGPMessage) {
 	const directoryPath = "static_data/"
 
 	// Gets all files from directory we want to test
@@ -35,10 +34,9 @@ func ParseStaticFile(folderDir string, msgChannel chan common.BGPMessage) {
 				fmt.Println("Error parsing file:", err)
 				continue
 			}
-			for _, msg := range bgpMessages {
-				msgChannel <- msg
-			}
+
 			// Send the parsed BGP messages to the channel
+			msgChannel <- bgpMessages
 		}
 	}
 
@@ -87,30 +85,32 @@ func parseBGPFile(filePath string) ([]common.BGPMessage, error) {
 // Takes a line of BGPDumped data and turns it into the BGPMessage struct
 func parseBGPMessage(data string) (common.BGPMessage, error) {
 	const announcementFields = 15
+	const announcmentType = "A"
 	const withdrawalFields = 6
+	const withdrawalType = "W"
 
 	fields := strings.Split(data, "|")
 
 	timestamp, err := parseTimestamp(fields[1])
 	if err != nil {
-		return common.BGPMessage{}, errors.New("error parsing timestamp, " + err.Error())
+		return common.BGPMessage{}, fmt.Errorf("error parsing timestamp: %v", err)
 	}
 
 	bgpMessageType := fields[2]
 
 	peerIP, err := netip.ParseAddr(fields[3])
 	if err != nil {
-		return common.BGPMessage{}, errors.New("error parsing address, " + err.Error())
+		return common.BGPMessage{}, fmt.Errorf("error parsing address: %v", err)
 	}
 
 	peerASN, err := parseUint32(fields[4])
 	if err != nil {
-		return common.BGPMessage{}, errors.New("error parsing peer asn, " + err.Error())
+		return common.BGPMessage{}, fmt.Errorf("error parsing peer asn: %v", err)
 	}
 
 	prefix, err := netip.ParsePrefix(fields[5])
 	if err != nil {
-		return common.BGPMessage{}, errors.New("error parsing prefix" + err.Error())
+		return common.BGPMessage{}, fmt.Errorf("error parsing prefix: %v", err)
 	}
 
 	// Announcment examples: (Has 15 fields and messageType must be "A")
@@ -122,7 +122,7 @@ func parseBGPMessage(data string) (common.BGPMessage, error) {
 	// BGP4MP_ET|1638317694.706880|W|2001:504:36::6:1481:0:1|398465|2a10:cc42:131c::/48
 	// BGP4MP_ET|1638317679.511516|W|2001:504:36::6:1481:0:1|398465|2804:2688::/33
 
-	if (len(fields) == announcementFields && bgpMessageType == common.AnnouncementType) || (len(fields) == withdrawalFields && bgpMessageType == common.WithdrawalType) {
+	if (len(fields) == announcementFields && bgpMessageType == announcmentType) || (len(fields) == withdrawalFields && bgpMessageType == withdrawalType) {
 		return common.BGPMessage{
 			Timestamp:      timestamp,
 			BGPMessageType: bgpMessageType,
@@ -132,15 +132,14 @@ func parseBGPMessage(data string) (common.BGPMessage, error) {
 		}, nil
 	}
 
-	return common.BGPMessage{}, errors.New("invalid bgp message")
+	return common.BGPMessage{}, fmt.Errorf("invalid bgp message: %s", data)
 }
 
 // Converts a string timestamp into a time.Time object
 func parseTimestamp(timestampStr string) (time.Time, error) {
 	timestamp, err := strconv.ParseFloat(timestampStr, 64)
 	if err != nil {
-		return time.Time{}, errors.New("error parsing float from timestamp, " + err.Error())
-
+		return time.Time{}, fmt.Errorf("error parsing float from timestamp: %v", err)
 	}
 
 	seconds := int64(timestamp)
@@ -155,7 +154,7 @@ func parseTimestamp(timestampStr string) (time.Time, error) {
 func parseUint32(valueStr string) (uint32, error) {
 	value, err := strconv.ParseUint(valueStr, 10, 32)
 	if err != nil {
-		return 0, errors.New("error parsing uint32, " + err.Error())
+		return 0, fmt.Errorf("error parsing uint32: %v", err)
 	}
 
 	return uint32(value), nil

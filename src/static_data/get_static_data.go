@@ -1,11 +1,24 @@
 package main
 
 import (
+	"BGPAlert/analyze"
+	"BGPAlert/blt_mad"
+	"BGPAlert/common"
+	"BGPAlert/config"
+	"BGPAlert/optimization"
+	"BGPAlert/parse"
+	"BGPAlert/process"
 	"fmt"
+	"golang.org/x/net/html"
 	"io"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
+	"sync"
+	"time"
 )
 
 type Folder struct {
@@ -13,205 +26,295 @@ type Folder struct {
 	Urls       []string
 }
 
-func downloadFolder(folder Folder) error {
-	// Create the folder on the file system
-	err := os.MkdirAll(folder.FolderName, os.ModePerm)
+func main() {
+	// Specify the target website URL
+	//to get the bgp updates the urls are of this format; sorted by the year and month
+	//"http://routeviews.org/route-views.ny/bgpdata/2021.11/UPDATES/"
+	//the links to .bz2 files contained within the main link in the configuration file; if the links can not be attained from the main link no files will be downloaded
+	configStruct, err := config.LoadConfig("config.json")
 	if err != nil {
-		return err
+		log.Fatal("Error loading configuration:", err)
 	}
+	config.ValidDateConfiguration(configStruct)
+	mainUrl := configStruct.URLStaticData
+	fmt.Println(mainUrl)
 
-	// Download files to the folder
-	for _, url := range folder.Urls {
-		err := downloadFile(url, folder.FolderName)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func downloadFile(url, folderDir string) error {
-	resp, err := http.Get(url)
+	// Make an HTTP GET request to the website
+	resp, err := http.Get(mainUrl)
 	if err != nil {
-		return err
+		fmt.Printf("Error making HTTP request: %v\n", err)
+		os.Exit(1)
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("HTTP request failed with status code %d", resp.StatusCode)
+	// Parse the HTML content of the response
+	doc, err := html.Parse(resp.Body)
+	if err != nil {
+		fmt.Printf("Error parsing HTML: %v\n", err)
+		os.Exit(1)
 	}
 
-	// Extract the filename from the URL
-	_, filename := filepath.Split(url)
+	// Extract URLs from the HTML document
+	partialUrls := extractBZ2URLs(doc)
+	allFolders := createFolders(partialUrls, mainUrl, 10)
+	for _, folder := range allFolders {
+		err := downloadFolder(folder)
+		if err != nil {
+			return
+		}
+	}
+
+	//add the files in
+	//get frequencies and min req ouputs for each of the folders into the text files
+	for i := 0; i <= 68; i++ { //change this number!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		outFile := fmt.Sprintf("/home/taya/Fastly-MQP23/src/static_data/rawBGPData/bgpTest%d.txt", i)
+		outMinReqFile := fmt.Sprintf("/home/taya/Fastly-MQP23/src/static_data/minReq/bgpMinOutliers97thPercentileTest%d.txt", i)
+		runProcessThroughOneBGPFolder(i, outFile, outMinReqFile)
+	}
+	//get all the means,mads, and taus into text files
+	GetMadsMediansTausIntoTxt()
+
+}
+
+func downloadFile(url, folderPath string) error {
+	// Create the folder if it doesn't exist
+	if err := os.MkdirAll(folderPath, os.ModePerm); err != nil {
+		return fmt.Errorf("error creating folder: %v", err)
+	}
+
+	// Extract the file name from the URL
+	fileName := filepath.Base(url)
 
 	// Create the file in the specified folder
-	filePath := filepath.Join(folderDir, filename)
-	file, err := os.Create(filePath)
+	filePath := filepath.Join(folderPath, fileName)
+	out, err := os.Create(filePath)
 	if err != nil {
-		return err
+		return fmt.Errorf("error creating file: %v", err)
 	}
-	defer file.Close()
+	defer out.Close()
 
-	// Copy the file from the response body to the local file
-	_, err = io.Copy(file, resp.Body)
+	// Make the HTTP request to download the file
+	response, err := http.Get(url)
 	if err != nil {
-		return err
+		return fmt.Errorf("error making HTTP request: %v", err)
+	}
+	defer response.Body.Close()
+
+	// Check if the request was successful (status code 200)
+	if response.StatusCode != http.StatusOK {
+		return fmt.Errorf("error downloading file, status code: %d", response.StatusCode)
 	}
 
-	fmt.Printf("Downloaded: %s\n", filePath)
+	// Copy the contents of the response body to the file
+	_, err = io.Copy(out, response.Body)
+	if err != nil {
+		return fmt.Errorf("error copying file contents: %v", err)
+	}
+
+	fmt.Printf("File downloaded successfully to: %s\n", filePath)
 	return nil
 }
 
-func main() {
-	folders := []Folder{}
-
-	// Create folder instances
-	bgptest1 := Folder{
-		FolderName: "bgptest1",
-		Urls: []string{
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211204.1845.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211204.1900.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211204.1915.bz2",
-		},
-	}
-	folders = append(folders, bgptest1)
-
-	bgptest2 := Folder{
-		FolderName: "bgptest2",
-		Urls: []string{
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211204.1545.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211204.1600.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211204.1615.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211204.1630.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211204.1645.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211204.1700.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211204.1715.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211204.1730.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211204.1745.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211204.1800.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211204.1815.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211204.1830.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211204.1845.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211204.1900.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211204.1915.bz2",
-		},
-	}
-	folders = append(folders, bgptest2)
-
-	bgptest3 := Folder{
-		FolderName: "bgptest3",
-		Urls: []string{
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211209.1530.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211209.1545.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211209.1600.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211209.1615.bz2",
-		},
-	}
-	folders = append(folders, bgptest3)
-
-	bgptest4 := Folder{
-		FolderName: "bgptest4",
-		Urls: []string{
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211220.1615.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211220.1630.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211220.1645.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211220.1700.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211220.1715.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211220.1730.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211220.1745.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211220.1800.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211220.1815.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211220.1830.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211220.1845.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211220.1900.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211220.1915.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211220.1930.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211220.1945.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211220.2000.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211220.2015.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211220.2030.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211220.2045.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211220.2100.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211220.2115.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211220.2130.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211220.2145.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211220.2200.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211220.2215.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211220.2230.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211220.2245.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211220.2300.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211220.2315.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211220.2330.bz2",
-		},
-	}
-	folders = append(folders, bgptest4)
-
-	bgptest5 := Folder{
-		FolderName: "bgptest5",
-		Urls: []string{
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211228.1800.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211228.1815.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211228.1830.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211228.1845.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211228.1900.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211228.1915.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211228.1930.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211228.1945.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211228.2000.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211228.2015.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211228.2030.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211228.2045.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211228.2100.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211228.2115.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211228.2130.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211228.2145.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211228.2200.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211228.2215.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211228.2230.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211228.2245.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211228.2300.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211228.2315.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211228.2330.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211228.2345.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211229.0000.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211229.0015.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211229.0030.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211229.0045.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211229.0100.bz2",
-		},
-	}
-	folders = append(folders, bgptest5)
-
-	bgpnyfiles := Folder{
-		FolderName: "bgpnyfiles",
-		Urls: []string{
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211201.0000.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211201.0015.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211201.0030.bz2",
-			"http://routeviews.org/route-views.ny/bgpdata/2021.12/UPDATES/updates.20211201.0045.bz2",
-		},
-	}
-	folders = append(folders, bgpnyfiles)
-
-	bgpupdatefiles := Folder{
-		FolderName: "bgpupdatefiles",
-		Urls: []string{
-			"http://routeviews.org/route-views.chicago/bgpdata/2016.06/UPDATES/updates.20160629.1330.bz2",
-			"http://routeviews.org/route-views.chicago/bgpdata/2016.06/UPDATES/updates.20160629.1345.bz2",
-			"http://routeviews.org/route-views.chicago/bgpdata/2016.06/UPDATES/updates.20160629.1400.bz2",
-			"http://routeviews.org/route-views.chicago/bgpdata/2016.06/UPDATES/updates.20160629.1415.bz2",
-			"http://routeviews.org/route-views.chicago/bgpdata/2016.06/UPDATES/updates.20160629.1430.bz2",
-			"http://routeviews.org/route-views.chicago/bgpdata/2016.06/UPDATES/updates.20160629.1445.bz2",
-		},
-	}
-	folders = append(folders, bgpupdatefiles)
-
-	// Download folders
-	for _, folder := range folders {
-		err := downloadFolder(folder)
-		if err != nil {
-			fmt.Printf("Error downloading folder %s, %v", folder.FolderName, err)
+func downloadFolder(folder Folder) error {
+	for _, url := range folder.Urls {
+		if err := downloadFile(url, folder.FolderName); err != nil {
+			fmt.Printf("Error downloading file from URL %s: %v\n", url, err)
+			// Continue with the next URL even if one fails
 		}
 	}
+	return nil
+}
+
+//this works
+func createFullUrls(urls []string, mainURL string) []string {
+	var result []string
+
+	for _, element := range urls {
+		result = append(result, mainURL+element)
+	}
+
+	return result
+}
+
+func getIntervalSlices(list []string, interval int) [][]string {
+	var result [][]string
+
+	for i := 0; i < len(list); i += interval {
+		end := i + interval
+		if end > len(list) {
+			end = len(list)
+		}
+		result = append(result, list[i:end])
+	}
+
+	return result
+}
+
+func createFolders(urls []string, mainURL string, numFiles int) []Folder {
+	var folderList []Folder
+	fullUrlsList := createFullUrls(urls, mainURL)
+	setsOfUrls := getIntervalSlices(fullUrlsList, numFiles)
+
+	for i := 0; i < len(setsOfUrls); i++ {
+		folderName := fmt.Sprintf("/home/taya/Fastly-MQP23/src/static_data/bgpTest%d", i)
+
+		// Create a Folder struct and append it to the list
+		folder := Folder{
+			FolderName: folderName,
+			Urls:       setsOfUrls[i],
+		}
+		folderList = append(folderList, folder)
+	}
+	return folderList
+}
+
+func extractBZ2URLs(n *html.Node) []string {
+	var urls []string
+
+	if n.Type == html.ElementNode && (n.Data == "a" || n.Data == "img" || n.Data == "link") {
+		for _, attr := range n.Attr {
+			if attr.Key == "href" || attr.Key == "src" {
+				if strings.HasSuffix(attr.Val, ".bz2") {
+					urls = append(urls, attr.Val)
+				}
+			}
+		}
+	}
+
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		urls = append(urls, extractBZ2URLs(c)...)
+	}
+
+	return urls
+}
+
+func GetMadsMediansTausIntoTxt() {
+	folderPath := "/home/taya/Fastly-MQP23/src/static_data/rawBGPData"
+	allMads := []float64{}
+	allMedians := []float64{}
+	allTaus := []float64{}
+
+	// Read all files in the folder
+	files, _ := ioutil.ReadDir(folderPath)
+
+	// Count the number of files (excluding directories)
+	fileCount := 0
+	for _, file := range files {
+		if !file.IsDir() {
+			fileCount++
+		}
+	}
+
+	//iterate through all the files and append the mads into one array
+	for i := 0; i < fileCount; i++ {
+		inputFilePath := fmt.Sprintf("/home/taya/Fastly-MQP23/src/static_data/rawBGPData/bgpTest%d.txt", i)
+		allMads = append(allMads, findMadOfTextFile(inputFilePath))
+	}
+	//iterate through all the files and append the medians into one array
+	for i := 0; i < fileCount; i++ {
+		inputFilePath := fmt.Sprintf("/home/taya/Fastly-MQP23/src/static_data/rawBGPData/bgpTest%d.txt", i)
+		allMedians = append(allMedians, findMedianOfTextFile(inputFilePath))
+	}
+
+	//iterate through all the files and append the optimal taus into one array
+	for i := 0; i < fileCount; i++ {
+		inputFilePath := fmt.Sprintf("/home/taya/Fastly-MQP23/src/static_data/rawBGPData/bgpTest%d.txt", i)
+		inputMinFilePath := fmt.Sprintf("/home/taya/Fastly-MQP23/src/static_data/minReq/bgpMinOutliers97thPercentileTest%d.txt", i)
+		allTaus = append(allTaus, findTauOfTextFile(inputFilePath, inputMinFilePath))
+	}
+
+	//write the array into a text file
+	blt_mad.SaveArrayToFile("/home/taya/Fastly-MQP23/src/static_data/madsFound.txt", allMads)
+	blt_mad.SaveArrayToFile("/home/taya/Fastly-MQP23/src/static_data/mediansFound.txt", allMedians)
+	blt_mad.SaveArrayToFile("/home/taya/Fastly-MQP23/src/static_data/tausFound.txt", allTaus)
+}
+
+func findTauOfTextFile(inputTextFile string, minReqTestFile string) float64 {
+	arrMain, _ := blt_mad.TxtIntoArrayFloat64(inputTextFile)
+	arrMinReq, _ := blt_mad.TxtIntoArrayFloat64(minReqTestFile)
+	//fmt.Println(arrMinReq)
+	tau := optimization.FindTauForMinReqOutput(arrMain, arrMinReq)
+	return tau
+}
+
+func findMedianOfTextFile(inputTextFile string) float64 {
+	arr, _ := blt_mad.TxtIntoArrayFloat64(inputTextFile)
+	median := blt_mad.FindMedian(arr)
+	return median
+}
+
+func findMadOfTextFile(inputTextFile string) float64 {
+	arr, _ := blt_mad.TxtIntoArrayFloat64(inputTextFile)
+	mean := blt_mad.Mad(arr)
+	return mean
+}
+
+//modify the function to write outputs onto a file
+func AnalyzeBGPMessagesWriteOntoFile(windowChannel chan []common.Window, freqOutFile string, minReqFile string) {
+	for windows := range windowChannel {
+		for _, w := range windows {
+			//fmt.Println("Received Window: ")
+			bucketMap := w.BucketMap
+
+			// Convert BucketMap to a map of timestamp to length of messages
+			lengthMap := make(map[time.Time]float64)
+
+			for timestamp, messages := range bucketMap {
+				lengthMap[timestamp] = float64(len(messages))
+			}
+
+			// Turn map into sorted array of frequencies by timestamp
+			sortedFrequencies := analyze.GetSortedFrequencies(lengthMap)
+
+			// Convert to float array for analysis functions
+			floatArray := analyze.Int64ArrayToFloat64Array(sortedFrequencies)
+			//save frequency array into the freqOutFile
+			blt_mad.SaveArrayToFile(freqOutFile, floatArray)
+
+			//get min reqArray for the 97th percentile
+			minReqArray := blt_mad.GetValuesLargerThanPercentile(floatArray, 97)
+			blt_mad.SaveArrayToFile(minReqFile, minReqArray)
+		}
+	}
+}
+func runProcessThroughOneBGPFolder(num int, outFile string, outMinReqFile string) {
+	//configuration checks
+	configStruct, err := config.LoadConfig("config.json")
+	if err != nil {
+		log.Fatal("Error loading configuration:", err)
+	}
+	config.ValidDateConfiguration(configStruct)
+
+	// WaitGroup for waiting on goroutines to finish
+	var wg sync.WaitGroup
+
+	// Channel for sending BGP messages between parsing and processing
+	msgChannel := make(chan []common.BGPMessage)
+
+	// Channel for sending windows from processing to analyzing
+	windowChannel := make(chan []common.Window)
+
+	// Start the goroutines
+	wg.Add(3)
+	// Can change folder directory to any folder inside of src/staticdata
+	inputFolderPath := fmt.Sprintf("bgpTest%d", num)
+	//outFile := fmt.Sprintf("bgpTest%d.txt", num)
+
+	go func() {
+		parse.ParseStaticFile(inputFolderPath, msgChannel)
+		wg.Done()
+	}()
+
+	go func() {
+		process.ProcessBGPMessages(msgChannel, windowChannel)
+		wg.Done()
+	}()
+
+	go func() {
+		AnalyzeBGPMessagesWriteOntoFile(windowChannel, outFile, outMinReqFile)
+		wg.Done()
+	}()
+
+	wg.Wait()
+
 }

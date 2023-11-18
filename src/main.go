@@ -11,11 +11,11 @@ import (
 )
 
 func main() {
-	configStruct, err := config.LoadConfig("config.json")
+	ConfigStruct, err := config.LoadConfig("config.json")
 	if err != nil {
 		log.Fatal("Error loading configuration:", err)
 	}
-	config.ValidDateConfiguration(configStruct)
+	config.ValidDateConfiguration(ConfigStruct)
 
 	// WaitGroup for waiting on goroutines to finish
 	var wg sync.WaitGroup

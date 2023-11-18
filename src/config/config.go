@@ -12,6 +12,7 @@ type Configuration struct {
 	//cast onto the needed type when processing in algos
 	FileInputOption           string `json:"dataOption"`
 	StaticFile                string `json:"staticFilePath"`
+	URLStaticData             string `json:"staticFilesLink"`
 	OutlierDetectionAlgorithm string `json:"outlierDetectionAlgorithm"`
 	MadParameters             string `json:"madParameters"`
 	Prefix                    string `json:"prefix"` // can input a list of string with values seperated by a comma
@@ -39,6 +40,7 @@ func parseByComma(data string) []string {
 	return strings.Split(data, ",")
 }
 
+//add validation sanity checks for asns/prefixes/etc; sanity cehck for url is in accessing http request
 func ValidDateConfiguration(config *Configuration) {
 	//check that the fileInputOption is either live or static
 	//convert all strings to lower case to ignore any capitalizations

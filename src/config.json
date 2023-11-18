@@ -1,6 +1,7 @@
 {
   "dataOption": "live",
   "staticFilePath": "enter the pathway to static binary file with BGP data",
+  "staticFilesLink": "http://routeviews.org/route-views.ny/bgpdata/2021.11/UPDATES/",
   "outlierDetectionAlgorithm": "mad",
   "madParameter": "enter the sensitivity parameter",
   "prefix": "enter the prefix or prefixes of choice here",

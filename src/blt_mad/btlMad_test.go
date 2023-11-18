@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-/*NOTE: because of the findMedian function the expected results needs to be in an increasing order*/
+/*NOTE: because of the FindMedian function the expected results needs to be in an increasing order*/
 
 func TestArray0(t *testing.T) {
 	tau := 0.0

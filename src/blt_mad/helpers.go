@@ -1,16 +1,19 @@
 package blt_mad
 
 import (
+	"bufio"
+	"fmt"
 	"io/ioutil"
 	"math"
+	"os"
 	"reflect"
 	"sort"
 	"strconv"
-	"strings"
 )
 
 //convert a string of numbers into an array []float64 -> it actually works; all the functions can be called
-func convertToFloat64Array(str string, err error) []float64 {
+//this does not actually work??????????????????
+/*func convertToFloat64Array(str string, err error) []float64 {
 	var numbers []float64
 	numbersStr := strings.Fields(str)
 	for i, _ := range numbersStr {
@@ -18,7 +21,7 @@ func convertToFloat64Array(str string, err error) []float64 {
 		numbers = append(numbers, f)
 	}
 	return numbers
-}
+}*/
 
 func removeZeros(data []float64) []float64 {
 	var nonZeros []float64
@@ -31,7 +34,7 @@ func removeZeros(data []float64) []float64 {
 }
 
 /*sort the array in ascending order and all the processing that will be done with an array will be done with it in ascending order*/
-func findMedian(data []float64) float64 {
+func FindMedian(data []float64) float64 {
 	var med float64
 	sortedData := sortData(data)
 	if len(sortedData) == 0 {
@@ -168,4 +171,188 @@ func readTxtToString(filePath string) (string, error) {
 
 	// Convert the byte slice to a string
 	return string(content), nil
+}
+
+//get some percentile to get the minimum required output
+func GetNumbersInPercentile(numbers []float64, percentile float64) []float64 {
+	// Sort the array in ascending order
+	sort.Float64s(numbers)
+
+	// Calculate the index corresponding to the percentile
+	index := int(percentile / 100 * float64(len(numbers)-1))
+
+	// Interpolate the value at the calculated index
+	lower := numbers[index]
+	upper := numbers[index+1]
+
+	// Interpolation formula: lower + (upper - lower) * fractional part
+	fractionalPart := percentile/100*float64(len(numbers)-1) - float64(index)
+	value := lower + (upper-lower)*fractionalPart
+
+	// Get all numbers that fall into the 90th percentile
+	var percentileNumbers []float64
+	for _, num := range numbers {
+		if num <= value {
+			percentileNumbers = append(percentileNumbers, num)
+		}
+	}
+
+	return percentileNumbers
+}
+
+func calculatePercentile(numbers []float64, percentile float64) float64 {
+	// Sort the array in ascending order
+	sort.Float64s(numbers)
+
+	// Calculate the index corresponding to the percentile
+	index := int(percentile / 100 * float64(len(numbers)-1))
+
+	// Interpolate the value at the calculated index
+	lower := numbers[index]
+	upper := numbers[index+1]
+
+	// Interpolation formula: lower + (upper - lower) * fractional part
+	fractionalPart := percentile/100*float64(len(numbers)-1) - float64(index)
+	value := lower + (upper-lower)*fractionalPart
+
+	return value
+}
+
+func GetValuesLargerThanPercentile(numbers []float64, percentile float64) []float64 {
+	valueAtPercentile := calculatePercentile(numbers, percentile)
+
+	// Get values larger than 90% of the data
+	var largerValues []float64
+	for _, num := range numbers {
+		if num > valueAtPercentile {
+			largerValues = append(largerValues, num)
+		}
+	}
+
+	return largerValues
+}
+
+/*func WriteArrayToFile(filename string, arr []float64) error {
+	// Open the file for writing
+	file, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// Iterate over the array and write each float64 element to the file
+	for _, value := range arr {
+		_, err := fmt.Fprintf(file, "%f\n", value)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}*/
+
+//fix this function to make it more convenient ot yuse later
+/*func GenerateOptimalTauIntoTxt (dataFilePath string, minReqFilePath string, num int) {
+	// Iterate through file numbers from 1 to 100
+	optimalTauArrayRand := []float64{}
+	for i := 1; i <= 100; i++ {
+		// Generate the file name based on the current iteration
+		fileNameData := fmt.Sprintf("/home/taya/Fastly-MQP23/src/testingData/bgpData/bgpTest%d.txt", i)
+		fileNameMinReq := fmt.Sprintf("/home/taya/Fastly-MQP23/src/testingData/bgpOutliersMin/bgpOutliersMin97thPercentileTest%d.txt", i)
+		data, _ := blt_mad.ReadTxtToString(fileNameData)
+		dataFloat := blt_mad.ConvertToFloat64Array(data, nil)
+		req, _ := blt_mad.ReadTxtToString(fileNameMinReq)
+		reqFloat := blt_mad.ConvertToFloat64Array(req, nil)
+		tau := blt_mad.FindTauForMinReqOutput(dataFloat, reqFloat)
+		optimalTauArrayRand = append(optimalTauArrayRand, tau)
+
+	}
+	filePath := "/home/taya/Fastly-MQP23/src/testingData/optimalRandTau.txt"
+
+	// Write the array to the text file
+	err := blt_mad.WriteArrayToFile(filePath, optimalTauArrayRand)
+	if err != nil {
+		fmt.Println("Error:", err)
+	} else {
+		fmt.Println("Array successfully written to", filePath)
+	}
+
+}*/
+
+/*func writeFloat64ArrayToFile(filePath string, dataArray []float64) error {
+	// Convert float64 array elements to a string, separated by a newline character
+	var strValues []string
+	for _, value := range dataArray {
+		strValues = append(strValues, fmt.Sprintf("%f", value))
+	}
+	dataString := strings.Join(strValues, "\n")
+
+	// Write the string to the file
+	err := ioutil.WriteFile(filePath, []byte(dataString), 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}*/
+
+func SaveArrayToFile(fileName string, arr []float64) error {
+	file, err := os.Create(fileName)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	for _, value := range arr {
+		_, err := fmt.Fprintf(file, "%f\n", value)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+//running the go routines through one folder and saving the output into the outFile
+
+func TxtIntoArrayFloat64(inputFile string) ([]float64, error) {
+	var floats []float64
+
+	// Open the file
+	file, err := os.Open(inputFile)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	// Create a scanner to read the file line by line
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		// Parse each line as a float64
+		value, err := strconv.ParseFloat(line, 64)
+		if err != nil {
+			return nil, err
+		}
+		floats = append(floats, value)
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	return floats, nil
+}
+
+//check if one array contains the elements of the other
+func ContainAllElements(mainArr []float64, subArr []float64) []float64 {
+	//use in BGP testing to check if the result contains the minimum outliers of interest given the parameters
+	var elementsMissing []float64
+	for _, subValue := range subArr {
+		if !containsValue(mainArr, subValue) {
+			elementsMissing = append(elementsMissing, subValue)
+		}
+	}
+	return elementsMissing
 }

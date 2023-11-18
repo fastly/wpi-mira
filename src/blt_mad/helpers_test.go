@@ -52,7 +52,7 @@ func TestFindMedianOddLength(t *testing.T) {
 	// Test case 1: Odd-length slice
 	data1 := []float64{3.0, 1.0, 2.0}
 	expected1 := 2.0
-	result1 := findMedian(data1)
+	result1 := FindMedian(data1)
 	if result1 != expected1 {
 		t.Errorf("Test case 1 in TestFindMedian failed. Got: %f, Expected: %f", result1, expected1)
 	}
@@ -62,7 +62,7 @@ func TestFindMedianEvenLength(t *testing.T) {
 	// Test case 2: Even-length slice
 	data2 := []float64{4.0, 2.0, 1.0, 3.0}
 	expected2 := 2.5
-	result2 := findMedian(data2)
+	result2 := FindMedian(data2)
 	if result2 != expected2 {
 		t.Errorf("Test case 2 in TestFindMedian failed. Got: %f, Expected: %f", result2, expected2)
 	}
@@ -72,7 +72,7 @@ func TestFindMedianEmptySlice(t *testing.T) {
 	// Test case 3: Empty slice
 	data3 := []float64{}
 	expected3 := math.SmallestNonzeroFloat64 // You can choose an appropriate default value for an empty slice
-	result3 := findMedian(data3)
+	result3 := FindMedian(data3)
 	if !withinTolerance(expected3, result3, e) {
 		t.Errorf("Test case 3 in TestFindMedian failed. Got: %f, Expected: %f", result3, expected3)
 	}
@@ -82,7 +82,7 @@ func TestFindMedianDuplicateValues(t *testing.T) {
 	// Test case 4: Duplicate values
 	data4 := []float64{3.0, 1.0, 8.0, 1.0}
 	expected4 := 2.0 // You can choose an appropriate default value for an empty slice
-	result4 := findMedian(data4)
+	result4 := FindMedian(data4)
 	if !withinTolerance(expected4, result4, e) {
 		t.Errorf("Test case 4 in TestFindMedian failed. Got: %f, Expected: %f", result4, expected4)
 	}
@@ -90,7 +90,7 @@ func TestFindMedianDuplicateValues(t *testing.T) {
 	// Test case 4: Duplicate values with the value being a median
 	data5 := []float64{1.0, 2.0, 3.0, 3.0, 4.0}
 	expected5 := 3.0 // You can choose an appropriate default value for an empty slice
-	result5 := findMedian(data5)
+	result5 := FindMedian(data5)
 	if !withinTolerance(expected5, result5, e) {
 		t.Errorf("Test case 4 in TestFindMedian failed. Got: %f, Expected: %f", result5, expected5)
 	}
