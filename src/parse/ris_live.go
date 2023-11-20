@@ -2,6 +2,7 @@ package parse
 
 import (
 	"BGPAlert/common"
+	"BGPAlert/config"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -78,7 +79,7 @@ type RisLiveMessage struct {
 }
 
 // connects to ris live, starts go routine receiverHandler, manages connection and subscription
-func ParseRisLiveData(msgChannel chan common.BGPMessage, configPrefixes string) error {
+func ParseRisLiveData(msgChannel chan common.BGPMessage, config *config.Configuration) error {
 
 	fmt.Println("starting...")
 
@@ -94,10 +95,10 @@ func ParseRisLiveData(msgChannel chan common.BGPMessage, configPrefixes string) 
 	fmt.Println("made connection")
 
 	/* Subscribe */
-	subscriptionPrefixes := strings.Split(configPrefixes, ",")
+	subscriptionPrefixes := strings.Split(config.Prefix, ",")
 
 	if len(subscriptionPrefixes) == 0 {
-		subscriptionPrefixes = append(subscriptionPrefixes, "0.0.0.0/0")
+		return errors.New("prefix in config is required")
 	}
 
 	for _, prefix := range subscriptionPrefixes {
