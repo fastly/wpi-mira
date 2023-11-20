@@ -3,7 +3,7 @@
   "staticFilePath": "enter the pathway to static binary file with BGP data",
   "outlierDetectionAlgorithm": "mad",
   "madParameter": "enter the sensitivity parameter",
-  "prefix": "enter the prefix or prefixes of choice here",
+  "prefix": "151.101.0.0/16,63.135.66.0/23",
   "asn": "enter the ASNs of interest here",
   "peerIp": "enter peer IP",
   "connector": "enter connector or connectors of interests"
