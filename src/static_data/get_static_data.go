@@ -64,11 +64,9 @@ func main() {
 		}
 	}
 
-	//add the files in
-	//get frequencies and min req ouputs for each of the folders into the text files
-	for i := 0; i <= 68; i++ { //change this number!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		outFile := fmt.Sprintf("/home/taya/Fastly-MQP23/src/static_data/rawBGPData/bgpTest%d.txt", i)
-		outMinReqFile := fmt.Sprintf("/home/taya/Fastly-MQP23/src/static_data/minReq/bgpMinOutliers97thPercentileTest%d.txt", i)
+	for i := 0; i <= len(allFolders)-1; i++ {
+		outFile := fmt.Sprintf("static_data/rawBGPData/bgpTest%d.txt", i)
+		outMinReqFile := fmt.Sprintf("static_data/minReq/bgpMinOutliers97thPercentileTest%d.txt", i)
 		runProcessThroughOneBGPFolder(i, outFile, outMinReqFile)
 	}
 	//get all the means,mads, and taus into text files
@@ -156,7 +154,7 @@ func createFolders(urls []string, mainURL string, numFiles int) []Folder {
 	setsOfUrls := getIntervalSlices(fullUrlsList, numFiles)
 
 	for i := 0; i < len(setsOfUrls); i++ {
-		folderName := fmt.Sprintf("/home/taya/Fastly-MQP23/src/static_data/bgpTest%d", i)
+		folderName := fmt.Sprintf("static_data/bgpTest%d", i)
 
 		// Create a Folder struct and append it to the list
 		folder := Folder{
@@ -189,7 +187,7 @@ func extractBZ2URLs(n *html.Node) []string {
 }
 
 func GetMadsMediansTausIntoTxt() {
-	folderPath := "/home/taya/Fastly-MQP23/src/static_data/rawBGPData"
+	folderPath := "static_data/rawBGPData"
 	allMads := []float64{}
 	allMedians := []float64{}
 	allTaus := []float64{}
@@ -207,26 +205,26 @@ func GetMadsMediansTausIntoTxt() {
 
 	//iterate through all the files and append the mads into one array
 	for i := 0; i < fileCount; i++ {
-		inputFilePath := fmt.Sprintf("/home/taya/Fastly-MQP23/src/static_data/rawBGPData/bgpTest%d.txt", i)
+		inputFilePath := fmt.Sprintf("static_data/rawBGPData/bgpTest%d.txt", i)
 		allMads = append(allMads, findMadOfTextFile(inputFilePath))
 	}
 	//iterate through all the files and append the medians into one array
 	for i := 0; i < fileCount; i++ {
-		inputFilePath := fmt.Sprintf("/home/taya/Fastly-MQP23/src/static_data/rawBGPData/bgpTest%d.txt", i)
+		inputFilePath := fmt.Sprintf("static_data/rawBGPData/bgpTest%d.txt", i)
 		allMedians = append(allMedians, findMedianOfTextFile(inputFilePath))
 	}
 
 	//iterate through all the files and append the optimal taus into one array
 	for i := 0; i < fileCount; i++ {
-		inputFilePath := fmt.Sprintf("/home/taya/Fastly-MQP23/src/static_data/rawBGPData/bgpTest%d.txt", i)
-		inputMinFilePath := fmt.Sprintf("/home/taya/Fastly-MQP23/src/static_data/minReq/bgpMinOutliers97thPercentileTest%d.txt", i)
+		inputFilePath := fmt.Sprintf("static_data/rawBGPData/bgpTest%d.txt", i)
+		inputMinFilePath := fmt.Sprintf("static_data/minReq/bgpMinOutliers97thPercentileTest%d.txt", i)
 		allTaus = append(allTaus, findTauOfTextFile(inputFilePath, inputMinFilePath))
 	}
 
 	//write the array into a text file
-	blt_mad.SaveArrayToFile("/home/taya/Fastly-MQP23/src/static_data/madsFound.txt", allMads)
-	blt_mad.SaveArrayToFile("/home/taya/Fastly-MQP23/src/static_data/mediansFound.txt", allMedians)
-	blt_mad.SaveArrayToFile("/home/taya/Fastly-MQP23/src/static_data/tausFound.txt", allTaus)
+	blt_mad.SaveArrayToFile("static_data/madsFound.txt", allMads)
+	blt_mad.SaveArrayToFile("static_data/mediansFound.txt", allMedians)
+	blt_mad.SaveArrayToFile("static_data/tausFound.txt", allTaus)
 }
 
 func findTauOfTextFile(inputTextFile string, minReqTestFile string) float64 {
@@ -278,13 +276,6 @@ func AnalyzeBGPMessagesWriteOntoFile(windowChannel chan []common.Window, freqOut
 	}
 }
 func runProcessThroughOneBGPFolder(num int, outFile string, outMinReqFile string) {
-	//configuration checks
-	configStruct, err := config.LoadConfig("config.json")
-	if err != nil {
-		log.Fatal("Error loading configuration:", err)
-	}
-	config.ValidDateConfiguration(configStruct)
-
 	// WaitGroup for waiting on goroutines to finish
 	var wg sync.WaitGroup
 
