@@ -1,21 +1,24 @@
 package main
 
 import (
-	"BGPAlert/analyze"
 	"BGPAlert/common"
 	"BGPAlert/config"
 	"BGPAlert/parse"
 	"BGPAlert/process"
+	"fmt"
 	"log"
 	"sync"
+	"time"
 )
 
 func main() {
-	ConfigStruct, err := config.LoadConfig("config.json")
+	startTime := time.Now()
+
+	configStruct, err := config.LoadConfig("config.json")
 	if err != nil {
 		log.Fatal("Error loading configuration:", err)
 	}
-	config.ValidDateConfiguration(ConfigStruct)
+	config.ValidDateConfiguration(configStruct)
 
 	// WaitGroup for waiting on goroutines to finish
 	var wg sync.WaitGroup
@@ -23,30 +26,26 @@ func main() {
 	// Channel for sending BGP messages between parsing and processing
 	msgChannel := make(chan common.BGPMessage)
 
-	// Channel for sending windows from processing to analyzing
-	windowChannel := make(chan common.Window)
-
-	wg.Add(3)
+	wg.Add(2)
 
 	// Start the goroutines
 
-	// Can change folder directory to any folder inside of src/staticdata
+	// Can change folder directory to any folder inside of src/static_data
 	go func() {
 		parse.ParseStaticFile("bgptest1", msgChannel)
+		//parse.ParseRisLiveData(msgChannel)
 		wg.Done()
 	}()
 
 	go func() {
-		process.ProcessBGPMessages(msgChannel, windowChannel)
-		wg.Done()
-	}()
-
-	go func() {
-		analyze.AnalyzeBGPMessages(windowChannel)
+		process.ProcessBGPMessages(msgChannel)
 		wg.Done()
 	}()
 
 	// Wait for all goroutines to finish
 	wg.Wait()
+
+	elapsedTime := time.Since(startTime)
+	fmt.Println("Elapsed Time: ", elapsedTime)
 
 }
