@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// Reads in a windowChannel for Window objects, parses the objects, and then calls the specified analysis functions
+// Takes in a Window, parses object into frequency counts, and then calls specified analysis functions
 func AnalyzeBGPMessages(window common.Window) {
 	bucketMap := window.BucketMap
 

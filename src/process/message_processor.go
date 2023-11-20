@@ -3,7 +3,6 @@ package process
 import (
 	"BGPAlert/analyze"
 	"BGPAlert/common"
-	"errors"
 	"fmt"
 	"time"
 )
@@ -12,10 +11,7 @@ import (
 func ProcessBGPMessages(msgChannel chan common.BGPMessage) error {
 	maximumBuckets := 43
 	// Each bucket is 60s
-	parseDuration, err := time.ParseDuration("60s")
-	if err != nil {
-		return errors.New("error creating parsing bucket window, " + err.Error())
-	}
+	parseDuration := 60 * time.Second
 	maximumTimespan := time.Duration(maximumBuckets*60) * time.Second
 
 	window := common.Window{
@@ -78,15 +74,15 @@ func ProcessBGPMessages(msgChannel chan common.BGPMessage) error {
 // Returns the minimum key value of a bucketMap
 func getBucketMapMin(bucketMap map[time.Time][]common.BGPMessage) time.Time {
 	var minTimestamp time.Time
-	firstIteration := true
+
 	for timestamp := range bucketMap {
-		if firstIteration {
+		minTimestamp = timestamp
+		break
+	}
+
+	for timestamp := range bucketMap {
+		if timestamp.Before(minTimestamp) {
 			minTimestamp = timestamp
-			firstIteration = false
-		} else {
-			if timestamp.Before(minTimestamp) {
-				minTimestamp = timestamp
-			}
 		}
 	}
 

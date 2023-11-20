@@ -26,17 +26,17 @@ func main() {
 	// Channel for sending BGP messages between parsing and processing
 	msgChannel := make(chan common.BGPMessage)
 
-	wg.Add(2)
-
 	// Start the goroutines
 
 	// Can change folder directory to any folder inside of src/static_data
+	wg.Add(1)
 	go func() {
 		parse.ParseStaticFile("bgptest1", msgChannel)
 		//parse.ParseRisLiveData(msgChannel)
 		wg.Done()
 	}()
 
+	wg.Add(1)
 	go func() {
 		process.ProcessBGPMessages(msgChannel)
 		wg.Done()
