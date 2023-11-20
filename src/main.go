@@ -31,7 +31,6 @@ func main() {
 
 	// Start the goroutines
 
-	// Can change folder directory to any folder inside of src/staticdata
 	go func() {
 		parse.ParseStaticFile("bgptest1", msgChannel)
 		wg.Done()

@@ -2,12 +2,14 @@ package parse
 
 import (
 	"BGPAlert/common"
+	"BGPAlert/config"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
 	"net/netip"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -77,7 +79,7 @@ type RisLiveMessage struct {
 }
 
 // connects to ris live, starts go routine receiverHandler, manages connection and subscription
-func ParseRisLiveData(msgChannel chan common.BGPMessage) error {
+func ParseRisLiveData(msgChannel chan common.BGPMessage, config *config.Configuration) error {
 
 	fmt.Println("starting...")
 
@@ -93,22 +95,27 @@ func ParseRisLiveData(msgChannel chan common.BGPMessage) error {
 	fmt.Println("made connection")
 
 	/* Subscribe */
-	subscription1 := RisMessage{"ris_subscribe", &RisMessageData{"", "0.0.0.0/0"}}
-	//TODO: connect subscription to config file
-	//		keep an array of subscriptions
+	subscriptionPrefixes := strings.Split(config.Prefix, ",")
+
+	if len(subscriptionPrefixes) == 0 {
+		return errors.New("prefix in config is required")
+	}
+
+	for _, prefix := range subscriptionPrefixes {
+		subscription := RisMessage{"ris_subscribe", &RisMessageData{"", prefix}}
+		out, err := json.Marshal(subscription)
+		if err != nil {
+			return errors.New("Error marshalling subscription message, " + err.Error())
+		}
+		log.Println("Subscribing to: ", prefix)
+		conn.WriteMessage(websocket.TextMessage, out)
+	}
 
 	// alternatives:
 	// this would listen to one of Fastly's blocks of address space, from all collectors:
 	//subscription1 := RisMessage{"ris_subscribe", &RisMessageData{"", "151.101.0.0/16"}}
 	// this would listen to all of the IPv4 address space, but from only one collector:
 	//subscription1 := RisMessage{"ris_subscribe", &RisMessageData{"rrc21", "0.0.0.0/0"}}
-
-	out1, err := json.Marshal(subscription1)
-	if err != nil {
-		return errors.New("Error marshalling subscription message, " + err.Error())
-	}
-	log.Println("Subscribing to: ", subscription1)
-	conn.WriteMessage(websocket.TextMessage, out1)
 
 	/* Ping message (re-send this every minute or so */
 	ping := RisMessage{"ping", nil}
