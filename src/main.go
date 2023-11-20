@@ -26,14 +26,11 @@ func main() {
 	// Channel for sending BGP messages between parsing and processing
 	msgChannel := make(chan common.BGPMessage)
 
-	// Channel for sending windows from processing to analyzing
-	windowChannel := make(chan common.Window)
-
 	wg.Add(2)
 
 	// Start the goroutines
 
-	// Can change folder directory to any folder inside of src/staticdata
+	// Can change folder directory to any folder inside of src/static_data
 	go func() {
 		parse.ParseStaticFile("bgptest1", msgChannel)
 		//parse.ParseRisLiveData(msgChannel)
@@ -41,16 +38,9 @@ func main() {
 	}()
 
 	go func() {
-		process.ProcessBGPMessagesLive(msgChannel, windowChannel)
+		process.ProcessBGPMessagesLive(msgChannel)
 		wg.Done()
 	}()
-
-	/*
-		go func() {
-			analyze.AnalyzeBGPMessages(windowChannel)
-			wg.Done()
-		}()
-	*/
 
 	// Wait for all goroutines to finish
 	wg.Wait()
