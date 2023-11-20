@@ -9,7 +9,7 @@ import (
 )
 
 // Constantly read messages from channel, build up windows with frequency maps, calling analysis on windows when full
-func ProcessBGPMessagesLive(msgChannel chan common.BGPMessage) error {
+func ProcessBGPMessages(msgChannel chan common.BGPMessage) error {
 	maximumBuckets := 43
 	// Each bucket is 60s
 	parseDuration, err := time.ParseDuration("60s")
@@ -75,50 +75,6 @@ func ProcessBGPMessagesLive(msgChannel chan common.BGPMessage) error {
 	return nil
 }
 
-// Constantly reads channel of messages and stores them in Window objects to send through windowChannel for analysis
-func ProcessBGPMessages(msgChannel chan common.BGPMessage, windowChannel chan common.Window) error {
-	var bucketMap = make(map[time.Time][]common.BGPMessage)
-
-	for msg := range msgChannel {
-		parseDuration, err := time.ParseDuration("60s")
-		if err != nil {
-			return errors.New("error creating parsing window, " + err.Error())
-		}
-
-		// Round down the timestamp to the nearest multiple of 60 seconds
-		bucketTimestamp := msg.Timestamp.Truncate(parseDuration)
-
-		// Check if a bucket for the rounded timestamp exists, create it if not
-		if _, ok := bucketMap[bucketTimestamp]; !ok {
-			bucketMap[bucketTimestamp] = make([]common.BGPMessage, 0)
-		}
-
-		// Append the message to the corresponding bucket
-		bucketMap[bucketTimestamp] = append(bucketMap[bucketTimestamp], msg)
-	}
-
-	for timestamp, messages := range bucketMap {
-		frequency := len(messages)
-		fmt.Printf("Timestamp: %s, Frequency: %d\n", timestamp.Format("2006-01-02 15:04:05"), frequency)
-	}
-	fmt.Println("Minutes Analyzed: ", len(bucketMap))
-
-	minTime, maxTime := getMapMinAndMax(bucketMap)
-	duration := uint32((maxTime.Sub(minTime)).Minutes()) + 1
-	fmt.Println(duration)
-
-	window := common.Window{
-		Filter:    "none",
-		BucketMap: bucketMap,
-	}
-
-	windowChannel <- window
-
-	close(windowChannel)
-
-	return nil
-}
-
 // Returns the minimum key value of a bucketMap
 func getBucketMapMin(bucketMap map[time.Time][]common.BGPMessage) time.Time {
 	var minTimestamp time.Time
@@ -135,26 +91,4 @@ func getBucketMapMin(bucketMap map[time.Time][]common.BGPMessage) time.Time {
 	}
 
 	return minTimestamp
-}
-
-// Returns the minimium and maximum keys of map
-func getMapMinAndMax(timestampMap map[time.Time][]common.BGPMessage) (time.Time, time.Time) {
-	var minTime, maxTime time.Time
-	firstIteration := true
-
-	for timestamp := range timestampMap {
-		if firstIteration {
-			minTime, maxTime = timestamp, timestamp
-			firstIteration = false
-		} else {
-			if timestamp.Before(minTime) {
-				minTime = timestamp
-			}
-			if timestamp.After(maxTime) {
-				maxTime = timestamp
-			}
-		}
-	}
-
-	return minTime, maxTime
 }

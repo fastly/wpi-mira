@@ -38,14 +38,14 @@ func main() {
 	}()
 
 	go func() {
-		process.ProcessBGPMessagesLive(msgChannel)
+		process.ProcessBGPMessages(msgChannel)
 		wg.Done()
 	}()
 
 	// Wait for all goroutines to finish
 	wg.Wait()
 
-	elapsedTime := time.Now().Sub(startTime)
+	elapsedTime := time.Since(startTime)
 	fmt.Println("Elapsed Time: ", elapsedTime)
 
 }
