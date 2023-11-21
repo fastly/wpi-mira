@@ -13,8 +13,9 @@ import (
 func ProcessBGPMessages(msgChannel chan common.BGPMessage, config *config.Configuration) error {
 	// Parse windowSize from config
 	var maximumBuckets int
+	// If windowSize can't be parsed to an int -> just default to 30
 	if windowSize, err := strconv.ParseInt(config.WindowSize, 10, 64); err != nil {
-		fmt.Printf("Inputted config size is not a number, defaulting to 30")
+		fmt.Println("Inputted config size is not a number, defaulting to 30")
 		maximumBuckets = 30
 	} else {
 		maximumBuckets = int(windowSize)
