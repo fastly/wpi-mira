@@ -39,7 +39,7 @@ func main() {
 
 	wg.Add(1)
 	go func() {
-		process.ProcessBGPMessages(msgChannel)
+		process.ProcessBGPMessages(msgChannel, configStruct)
 		wg.Done()
 	}()
 

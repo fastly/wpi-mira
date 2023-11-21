@@ -13,11 +13,11 @@ type Configuration struct {
 	FileInputOption           string `json:"dataOption"`
 	StaticFile                string `json:"staticFilePath"`
 	OutlierDetectionAlgorithm string `json:"outlierDetectionAlgorithm"`
-	MadParameters             string `json:"madParameters"`
 	Prefix                    string `json:"prefix"` // can input a list of string with values seperated by a comma
 	Asn                       string `json:"asn"`
 	PeerIP                    string `json:"peerIP"`
 	Connector                 string `json:"connector"`
+	WindowSize                string `json:"windowSize"`
 }
 
 func LoadConfig(filename string) (*Configuration, error) {
@@ -34,7 +34,7 @@ func LoadConfig(filename string) (*Configuration, error) {
 	return &config, nil
 }
 
-//to parse input of prefix, asn, peer ip, and connector if needed
+// to parse input of prefix, asn, peer ip, and connector if needed
 func parseByComma(data string) []string {
 	return strings.Split(data, ",")
 }

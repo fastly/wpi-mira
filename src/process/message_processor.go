@@ -3,13 +3,23 @@ package process
 import (
 	"BGPAlert/analyze"
 	"BGPAlert/common"
+	"BGPAlert/config"
 	"fmt"
+	"strconv"
 	"time"
 )
 
 // Constantly read messages from channel, build up windows with frequency maps, calling analysis on windows when full
-func ProcessBGPMessages(msgChannel chan common.BGPMessage) error {
-	maximumBuckets := 43
+func ProcessBGPMessages(msgChannel chan common.BGPMessage, config *config.Configuration) error {
+	// Parse windowSize from config
+	var maximumBuckets int
+	if windowSize, err := strconv.ParseInt(config.WindowSize, 10, 64); err != nil {
+		fmt.Printf("Inputted config size is not a number, defaulting to 30")
+		maximumBuckets = 30
+	} else {
+		maximumBuckets = int(windowSize)
+	}
+
 	// Each bucket is 60s
 	parseDuration := 60 * time.Second
 	maximumTimespan := time.Duration(maximumBuckets*60) * time.Second
