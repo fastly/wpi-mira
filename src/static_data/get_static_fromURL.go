@@ -57,8 +57,10 @@ func main() {
 	}
 
 	// Extract URLs from the HTML document
+	//make numFiles the same as the window parameter
+	numFiles := configStruct.WindowSize
 	partialUrls := extractBZ2URLs(doc)
-	allFolders := createFolders(partialUrls, mainUrl, 10)
+	allFolders := createFolders(partialUrls, mainUrl, numFiles)
 	for _, folder := range allFolders {
 		err := downloadFolder(folder)
 		if err != nil {

@@ -1,9 +1,9 @@
 {
   "dataOption": "live",
   "staticFilePath": "enter the pathway to static binary file with BGP data",
-  "staticFilesLink": "http://routeviews.org/route-views.ny/bgpdata/2021.11/UPDATES/",
+  "staticFilesLink": "http://routeviews.org/route-views.ny/bgpdata/2022.01/UPDATES/",
   "outlierDetectionAlgorithm": "mad",
-  "madParameter": "enter the sensitivity parameter",
+  "windowSize": 360,
   "prefix": "enter the prefix or prefixes of choice here",
   "asn": "enter the ASNs of interest here",
   "peerIp": "enter peer IP",

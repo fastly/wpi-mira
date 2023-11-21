@@ -3,28 +3,14 @@ package blt_mad
 import (
 	"bufio"
 	"fmt"
-	"io/ioutil"
 	"math"
 	"os"
 	"reflect"
 	"sort"
 	"strconv"
-	//"https://github.com/blend/go-sdk.git"
 )
 
-//use the mathutil to see if i can simplify all the functions
-
-//convert a string of numbers into an array []float64 -> it actually works; all the functions can be called
-//this does not actually work??????????????????
-/*func convertToFloat64Array(str string, err error) []float64 {
-	var numbers []float64
-	numbersStr := strings.Fields(str)
-	for i, _ := range numbersStr {
-		f, _ := strconv.ParseFloat(numbersStr[i], 64)
-		numbers = append(numbers, f)
-	}
-	return numbers
-}*/
+//potentially use the mathutil to see if i can simplify all the functions
 
 func removeZeros(data []float64) []float64 {
 	var nonZeros []float64
@@ -36,7 +22,6 @@ func removeZeros(data []float64) []float64 {
 	return nonZeros
 }
 
-/*sort the array in ascending order and all the processing that will be done with an array will be done with it in ascending order*/
 func FindMedian(data []float64) float64 {
 	var med float64
 	sortedData := sortData(data)
@@ -51,7 +36,6 @@ func FindMedian(data []float64) float64 {
 		right := sortedData[(len(sortedData) / 2)]
 		med = (left + right) / 2
 	}
-
 	return med
 }
 
@@ -165,66 +149,20 @@ func WithinToleranceFloatSlice(a []float64, b []float64, e float64) bool {
 	return true
 }
 
-func readTxtToString(filePath string) (string, error) {
-	// Read the entire file into a byte slice
-	content, err := ioutil.ReadFile(filePath)
-	if err != nil {
-		return "", err
-	}
-
-	// Convert the byte slice to a string
-	return string(content), nil
-}
-
-//get some percentile to get the minimum required output
-func GetNumbersInPercentile(numbers []float64, percentile float64) []float64 {
-	// Sort the array in ascending order
-	sort.Float64s(numbers)
-
-	// Calculate the index corresponding to the percentile
-	index := int(percentile / 100 * float64(len(numbers)-1))
-
-	// Interpolate the value at the calculated index
-	lower := numbers[index]
-	upper := numbers[index+1]
-
-	// Interpolation formula: lower + (upper - lower) * fractional part
-	fractionalPart := percentile/100*float64(len(numbers)-1) - float64(index)
-	value := lower + (upper-lower)*fractionalPart
-
-	// Get all numbers that fall into the 90th percentile
-	var percentileNumbers []float64
-	for _, num := range numbers {
-		if num <= value {
-			percentileNumbers = append(percentileNumbers, num)
-		}
-	}
-
-	return percentileNumbers
-}
-
 func calculatePercentile(numbers []float64, percentile float64) float64 {
-	// Sort the array in ascending order
 	sort.Float64s(numbers)
-
-	// Calculate the index corresponding to the percentile
-	index := int(percentile / 100 * float64(len(numbers)-1))
-
-	// Interpolate the value at the calculated index
+	index := int(percentile / 100 * float64(len(numbers)-1)) //index corresponding to the percentile
 	lower := numbers[index]
 	upper := numbers[index+1]
-
-	// Interpolation formula: lower + (upper - lower) * fractional part
 	fractionalPart := percentile/100*float64(len(numbers)-1) - float64(index)
 	value := lower + (upper-lower)*fractionalPart
-
 	return value
 }
 
 func GetValuesLargerThanPercentile(numbers []float64, percentile float64) []float64 {
 	valueAtPercentile := calculatePercentile(numbers, percentile)
 
-	// Get values larger than 90% of the data
+	// Get values larger than percentile% of the data
 	var largerValues []float64
 	for _, num := range numbers {
 		if num > valueAtPercentile {
@@ -252,8 +190,6 @@ func SaveArrayToFile(fileName string, arr []float64) error {
 	return nil
 }
 
-//running the go routines through one folder and saving the output into the outFile
-
 func TxtIntoArrayFloat64(inputFile string) ([]float64, error) {
 	var floats []float64
 
@@ -264,12 +200,10 @@ func TxtIntoArrayFloat64(inputFile string) ([]float64, error) {
 	}
 	defer file.Close()
 
-	// Create a scanner to read the file line by line
+	//scanner
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
-
-		// Parse each line as a float64
 		value, err := strconv.ParseFloat(line, 64)
 		if err != nil {
 			return nil, err
@@ -294,40 +228,4 @@ func ContainAllElements(mainArr []float64, subArr []float64) []float64 {
 		}
 	}
 	return elementsMissing
-}
-
-func ArrayDivision(arr1, arr2 []float64) []float64 {
-	result := make([]float64, len(arr1))
-	if len(arr1) != len(arr2) {
-		return nil
-	} else {
-		for i := 0; i < len(arr1); i++ {
-			result[i] = arr1[i] / arr2[i]
-		}
-	}
-	return result
-}
-
-//used for getting the training data in -> check if it is needed
-func Normalize(arr []float64) []float64 {
-	maxVal := findMax(arr)
-	minVal := findMin(arr)
-
-	// Find the minimum and maximum values in the array
-	for _, v := range arr {
-		if v < minVal {
-			minVal = v
-		}
-		if v > maxVal {
-			maxVal = v
-		}
-	}
-
-	// Normalize the array to values between 0 and 1
-	normalized := make([]float64, len(arr))
-	for i, v := range arr {
-		normalized[i] = (v - minVal) / (maxVal - minVal)
-	}
-
-	return normalized
 }

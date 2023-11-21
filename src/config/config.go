@@ -19,6 +19,7 @@ type Configuration struct {
 	Asn                       string `json:"asn"`
 	PeerIP                    string `json:"peerIP"`
 	Connector                 string `json:"connector"`
+	WindowSize                int    `json:"windowSize"`
 }
 
 func LoadConfig(filename string) (*Configuration, error) {
@@ -66,5 +67,4 @@ func ValidDateConfiguration(config *Configuration) {
 		fmt.Println("Please enter either mad or shakeAlert as input for outlierDetectionAlgorithm in config.json")
 	}
 	fmt.Println("Configuration successful")
-
 }

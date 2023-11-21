@@ -22,28 +22,36 @@ yTrain := yData[0:int(len80Percent)]
 yTest := yData[int(len80Percent)-1 : len(yData)]*/
 
 func LinearRegressionModel(x []float64, y []float64) (float64, float64) {
-	b, a := stat.LinearRegression(x, y, nil, false)
-	return a, b
+	intercept, slope := stat.LinearRegression(x, y, nil, false)
+	return intercept, slope
 
 }
 
-func Predict(x []float64, slope float64, intercept float64) []float64 {
+/*func Predict(x []float64, slope float64, intercept float64) []float64 {
 	predictions := []float64{}
-	for i := 0; i < len(x); i++ {
+	for i := 0; i <= len(x); i++ {
 		predictions[i] = slope*x[i] + intercept
 	}
 	return predictions
+}*/
+
+func Predict(xValues []float64, slope float64, intercept float64) []float64 {
+	var predictedOutput []float64
+	for _, x := range xValues {
+		predictedOutput = append(predictedOutput, slope*x+intercept)
+	}
+	return predictedOutput
 }
 
-//test the function
-func checkAccuracy(predicted, expected []float64) (int, error) {
+//test the function; does not work :(
+func CheckAccuracy(error float64, predicted, expected []float64) (int, error) {
 	accuracy := 0
 	totalCorrect := 0
 	if len(predicted) != len(expected) {
 		return 0, nil
 	} else {
 		for i := 0; i < len(predicted); i++ {
-			if blt_mad.WithinTolerance(predicted[i], expected[i], 0.01) {
+			if blt_mad.WithinTolerance(predicted[i], expected[i], error) {
 				totalCorrect = totalCorrect + 1
 			}
 		}

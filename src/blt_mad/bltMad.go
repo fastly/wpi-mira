@@ -39,6 +39,5 @@ func BltMad(data []float64, tau float64) []float64 {
 			}
 		}
 	}
-
 	return outliers
 }
