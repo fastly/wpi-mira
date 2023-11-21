@@ -9,7 +9,10 @@ import (
 	"reflect"
 	"sort"
 	"strconv"
+	//"https://github.com/blend/go-sdk.git"
 )
+
+//use the mathutil to see if i can simplify all the functions
 
 //convert a string of numbers into an array []float64 -> it actually works; all the functions can be called
 //this does not actually work??????????????????
@@ -232,70 +235,6 @@ func GetValuesLargerThanPercentile(numbers []float64, percentile float64) []floa
 	return largerValues
 }
 
-/*func WriteArrayToFile(filename string, arr []float64) error {
-	// Open the file for writing
-	file, err := os.Create(filename)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	// Iterate over the array and write each float64 element to the file
-	for _, value := range arr {
-		_, err := fmt.Fprintf(file, "%f\n", value)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}*/
-
-//fix this function to make it more convenient ot yuse later
-/*func GenerateOptimalTauIntoTxt (dataFilePath string, minReqFilePath string, num int) {
-	// Iterate through file numbers from 1 to 100
-	optimalTauArrayRand := []float64{}
-	for i := 1; i <= 100; i++ {
-		// Generate the file name based on the current iteration
-		fileNameData := fmt.Sprintf("/home/taya/Fastly-MQP23/src/testingData/bgpData/bgpTest%d.txt", i)
-		fileNameMinReq := fmt.Sprintf("/home/taya/Fastly-MQP23/src/testingData/bgpOutliersMin/bgpOutliersMin97thPercentileTest%d.txt", i)
-		data, _ := blt_mad.ReadTxtToString(fileNameData)
-		dataFloat := blt_mad.ConvertToFloat64Array(data, nil)
-		req, _ := blt_mad.ReadTxtToString(fileNameMinReq)
-		reqFloat := blt_mad.ConvertToFloat64Array(req, nil)
-		tau := blt_mad.FindTauForMinReqOutput(dataFloat, reqFloat)
-		optimalTauArrayRand = append(optimalTauArrayRand, tau)
-
-	}
-	filePath := "/home/taya/Fastly-MQP23/src/testingData/optimalRandTau.txt"
-
-	// Write the array to the text file
-	err := blt_mad.WriteArrayToFile(filePath, optimalTauArrayRand)
-	if err != nil {
-		fmt.Println("Error:", err)
-	} else {
-		fmt.Println("Array successfully written to", filePath)
-	}
-
-}*/
-
-/*func writeFloat64ArrayToFile(filePath string, dataArray []float64) error {
-	// Convert float64 array elements to a string, separated by a newline character
-	var strValues []string
-	for _, value := range dataArray {
-		strValues = append(strValues, fmt.Sprintf("%f", value))
-	}
-	dataString := strings.Join(strValues, "\n")
-
-	// Write the string to the file
-	err := ioutil.WriteFile(filePath, []byte(dataString), 0644)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}*/
-
 func SaveArrayToFile(fileName string, arr []float64) error {
 	file, err := os.Create(fileName)
 	if err != nil {
@@ -355,4 +294,59 @@ func ContainAllElements(mainArr []float64, subArr []float64) []float64 {
 		}
 	}
 	return elementsMissing
+}
+
+func ArrayDivision(arr1, arr2 []float64) []float64 {
+	result := make([]float64, len(arr1))
+	if len(arr1) != len(arr2) {
+		return nil
+	} else {
+		for i := 0; i < len(arr1); i++ {
+			result[i] = arr1[i] / arr2[i]
+		}
+	}
+	return result
+}
+
+//both of the functions are from https://github.com/blend/go-sdk/blob/v1.20220411.3/mathutil/round.go
+//add testing here
+/*func Normalize(values []float64) []float64 {
+	var total float64
+	for _, v := range values {
+		total += v
+	}
+	output := make([]float64, len(values))
+	for x, v := range values {
+		output[x] = RoundDown(v/total, 0.0001)
+	}
+	return output
+}
+
+//add testing here
+func RoundDown(value, roundTo float64) float64 {
+	d1 := math.Floor(value / roundTo)
+	return d1 * roundTo
+}*/
+
+func Normalize(arr []float64) []float64 {
+	maxVal := findMax(arr)
+	minVal := findMin(arr)
+
+	// Find the minimum and maximum values in the array
+	for _, v := range arr {
+		if v < minVal {
+			minVal = v
+		}
+		if v > maxVal {
+			maxVal = v
+		}
+	}
+
+	// Normalize the array to values between 0 and 1
+	normalized := make([]float64, len(arr))
+	for i, v := range arr {
+		normalized[i] = (v - minVal) / (maxVal - minVal)
+	}
+
+	return normalized
 }
