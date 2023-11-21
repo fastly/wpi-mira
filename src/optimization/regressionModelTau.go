@@ -1,6 +1,7 @@
 package optimization
 
 import (
+	"BGPAlert/blt_mad"
 	"gonum.org/v1/gonum/stat"
 )
 
@@ -32,4 +33,21 @@ func Predict(x []float64, slope float64, intercept float64) []float64 {
 		predictions[i] = slope*x[i] + intercept
 	}
 	return predictions
+}
+
+//test the function
+func checkAccuracy(predicted, expected []float64) (int, error) {
+	accuracy := 0
+	totalCorrect := 0
+	if len(predicted) != len(expected) {
+		return 0, nil
+	} else {
+		for i := 0; i < len(predicted); i++ {
+			if blt_mad.WithinTolerance(predicted[i], expected[i], 0.01) {
+				totalCorrect = totalCorrect + 1
+			}
+		}
+	}
+	accuracy = totalCorrect / len(expected)
+	return accuracy, nil
 }

@@ -73,7 +73,7 @@ func TestFindMedianEmptySlice(t *testing.T) {
 	data3 := []float64{}
 	expected3 := math.SmallestNonzeroFloat64 // You can choose an appropriate default value for an empty slice
 	result3 := FindMedian(data3)
-	if !withinTolerance(expected3, result3, e) {
+	if !WithinTolerance(expected3, result3, e) {
 		t.Errorf("Test case 3 in TestFindMedian failed. Got: %f, Expected: %f", result3, expected3)
 	}
 }
@@ -83,7 +83,7 @@ func TestFindMedianDuplicateValues(t *testing.T) {
 	data4 := []float64{3.0, 1.0, 8.0, 1.0}
 	expected4 := 2.0 // You can choose an appropriate default value for an empty slice
 	result4 := FindMedian(data4)
-	if !withinTolerance(expected4, result4, e) {
+	if !WithinTolerance(expected4, result4, e) {
 		t.Errorf("Test case 4 in TestFindMedian failed. Got: %f, Expected: %f", result4, expected4)
 	}
 
@@ -91,7 +91,7 @@ func TestFindMedianDuplicateValues(t *testing.T) {
 	data5 := []float64{1.0, 2.0, 3.0, 3.0, 4.0}
 	expected5 := 3.0 // You can choose an appropriate default value for an empty slice
 	result5 := FindMedian(data5)
-	if !withinTolerance(expected5, result5, e) {
+	if !WithinTolerance(expected5, result5, e) {
 		t.Errorf("Test case 4 in TestFindMedian failed. Got: %f, Expected: %f", result5, expected5)
 	}
 }
@@ -101,7 +101,7 @@ func TestFindMinNonEmpty(t *testing.T) {
 	data1 := []float64{3.0, 1.0, 2.0, 5.0}
 	expected1 := 1.0
 	result1 := findMin(data1)
-	if !withinTolerance(expected1, result1, e) {
+	if !WithinTolerance(expected1, result1, e) {
 		t.Errorf("Test case 1 failed. Got: %f, Expected: %f", result1, expected1)
 	}
 }
@@ -111,7 +111,7 @@ func TestFindMinEmpty(t *testing.T) {
 	data2 := []float64{}
 	expected2 := math.SmallestNonzeroFloat64
 	result2 := findMin(data2)
-	if !withinTolerance(expected2, result2, e) {
+	if !WithinTolerance(expected2, result2, e) {
 		t.Errorf("Test case 2 failed. Got: %f, Expected: %f", result2, expected2)
 	}
 }
@@ -120,7 +120,7 @@ func TestFindMinNegativeSlice(t *testing.T) {
 	data3 := []float64{-3.0, -1.0, -2.0, -5.0}
 	expected3 := -5.0
 	result3 := findMin(data3)
-	if !withinTolerance(expected3, result3, e) {
+	if !WithinTolerance(expected3, result3, e) {
 		t.Errorf("Test case 3 failed. Got: %f, Expected: %f", result3, expected3)
 	}
 }
@@ -130,7 +130,7 @@ func TestFindMaxNonEmpty(t *testing.T) {
 	data1 := []float64{3.0, 1.0, 2.0, 5.0}
 	expected1 := 5.0
 	result1 := findMax(data1)
-	if !withinTolerance(expected1, result1, e) {
+	if !WithinTolerance(expected1, result1, e) {
 		t.Errorf("Test case 1 failed. Got: %f, Expected: %f", result1, expected1)
 	}
 }
@@ -140,7 +140,7 @@ func TestFindMaxEmpty(t *testing.T) {
 	data2 := []float64{}
 	expected2 := math.MaxFloat64
 	result2 := findMax(data2)
-	if !withinTolerance(expected2, result2, e) {
+	if !WithinTolerance(expected2, result2, e) {
 		t.Errorf("Test case 2 failed. Got: %f, Expected: %f", result2, expected2)
 	}
 }
@@ -150,7 +150,7 @@ func TestFindMaxNegativeSlice(t *testing.T) {
 	data3 := []float64{-3.0, -1.0, -2.0, -5.0}
 	expected3 := -1.0
 	result3 := findMax(data3)
-	if !withinTolerance(expected3, result3, e) {
+	if !WithinTolerance(expected3, result3, e) {
 		t.Errorf("Test case 3 failed. Got: %f, Expected: %f", result3, expected3)
 	}
 }
@@ -160,7 +160,7 @@ func TestFindMeanPositive(t *testing.T) {
 	data1 := []float64{1.0, 2.0, 3.0, 4.0, 5.0}
 	expected1 := 3.0
 	result1 := findMean(data1)
-	if !withinTolerance(expected1, result1, e) {
+	if !WithinTolerance(expected1, result1, e) {
 		t.Errorf("Expected findMean of %v to be %f, but got %f", data1, expected1, result1)
 	}
 }
@@ -170,7 +170,7 @@ func TestFindMeanNegative(t *testing.T) {
 	data2 := []float64{-1.0, -2.0, -3.0, -4.0, -5.0}
 	expected2 := -3.0
 	result2 := findMean(data2)
-	if !withinTolerance(expected2, result2, e) {
+	if !WithinTolerance(expected2, result2, e) {
 		t.Errorf("Expected findMean of %v to be %f, but got %f", data2, expected2, result2)
 	}
 }
@@ -180,7 +180,7 @@ func TestFindMeanSingleValue(t *testing.T) {
 	data3 := []float64{42.0}
 	expected3 := 42.0
 	result3 := findMean(data3)
-	if !withinTolerance(expected3, result3, e) {
+	if !WithinTolerance(expected3, result3, e) {
 		t.Errorf("Expected findMean of %v to be %f, but got %f", data3, expected3, result3)
 	}
 }
@@ -190,7 +190,7 @@ func TestFindMeanZeros(t *testing.T) {
 	data4 := []float64{0.0}
 	expected4 := 0.0
 	result4 := findMean(data4)
-	if !withinTolerance(expected4, result4, e) {
+	if !WithinTolerance(expected4, result4, e) {
 		t.Errorf("Expected findMean of %v to be %f, but got %f", data4, expected4, result4)
 	}
 }
@@ -200,7 +200,7 @@ func TestFindMeanEmptySlice(t *testing.T) {
 	data5 := []float64{}
 	expected5 := -1.0
 	result5 := findMean(data5)
-	if !withinTolerance(expected5, result5, e) {
+	if !WithinTolerance(expected5, result5, e) {
 		t.Errorf("Expected findMean of %v to be %f, but got %f", data5, expected5, result5)
 	}
 }
@@ -244,7 +244,7 @@ func TestContainsAllElementsPositiveHas(t *testing.T) {
 	subArray1 := []float64{1.0}
 	expected1 := emptyArr
 	result1 := containAllElements(data1, subArray1)
-	if !withinToleranceFloatSlice(expected1, result1, e) {
+	if !WithinToleranceFloatSlice(expected1, result1, e) {
 		t.Errorf("Test case 1  in TestContainsAllElements failed. Got: %f, Expected: %f", result1, expected1)
 	}
 }
@@ -255,7 +255,7 @@ func TestContainsAllElementsEmptySubarray(t *testing.T) {
 	subArray2 := []float64{}
 	expected2 := emptyArr
 	result2 := containAllElements(data2, subArray2)
-	if !withinToleranceFloatSlice(expected2, result2, e) {
+	if !WithinToleranceFloatSlice(expected2, result2, e) {
 		t.Errorf("Test case 2  in TestContainsAllElements failed. Got: %f, Expected: %f", result2, expected2)
 	}
 }
@@ -266,7 +266,7 @@ func TestContainsAllElementsExtraValueSubarray(t *testing.T) {
 	subArray3 := []float64{1.0, 6.0}
 	expected3 := []float64{6.0}
 	result3 := containAllElements(data3, subArray3)
-	if !withinToleranceFloatSlice(expected3, result3, e) {
+	if !WithinToleranceFloatSlice(expected3, result3, e) {
 		t.Errorf("Test case 3  in TestContainsAllElements failed. Got: %f, Expected: %f", result3, expected3)
 	}
 }
@@ -277,7 +277,7 @@ func TestContainsAllElementsEmptyMain(t *testing.T) {
 	subArray4 := []float64{1.0, 2.0, 3.0, 4.0, 5.0}
 	expected4 := []float64{1.0, 2.0, 3.0, 4.0, 5.0}
 	result4 := containAllElements(data4, subArray4)
-	if !withinToleranceFloatSlice(expected4, result4, e) {
+	if !WithinToleranceFloatSlice(expected4, result4, e) {
 		t.Errorf("Test case 4 in TestContainsAllElements failed. Got: %f, Expected: %f", result4, expected4)
 	}
 

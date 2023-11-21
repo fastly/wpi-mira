@@ -140,7 +140,7 @@ func containAllElements(mainArr []float64, subArr []float64) []float64 {
 }
 
 //https://medium.com/pragmatic-programmers/testing-floating-point-numbers-in-go-9872fe6de17f
-func withinTolerance(a float64, b float64, e float64) bool {
+func WithinTolerance(a float64, b float64, e float64) bool {
 	if a == b {
 		return true
 	}
@@ -152,12 +152,12 @@ func withinTolerance(a float64, b float64, e float64) bool {
 	}
 }
 
-func withinToleranceFloatSlice(a []float64, b []float64, e float64) bool {
+func WithinToleranceFloatSlice(a []float64, b []float64, e float64) bool {
 	if reflect.DeepEqual(a, b) {
 		return true
 	} else {
 		for i := 0; i < len(a); i++ {
-			if !withinTolerance(a[i], b[i], e) {
+			if !WithinTolerance(a[i], b[i], e) {
 				return false
 			}
 		}
@@ -308,26 +308,7 @@ func ArrayDivision(arr1, arr2 []float64) []float64 {
 	return result
 }
 
-//both of the functions are from https://github.com/blend/go-sdk/blob/v1.20220411.3/mathutil/round.go
-//add testing here
-/*func Normalize(values []float64) []float64 {
-	var total float64
-	for _, v := range values {
-		total += v
-	}
-	output := make([]float64, len(values))
-	for x, v := range values {
-		output[x] = RoundDown(v/total, 0.0001)
-	}
-	return output
-}
-
-//add testing here
-func RoundDown(value, roundTo float64) float64 {
-	d1 := math.Floor(value / roundTo)
-	return d1 * roundTo
-}*/
-
+//used for getting the training data in -> check if it is needed
 func Normalize(arr []float64) []float64 {
 	maxVal := findMax(arr)
 	minVal := findMin(arr)
