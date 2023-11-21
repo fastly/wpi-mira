@@ -1,64 +1,7 @@
 package main
 
-import (
-	"fmt"
-)
+import "fmt"
 
-/*type Folder struct {
-	FolderName string
-	Urls       []string
-}
-
-func downloadFolder(folder Folder) error {
-	// Create the folder on the file system
-	err := os.MkdirAll(folder.FolderName, os.ModePerm)
-	if err != nil {
-		return err
-	}
-
-	// Download files to the folder
-	for _, url := range folder.Urls {
-		err := downloadFile(url, folder.FolderName)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func downloadFile(url, folderDir string) error {
-	resp, err := http.Get(url)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("HTTP request failed with status code %d", resp.StatusCode)
-	}
-
-	// Extract the filename from the URL
-	_, filename := filepath.Split(url)
-
-	// Create the file in the specified folder
-	filePath := filepath.Join(folderDir, filename)
-	file, err := os.Create(filePath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	// Copy the file from the response body to the local file
-	_, err = io.Copy(file, resp.Body)
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("Downloaded: %s\n", filePath)
-	return nil
-}
-*/
 func main() {
 	folders := []Folder{}
 
