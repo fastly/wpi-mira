@@ -33,7 +33,6 @@ func main() {
 
 	go func() {
 		parse.ParseStaticFile("bgptest1", msgChannel)
-		//parse.ParseRisLiveData(msgChannel)
 		wg.Done()
 	}()
 
