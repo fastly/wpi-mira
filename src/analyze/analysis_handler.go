@@ -9,26 +9,23 @@ import (
 	"time"
 )
 
-// Reads in a windowChannel for Window objects, parses the objects, and then calls the specified analysis functions
-func AnalyzeBGPMessages(windowChannel chan common.Window) {
-	for window := range windowChannel {
-		fmt.Println("Received Window: ")
-		bucketMap := window.BucketMap
+// Takes in a Window, parses object into frequency counts, and then calls specified analysis functions
+func AnalyzeBGPMessages(window common.Window) {
+	bucketMap := window.BucketMap
 
-		// Convert BucketMap to a map of timestamp to length of messages
-		lengthMap := make(map[time.Time]float64)
+	// Convert BucketMap to a map of timestamp to length of messages
+	lengthMap := make(map[time.Time]float64)
 
-		for timestamp, messages := range bucketMap {
-			lengthMap[timestamp] = float64(len(messages))
-		}
-
-		// Turn map into sorted array of frequencies by timestamp
-		sortedFrequencies := getSortedFrequencies(lengthMap)
-
-		fmt.Printf("Sorted Array of Frequencies: \n%+v\n", sortedFrequencies)
-		fmt.Printf("BLT MAD Outliers: \n%+v\n", blt_mad.BltMad(sortedFrequencies, 10))
-		fmt.Printf("ShakeAlert Outliers: \n%+v\n", shake_alert.FindOutliers(sortedFrequencies))
+	for timestamp, messages := range bucketMap {
+		lengthMap[timestamp] = float64(len(messages))
 	}
+
+	// Turn map into sorted array of frequencies by timestamp
+	sortedFrequencies := getSortedFrequencies(lengthMap)
+
+	fmt.Printf("Sorted Array of Frequencies: \n%+v\n", sortedFrequencies)
+	fmt.Printf("BLT MAD Outliers: \n%+v\n", blt_mad.BltMad(sortedFrequencies, 10))
+	fmt.Printf("ShakeAlert Outliers: \n%+v\n", shake_alert.FindOutliers(sortedFrequencies))
 
 }
 
