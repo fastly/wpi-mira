@@ -193,10 +193,10 @@ func TxtIntoArrayFloat64(inputFile string) ([]float64, error) {
 
 	// Open the file
 	file, err := os.Open(inputFile)
+	defer file.Close()
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
 
 	//scanner
 	scanner := bufio.NewScanner(file)
@@ -217,7 +217,7 @@ func TxtIntoArrayFloat64(inputFile string) ([]float64, error) {
 }
 
 //check if one array contains the elements of the other
-func ContainAllElements(mainArr []float64, subArr []float64) []float64 {
+func FindDifferentValues(mainArr []float64, subArr []float64) []float64 {
 	//use in BGP testing to check if the result contains the minimum outliers of interest given the parameters
 	var elementsMissing []float64
 	for _, subValue := range subArr {
