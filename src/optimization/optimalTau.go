@@ -7,7 +7,7 @@ func FindTauForMinReqOutput(dataArray []float64, minReqOutData []float64) float6
 
 	for i := 0; i <= 1000; i++ { //check if I need to go above 100 but I am pretty sure that for most cases this
 		currentOutput := blt_mad.BltMad(dataArray, tau)
-		if blt_mad.FindDifferentValues(currentOutput, minReqOutData) != nil { //if there are no missing elements; continue
+		if len(blt_mad.FindDifferentValues(currentOutput, minReqOutData)) != 0 { //if there are no missing elements; continue
 			//return previous tau
 			return float64(i - 1)
 		} else {
