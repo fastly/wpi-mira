@@ -204,7 +204,7 @@ func TxtIntoArrayFloat64(inputFile string) ([]float64, error) {
 		line := scanner.Text()
 		value, err := strconv.ParseFloat(line, 64)
 		if err != nil {
-			return nil, err
+			continue //skipping the value and continue in the same line
 		}
 		floats = append(floats, value)
 	}
@@ -217,6 +217,7 @@ func TxtIntoArrayFloat64(inputFile string) ([]float64, error) {
 }
 
 //check if one array contains the elements of the other
+//possibly simplify this function in the future; i might need to use this specific implementation for comparing outputs of shakeAlert and MAD
 func FindDifferentValues(mainArr []float64, subArr []float64) []float64 {
 	//use in BGP testing to check if the result contains the minimum outliers of interest given the parameters
 	var elementsMissing []float64
