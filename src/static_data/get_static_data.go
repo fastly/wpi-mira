@@ -5,6 +5,8 @@ import (
 	"BGPAlert/common"
 	"BGPAlert/config"
 	"BGPAlert/optimization"
+	"BGPAlert/parse"
+	"BGPAlert/process"
 	"fmt"
 	"golang.org/x/net/html"
 	"io"
@@ -244,12 +246,12 @@ func findMadOfTextFile(inputTextFile string) float64 {
 	return mean
 }
 
-func runProcessThroughOneBGPFolder(num int, outFile string, outMinReqFile string) {
+func runProcessThroughOneBGPFolder(num int, outFile string, outMinReqFile string, configuration *config.Configuration) {
 	// WaitGroup for waiting on goroutines to finish
 	var wg sync.WaitGroup
 
 	// Channel for sending BGP messages between parsing and processing
-	msgChannel := make(chan []common.BGPMessage)
+	msgChannel := make(chan common.BGPMessage)
 
 	// Channel for sending windows from processing to analyzing
 	windowChannel := make(chan []common.Window)
@@ -261,12 +263,12 @@ func runProcessThroughOneBGPFolder(num int, outFile string, outMinReqFile string
 	//outFile := fmt.Sprintf("bgpTest%d.txt", num)
 
 	go func() {
-		parseStaticFile(inputFolderPath, msgChannel)
+		parse.ParseStaticFile(inputFolderPath, msgChannel)
 		wg.Done()
 	}()
 
 	go func() {
-		processBGPMessagesStatic(msgChannel, windowChannel)
+		process.ProcessBGPMessages(msgChannel, configuration) //this does now quiete work on the calling error?
 		wg.Done()
 	}()
 
