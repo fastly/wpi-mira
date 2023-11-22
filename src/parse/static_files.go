@@ -16,7 +16,7 @@ import (
 )
 
 // Reads in static files from a directory, parses them into BGPMessage struct and puts them into channel for processor to process
-func ParseStaticFile(folderDir string, msgChannel chan common.BGPMessage) {
+func ParseStaticFile(folderDir string, msgChannel chan common.Message) {
 	const directoryPath = "static_data/"
 
 	// Gets all files from directory we want to test
@@ -36,7 +36,10 @@ func ParseStaticFile(folderDir string, msgChannel chan common.BGPMessage) {
 				continue
 			}
 			for _, msg := range bgpMessages {
-				msgChannel <- msg
+				msgChannel <- common.Message{
+					BGPMessage: msg,
+					Filter:     "",
+				}
 			}
 			// Send the parsed BGP messages to the channel
 		}
