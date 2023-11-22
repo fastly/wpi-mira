@@ -148,11 +148,11 @@ func WithinToleranceFloatSlice(a []float64, b []float64, e float64) bool {
 }
 
 func calculatePercentile(numbers []float64, percentile float64) float64 {
-	sort.Float64s(numbers)
-	index := int(percentile / 100 * float64(len(numbers)-1)) //index corresponding to the percentile
-	lower := numbers[index]
-	upper := numbers[index+1]
-	fractionalPart := percentile/100*float64(len(numbers)-1) - float64(index)
+	sortedList := sortData(numbers)
+	index := int(percentile / 100 * float64(len(sortedList)-1)) //index corresponding to the percentile
+	lower := sortedList[index]
+	upper := sortedList[index+1]
+	fractionalPart := percentile/100*float64(len(sortedList)-1) - float64(index)
 	value := lower + (upper-lower)*fractionalPart
 	return value
 }
