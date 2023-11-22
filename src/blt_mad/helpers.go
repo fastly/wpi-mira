@@ -10,8 +10,6 @@ import (
 	"strconv"
 )
 
-//potentially use the mathutil to see if i can simplify all the functions
-
 func removeZeros(data []float64) []float64 {
 	var nonZeros []float64
 	for _, value := range data {

@@ -12,12 +12,13 @@ type Configuration struct {
 	//cast onto the needed type when processing in algos
 	FileInputOption           string `json:"dataOption"`
 	StaticFile                string `json:"staticFilePath"`
+	URLStaticData             string `json:"staticFilesLink"`
 	OutlierDetectionAlgorithm string `json:"outlierDetectionAlgorithm"`
 	Prefix                    string `json:"prefix"` // can input a list of string with values seperated by a comma
 	Asn                       string `json:"asn"`
 	PeerIP                    string `json:"peerIP"`
 	Connector                 string `json:"connector"`
-	WindowSize                string `json:"windowSize"`
+	WindowSize                int    `json:"windowSize"`
 }
 
 func LoadConfig(filename string) (*Configuration, error) {
