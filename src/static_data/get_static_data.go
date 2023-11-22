@@ -45,8 +45,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Extract URLs from the HTML document
-	//make numFiles the same as the window parameter
 	numFiles := configStruct.WindowSize
 	partialUrls := extractBZ2URLs(doc)
 	allFolders := createFolders(partialUrls, mainUrl, numFiles)
@@ -74,8 +72,6 @@ func downloadFile(url, folderPath string) error {
 	if err := os.MkdirAll(folderPath, os.ModePerm); err != nil {
 		return fmt.Errorf("error creating folder: %v", err)
 	}
-
-	// Extract the file name from the URL
 	fileName := filepath.Base(url)
 
 	// Create the file in the specified folder
@@ -93,12 +89,10 @@ func downloadFile(url, folderPath string) error {
 	}
 	defer response.Body.Close()
 
-	// Check if the request was successful (status code 200)
 	if response.StatusCode != http.StatusOK {
 		return fmt.Errorf("error downloading file, status code: %d", response.StatusCode)
 	}
 
-	// Copy the contents of the response body to the file
 	_, err = io.Copy(out, response.Body)
 	if err != nil {
 		return fmt.Errorf("error copying file contents: %v", err)
