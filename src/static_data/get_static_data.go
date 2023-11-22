@@ -1,6 +1,7 @@
 package main
 
 import (
+	"BGPAlert/analyze"
 	"BGPAlert/blt_mad"
 	"BGPAlert/common"
 	"BGPAlert/config"
@@ -17,6 +18,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 )
 
 type Folder struct {
@@ -63,14 +65,16 @@ func main() {
 			return
 		}
 	}
-
-	for i := 0; i <= len(allFolders)-1; i++ {
-		outFile := fmt.Sprintf("static_data/rawBGPData/bgpTest%d.txt", i)
-		outMinReqFile := fmt.Sprintf("static_data/minReq/bgpMinOutliers97thPercentileTest%d.txt", i)
-		runProcessThroughOneBGPFolder(i, outFile, outMinReqFile)
-	}
-	//get all the means,mads, and taus into text files
-	GetMadsMediansTausIntoTxt()
+	outFile := fmt.Sprintf("static_data/rawBGPData/bgpTest%d.txt", 0)
+	outMinReqFile := fmt.Sprintf("static_data/minReq/bgpMinOutliers97thPercentileTest%d.txt", 0)
+	runProcessThroughOneBGPFolder(0, outFile, outMinReqFile, configStruct)
+	/*	for i := 0; i <= len(allFolders)-1; i++ {
+			outFile := fmt.Sprintf("static_data/rawBGPData/bgpTest%d.txt", i)
+			outMinReqFile := fmt.Sprintf("static_data/minReq/bgpMinOutliers97thPercentileTest%d.txt", i)
+			runProcessThroughOneBGPFolder(i, outFile, outMinReqFile, configStruct)
+		}
+		//get all the means,mads, and taus into text files
+		GetMadsMediansTausIntoTxt()*/
 
 }
 
@@ -253,11 +257,11 @@ func runProcessThroughOneBGPFolder(num int, outFile string, outMinReqFile string
 	// Channel for sending BGP messages between parsing and processing
 	msgChannel := make(chan common.BGPMessage)
 
-	// Channel for sending windows from processing to analyzing
-	windowChannel := make(chan []common.Window)
+	/*// Channel for sending windows from processing to analyzing
+	windowChannel := make(chan []common.Window)*/
 
 	// Start the goroutines
-	wg.Add(3)
+	wg.Add(1)
 	// Can change folder directory to any folder inside of src/staticdata
 	inputFolderPath := fmt.Sprintf("bgpTest%d", num)
 	//outFile := fmt.Sprintf("bgpTest%d.txt", num)
@@ -267,16 +271,45 @@ func runProcessThroughOneBGPFolder(num int, outFile string, outMinReqFile string
 		wg.Done()
 	}()
 
+	wg.Add(1)
 	go func() {
 		process.ProcessBGPMessages(msgChannel, configuration) //this does now quiete work on the calling error?
 		wg.Done()
 	}()
 
-	go func() {
+	/*go func() {
 		AnalyzeBGPMessagesWriteOntoFile(windowChannel, outFile, outMinReqFile)
 		wg.Done()
-	}()
+	}()*/
 
 	wg.Wait()
 
+}
+
+func AnalyzeBGPMessagesWriteOntoFile(windowChannel chan []common.Window, freqOutFile string, minReqFile string) {
+	for windows := range windowChannel {
+		for _, w := range windows {
+			//fmt.Println("Received Window: ")
+			bucketMap := w.BucketMap
+
+			// Convert BucketMap to a map of timestamp to length of messages
+			lengthMap := make(map[time.Time]float64)
+
+			for timestamp, messages := range bucketMap {
+				lengthMap[timestamp] = float64(len(messages))
+			}
+
+			// Turn map into sorted array of frequencies by timestamp
+			sortedFrequenciesFloatArray := analyze.GetSortedFrequencies(lengthMap)
+
+			// Convert to float array for analysis functions
+			//floatArray := int64ArrayToFloat64Array(sortedFrequencies)
+			//save frequency array into the freqOutFile
+			blt_mad.SaveArrayToFile(freqOutFile, sortedFrequenciesFloatArray)
+
+			//get min reqArray for the 97th percentile
+			minReqArray := blt_mad.GetValuesLargerThanPercentile(sortedFrequenciesFloatArray, 97)
+			blt_mad.SaveArrayToFile(minReqFile, minReqArray)
+		}
+	}
 }
