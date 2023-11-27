@@ -4,8 +4,6 @@ import (
 	"testing"
 )
 
-/*NOTE: because of the findMedian function the expected results needs to be in an increasing order*/
-
 func TestArray0(t *testing.T) {
 	tau := 0.0
 
@@ -48,7 +46,7 @@ func TestBGP10(t *testing.T) {
 	tau := 10.0
 
 	//Test case 2: bgp data 1
-	data2 := convertToFloat64Array(readTxtToString("bgpDataCounts1.txt"))
+	data2, _ := TxtIntoArrayFloat64("bgpDataCounts1.txt")
 	expected2 := []float64{14065.0, 16974.0, 25746.0}
 	result2 := BltMad(data2, tau)
 	if !equalSlices(expected2, result2) {
@@ -56,7 +54,7 @@ func TestBGP10(t *testing.T) {
 	}
 
 	//Test case 3: bgp data 2
-	data3 := convertToFloat64Array(readTxtToString("bgpDataCounts2.txt"))
+	data3, _ := TxtIntoArrayFloat64("bgpDataCounts2.txt")
 	expected3 := []float64{40552.0, 122393.0, 35956.0, 118534.0}
 	result3 := BltMad(data3, tau)
 	if !equalSlices(expected3, result3) {
@@ -64,7 +62,7 @@ func TestBGP10(t *testing.T) {
 	}
 
 	//Test case 4: bgp data 3
-	data4 := convertToFloat64Array(readTxtToString("bgpDataCounts3.txt"))
+	data4, _ := TxtIntoArrayFloat64("bgpDataCounts3.txt")
 	expected4 := []float64{2909.0, 2509.0, 4166.0, 3888.0, 2542.0, 2864.0, 2640.0, 2357.0, 2314.0, 2701.0, 2436.0, 2555.0, 2438.0, 2802.0, 2352.0, 2802.0}
 	result4 := BltMad(data4, tau)
 	if !equalSlices(expected4, result4) {
@@ -76,14 +74,14 @@ func TestBGP10(t *testing.T) {
 func TestBGP100(t *testing.T) {
 	tau := 100.0 //the outputs should be empty arrays when the sensitivity parameter is too large
 	//Test case 2: bgp data 1
-	data2 := convertToFloat64Array(readTxtToString("bgpDataCounts1.txt"))
+	data2, _ := TxtIntoArrayFloat64("bgpDataCounts1.txt")
 	expected2 := []float64{}
 	result2 := BltMad(data2, tau)
 	if !equalSlices(expected2, result2) {
 		t.Errorf("Test case 2 failed. Got: %f, Expected: %f", result2, expected2)
 	}
 	//Test case 3: bgp data 2
-	data3 := convertToFloat64Array(readTxtToString("bgpDataCounts2.txt"))
+	data3, _ := TxtIntoArrayFloat64("bgpDataCounts2.txt")
 	expected3 := []float64{}
 	result3 := BltMad(data3, tau)
 	if !equalSlices(expected3, result3) {
@@ -91,7 +89,7 @@ func TestBGP100(t *testing.T) {
 	}
 
 	//Test case 4: bgp data 3
-	data4 := convertToFloat64Array(readTxtToString("bgpDataCounts3.txt"))
+	data4, _ := TxtIntoArrayFloat64("bgpDataCounts3.txt")
 	expected4 := []float64{}
 	result4 := BltMad(data4, tau)
 	if !equalSlices(expected4, result4) {
