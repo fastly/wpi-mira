@@ -33,7 +33,7 @@ func main() {
 	wg.Add(1)
 
 	go func() {
-		parse.ParseStaticFile("bgptest1", msgChannel)
+		parse.ParseStaticFile("bgpTest1", msgChannel)
 		wg.Done()
 	}()
 

@@ -171,20 +171,25 @@ func GetValuesLargerThanPercentile(numbers []float64, percentile float64) []floa
 	return largerValues
 }
 
-func SaveArrayToFile(fileName string, arr []float64) error {
-	file, err := os.Create(fileName)
+func AppendFloat64ArrayToTxt(fileName string, floatArray []float64) error {
+	// Open the file in append mode, create if it doesn't exist
+	file, err := os.OpenFile(fileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		return err
+		fmt.Println("Error opening file:", err)
+		return nil
 	}
 	defer file.Close()
 
-	for _, value := range arr {
-		_, err := fmt.Fprintf(file, "%f\n", value)
-		if err != nil {
-			return err
+	// Iterate through the float array and write each element as a string to the file
+	for _, num := range floatArray {
+		// Convert float to string and write to file with newline separator
+		if _, err := fmt.Fprintf(file, "%.6f\n", num); err != nil {
+			fmt.Println("Error writing to file:", err)
+			return nil
 		}
 	}
 
+	fmt.Println("Float array appended to file successfully.")
 	return nil
 }
 
