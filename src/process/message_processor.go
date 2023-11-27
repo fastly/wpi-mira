@@ -5,12 +5,13 @@ import (
 	"BGPAlert/common"
 	"BGPAlert/config"
 	"fmt"
+	"strconv"
 	"time"
 )
 
 // Constantly read messages from channel, build up windows with frequency maps, calling analysis on windows when full
 func ProcessBGPMessages(msgChannel chan common.BGPMessage, config *config.Configuration) error {
-	maximumBuckets := config.WindowSize
+	maximumBuckets, _ := strconv.Atoi(config.WindowSize)
 	// Each bucket is 60s
 	parseDuration := 60 * time.Second
 	maximumTimespan := time.Duration(maximumBuckets*60) * time.Second
