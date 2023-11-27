@@ -55,16 +55,6 @@ func main() {
 			return
 		}
 	}
-	/*outFile := fmt.Sprintf("static_data/freqData/bgpTest%d.txt", 0)
-	outMinReqFile := fmt.Sprintf("static_data/minReq/bgpMinOutliers97thPercentileTest%d.txt", 0)
-	runProcessThroughOneBGPFolder(0, outFile, outMinReqFile, configStruct)
-		for i := 0; i <= len(allFolders)-1; i++ {
-			outFile := fmt.Sprintf("static_data/freqData/bgpTest%d.txt", i)
-			outMinReqFile := fmt.Sprintf("static_data/minReq/bgpMinOutliers97thPercentileTest%d.txt", i)
-			runProcessThroughOneBGPFolder(i, outFile, outMinReqFile, configStruct)
-		}
-		//get all the means,mads, and taus into text files
-		GetMadsMediansTausIntoTxt()*/
 
 }
 

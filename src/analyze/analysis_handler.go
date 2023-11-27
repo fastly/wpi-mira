@@ -45,6 +45,9 @@ func AnalyzeBGPMessages(window common.Window) {
 	minReqOutFileName := fmt.Sprintf("static_data/minReq/minOutFile%s.txt", timeStampsFull)
 	blt_mad.AppendFloat64ArrayToTxt(minReqOutFileName, minReqArray)
 
+	//create a file with all the frequencies from a single folder to be put onto a graph
+	blt_mad.AppendFloat64ArrayToTxt("static_data/allFreq", sortedFrequencies)
+
 }
 
 // Takes in map of time objects to frequencies and puts them into an ordered array of frequencies based on increasing timestamps

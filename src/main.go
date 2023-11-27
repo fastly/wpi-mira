@@ -30,6 +30,7 @@ func main() {
 	// Start the goroutines
 
 	// Can change folder directory to any folder inside of src/static_data
+
 	wg.Add(1)
 
 	go func() {
