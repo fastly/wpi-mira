@@ -55,14 +55,16 @@ func main() {
 			return
 		}
 	}
-
-	/*		for i := 0; i <= len(allFolders)-1; i++ {
-				outFile := fmt.Sprintf("static_data/rawBGPData/bgpTest%d.txt", i)
-				outMinReqFile := fmt.Sprintf("static_data/minReq/bgpMinOutliers97thPercentileTest%d.txt", i)
-				runProcessThroughOneBGPFolder(i, outFile, outMinReqFile, configStruct)
-			}
-			//get all the means,mads, and taus into text files
-			GetMadsMediansTausIntoTxt()*/
+	/*outFile := fmt.Sprintf("static_data/rawBGPData/bgpTest%d.txt", 0)
+	outMinReqFile := fmt.Sprintf("static_data/minReq/bgpMinOutliers97thPercentileTest%d.txt", 0)
+	runProcessThroughOneBGPFolder(0, outFile, outMinReqFile, configStruct)
+		for i := 0; i <= len(allFolders)-1; i++ {
+			outFile := fmt.Sprintf("static_data/rawBGPData/bgpTest%d.txt", i)
+			outMinReqFile := fmt.Sprintf("static_data/minReq/bgpMinOutliers97thPercentileTest%d.txt", i)
+			runProcessThroughOneBGPFolder(i, outFile, outMinReqFile, configStruct)
+		}
+		//get all the means,mads, and taus into text files
+		GetMadsMediansTausIntoTxt()*/
 
 }
 
@@ -71,8 +73,6 @@ func downloadFile(url, folderPath string) error {
 	if err := os.MkdirAll(folderPath, os.ModePerm); err != nil {
 		return fmt.Errorf("error creating folder: %v", err)
 	}
-
-	// Extract the file name from the URL
 	fileName := filepath.Base(url)
 
 	// Create the file in the specified folder
@@ -90,12 +90,10 @@ func downloadFile(url, folderPath string) error {
 	}
 	defer response.Body.Close()
 
-	// Check if the request was successful (status code 200)
 	if response.StatusCode != http.StatusOK {
 		return fmt.Errorf("error downloading file, status code: %d", response.StatusCode)
 	}
 
-	// Copy the contents of the response body to the file
 	_, err = io.Copy(out, response.Body)
 	if err != nil {
 		return fmt.Errorf("error copying file contents: %v", err)
@@ -115,6 +113,7 @@ func downloadFolder(folder Folder) error {
 	return nil
 }
 
+//this works
 func createFullUrls(urls []string, mainURL string) []string {
 	var result []string
 

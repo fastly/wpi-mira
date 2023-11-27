@@ -12,6 +12,7 @@ type Configuration struct {
 	//cast onto the needed type when processing in algos
 	FileInputOption           string `json:"dataOption"`
 	StaticFile                string `json:"staticFilePath"`
+	URLStaticData             string `json:"staticFilesLink"`
 	OutlierDetectionAlgorithm string `json:"outlierDetectionAlgorithm"`
 	Prefix                    string `json:"prefix"` // can input a list of string with values seperated by a comma
 	Asn                       string `json:"asn"`
@@ -44,6 +45,12 @@ func ValidDateConfiguration(config *Configuration) {
 	//convert all strings to lower case to ignore any capitalizations
 	fileInputL := strings.ToLower(config.FileInputOption)
 	outlierL := strings.ToLower(config.OutlierDetectionAlgorithm)
+
+	//added to check if no window size was put in
+	if config.WindowSize == "" {
+		config.WindowSize = "360"
+		fmt.Println("No window size was passed in. The default window size was set to 360")
+	}
 
 	if fileInputL == "live" {
 		//require prefix and collector

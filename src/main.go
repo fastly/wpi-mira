@@ -12,6 +12,7 @@ import (
 )
 
 func main() {
+
 	startTime := time.Now()
 
 	configStruct, err := config.LoadConfig("config.json")
