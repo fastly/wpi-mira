@@ -33,7 +33,7 @@ func ProcessBGPMessages(msgChannel chan common.Message, config *config.Configura
 		// Make sure we select window with correct filter
 		var currWindow *common.Window
 
-		// Go through current windows and see if filter is already there
+		// Go through current list of windows and see if filter is already there
 		for _, window := range windows {
 			if window.Filter == msg.Filter {
 				currWindow = &window
@@ -43,13 +43,12 @@ func ProcessBGPMessages(msgChannel chan common.Message, config *config.Configura
 
 		// If that filter is not already a window, make a new window for it
 		if currWindow == nil {
-			// Declare and assign window using :=
 			window := common.Window{
 				Filter:    msg.Filter,
 				BucketMap: make(map[time.Time][]common.BGPMessage),
 			}
 
-			// Use append correctly to update the windows slice
+			// Add window to list of windows
 			windows = append(windows, window)
 
 			// Update currWindow to point to the newly added window
