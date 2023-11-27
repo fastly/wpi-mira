@@ -18,7 +18,7 @@ type Configuration struct {
 	Asn                       string `json:"asn"`
 	PeerIP                    string `json:"peerIP"`
 	Connector                 string `json:"connector"`
-	WindowSize                int    `json:"windowSize"`
+	WindowSize                string `json:"windowSize"`
 }
 
 func LoadConfig(filename string) (*Configuration, error) {
@@ -45,6 +45,12 @@ func ValidDateConfiguration(config *Configuration) {
 	//convert all strings to lower case to ignore any capitalizations
 	fileInputL := strings.ToLower(config.FileInputOption)
 	outlierL := strings.ToLower(config.OutlierDetectionAlgorithm)
+
+	//added to check if no window size was put in
+	if config.WindowSize == "" {
+		config.WindowSize = "360"
+		fmt.Println("No window size was passed in. The default window size was set to 360")
+	}
 
 	if fileInputL == "live" {
 		//require prefix and collector
