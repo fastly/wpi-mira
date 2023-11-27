@@ -7,4 +7,6 @@ go run static_data/get_static_data.go
 
 In order to run the main program cd into the /src folder and run the following commands:
 go mod tidy
-go run main.go
+
+go run main.go -config="path_to_config_json"
+(if no config file, then default uses default-config.json)
