@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -45,7 +46,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	numFiles := configStruct.WindowSize
+	numFiles, _ := strconv.Atoi(configStruct.WindowSize)
 	partialUrls := extractBZ2URLs(doc)
 	allFolders := createFolders(partialUrls, mainUrl, numFiles)
 	for _, folder := range allFolders {
