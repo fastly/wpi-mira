@@ -17,13 +17,13 @@ func main() {
 	startTime := time.Now()
 
 	// define a flag for config file
-	configFile := flag.String("config", "config.json", "Path to configuration file")
+	configFile := flag.String("config", "default-config.json", "Path to configuration file")
 
 	//parse command line arguments
 	flag.Parse()
 
 	//indicate which config is being used
-	if *configFile == "config.json" { //default
+	if *configFile == "default-config.json" { //default
 		fmt.Printf("No config file specified. Using default config file: %s\n", *configFile)
 	} else { //user input config file
 		fmt.Printf("Using config file: %s\n", *configFile)

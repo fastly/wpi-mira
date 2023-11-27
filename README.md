@@ -9,4 +9,4 @@ In order to run the main program cd into the /src folder and run the following c
 go mod tidy
 
 go run main.go -config="path_to_config_json"
-(if no config file, then default uses config.json)
+(if no config file, then default uses default-config.json)
