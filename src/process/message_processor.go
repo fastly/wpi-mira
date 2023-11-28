@@ -26,33 +26,25 @@ func ProcessBGPMessages(msgChannel chan common.Message, config *config.Configura
 	maximumTimespan := time.Duration(maximumBuckets*60) * time.Second
 
 	// Stores windows that will be used for analysis
-	var windows []common.Window
+	windows := make(map[string]*common.Window)
 
 	// Read messages from channel
 	for msg := range msgChannel {
-		// Make sure we select window with correct filter
-		var currWindow *common.Window
+		// Get current window from map if it exists
+		currWindow, exists := windows[msg.Filter]
 
-		// Go through current list of windows and see if filter is already there
-		for _, window := range windows {
-			if window.Filter == msg.Filter {
-				currWindow = &window
-				break
-			}
-		}
-
-		// If that filter is not already a window, make a new window for it
-		if currWindow == nil {
+		// If the filter is not already a window, create a new window for it
+		if !exists {
 			window := common.Window{
 				Filter:    msg.Filter,
 				BucketMap: make(map[time.Time][]common.BGPMessage),
 			}
 
-			// Add window to list of windows
-			windows = append(windows, window)
+			// Add window to the map
+			windows[msg.Filter] = &window
 
 			// Update currWindow to point to the newly added window
-			currWindow = &windows[len(windows)-1]
+			currWindow = &window
 		}
 
 		// Round timestamp to size of parseDuration to place in correct bucket
