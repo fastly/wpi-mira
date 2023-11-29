@@ -247,31 +247,31 @@ func WriteCSVFile(data interface{}, filename string) error {
 	return nil
 }
 
-/*func AppendFloat64ArrayToTxt(fileName string, floatArray []float64) error {
-	// Open the file in append mode, create if it doesn't exist
-	file, err := os.OpenFile(fileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+//another way to write messages to csv but it gets messy because we are not working with string
+/*func WriteOutlierMessagesToCSV(fileName string, data []string) {
+	// Open the file in append mode, creating it if it doesn't exist
+	f, err := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
-		fmt.Println("Error opening file:", err)
-		return nil
+		fmt.Println("Error: ", err)
+		return
 	}
-	defer file.Close()
+	defer f.Close() // Ensure file is closed after the function finishes
 
-	// Iterate through the float array and write each element as a string to the file
-	for _, num := range floatArray {
-		// Convert float to string and write to file with newline separator
-		if _, err := fmt.Fprintf(file, "%.6f\n", num); err != nil {
-			fmt.Println("Error writing to file:", err)
-			return nil
-		}
+	// Create a CSV writer
+	w := csv.NewWriter(f)
+
+	// Write the data to the CSV file
+	err = w.Write(data)
+	if err != nil {
+		fmt.Println("Error writing to CSV: ", err)
 	}
 
-	fmt.Println("Float array appended to file successfully.")
-	return nil
+	// Flush the writer to ensure all data is written to the file
+	w.Flush()
+	if err := w.Error(); err != nil {
+		fmt.Println("Error flushing to CSV: ", err)
+	}
 }*/
-
-func ArrayFromJson(filename string) {
-
-}
 
 func TxtIntoArrayFloat64(inputFile string) ([]float64, error) {
 	var floats []float64

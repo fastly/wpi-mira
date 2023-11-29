@@ -10,6 +10,7 @@ import (
 )
 
 var AllResults []common.Result //global so that it can be added onto by parser and seen by dataHandler
+var maxPoints = 20             //the max number of points to be displayed on the graph; make sure to divide this by the number of points in each window or specify that maxPoints is the number of buckets that will be processed
 
 // Takes in a Window, parses object into frequency counts, and then calls specified analysis functions
 //code to write the frequencies; the outliers; and the minReqs to files
@@ -19,22 +20,30 @@ func AnalyzeBGPMessages(window common.Window) common.Result {
 	sortedFrequencies := GetSortedFrequencies(lengthMap)
 
 	//the file names will contain all the timestamps for a given folder that was processed
-	bltOutliers, bltOutlierTimes := BltMadWindow(window, 5) //add optimization to here
-	shakeAlertOutliers, shakeAlertOutlierTime := ShakeAlertWindow(window)
+	bltOutliers, bltOutlierTimes, bltOutlierMessages := BltMadWindow(window, 5) //add optimization to here
+	shakeAlertOutliers, shakeAlertOutlierTime, shakeAlertOutlierMessages := ShakeAlertWindow(window)
 	fmt.Printf("Sorted Array of Frequencies: \n%+v\n", sortedFrequencies)
 	fmt.Printf("BLT MAD Outliers: \n%+v\n", bltOutliers)
 	fmt.Printf("ShakeAlert Outliers: \n%+v\n", shakeAlertOutliers)
 
 	//put all the results into the Result struct and pass write it out to a json
 	r := common.Result{
-		Frequencies:          sortedFrequencies,
-		MADOutliers:          bltOutliers,
-		MADTimestamps:        bltOutlierTimes,
+		Frequencies: sortedFrequencies,
+
+		MADOutliers:   bltOutliers,
+		MADTimestamps: bltOutlierTimes,
+
 		ShakeAlertOutliers:   shakeAlertOutliers,
 		ShakeAlertTimestamps: shakeAlertOutlierTime,
 	}
-	blt_mad.StoreResultIntoJson(r, "static_data/result.json")
-	maxPoints := 100
+
+	//what is the best way to output this?
+	m := common.OutlierMessages{
+		MADOutlierMessages: bltOutlierMessages,
+		ShakeAlertMessages: shakeAlertOutlierMessages}
+
+	blt_mad.StoreResultIntoJson(r, "static_data/recentFullResult.json") //storing the most recent result
+	blt_mad.WriteCSVFile(m, "outlierMessages.csv")
 	//make sure that we do not get more than a threshold number of points
 	if len(AllResults)+1 > maxPoints {
 		AllResults = append(AllResults[1:], r) //append all the elements except for the first one
@@ -42,16 +51,18 @@ func AnalyzeBGPMessages(window common.Window) common.Result {
 		AllResults = append(AllResults, r)
 	}
 	fmt.Println("--------------------------------------AllResult------------------------------------")
-	fmt.Println(AllResults)
+	fmt.Println(len(AllResults))
 	fmt.Println("--------------------------------------AllResult------------------------------------")
 
 	return r
 }
 
 //changed bltMad inputs to get timestamps and the outliers at the same time
-func BltMadWindow(window common.Window, tau float64) ([]float64, []time.Time) {
+func BltMadWindow(window common.Window, tau float64) ([]float64, []time.Time, [][]common.BGPMessage) {
 	var outliers []float64
 	var times []time.Time
+	var messages [][]common.BGPMessage //array of arrays of messages for a given bucket map
+	bucketMap := window.BucketMap
 
 	lengthMap := makeLengthMap(window)
 	data := GetSortedFrequencies(lengthMap)
@@ -60,9 +71,10 @@ func BltMadWindow(window common.Window, tau float64) ([]float64, []time.Time) {
 		if blt_mad.IsAnOutlierBLT(data, tau, lengthMap[timestamp]) {
 			outliers = append(outliers, lengthMap[timestamp])
 			times = append(times, timestamp)
+			messages = append(messages, bucketMap[timestamp])
 		}
 	}
-	return outliers, times
+	return outliers, times, messages
 }
 
 //repeated code in three of these functions; moved outside to make the code easier to read
@@ -76,9 +88,11 @@ func makeLengthMap(window common.Window) map[time.Time]float64 {
 }
 
 //changed shakeAlert inputs to get timestamps and the outliers at the same time
-func ShakeAlertWindow(window common.Window) ([]float64, []time.Time) {
+func ShakeAlertWindow(window common.Window) ([]float64, []time.Time, [][]common.BGPMessage) {
 	var outliers []float64
 	var times []time.Time
+	var messages [][]common.BGPMessage //array of arrays of messages for a given bucket map
+	bucketMap := window.BucketMap
 
 	//the frequencies needed to check if something is an outlier
 	lengthMap := makeLengthMap(window)
@@ -88,9 +102,10 @@ func ShakeAlertWindow(window common.Window) ([]float64, []time.Time) {
 		if shake_alert.IsAnOutlierShakeAlert(data, lengthMap[timestamp]) {
 			outliers = append(outliers, lengthMap[timestamp])
 			times = append(times, timestamp)
+			messages = append(messages, bucketMap[timestamp])
 		}
 	}
-	return outliers, times
+	return outliers, times, messages
 }
 
 // Takes in map of time objects to frequencies and puts them into an ordered array of frequencies based on increasing timestamps

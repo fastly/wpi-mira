@@ -23,6 +23,12 @@ type Message struct {
 	Filter     string
 }
 
+//used to write the struct onto a json output
+type OutlierMessages struct {
+	MADOutlierMessages [][]BGPMessage `json:"MADOutlierMessages"`
+	ShakeAlertMessages [][]BGPMessage `json:"ShakeAlertMessages"`
+}
+
 type Window struct {
 	Filter    string
 	BucketMap map[time.Time][]BGPMessage
@@ -31,9 +37,11 @@ type Window struct {
 //result struct needed to simplify getting all the info needed to be dispayed
 //use json marshall to parse and simplify the code to store
 type Result struct {
-	Frequencies          []float64   `json:"Frequencies"`
-	MADOutliers          []float64   `json:"MADOutliers"`
-	MADTimestamps        []time.Time `json:"MADTimestamps"`
+	Frequencies []float64 `json:"Frequencies"`
+
+	MADOutliers   []float64   `json:"MADOutliers"`
+	MADTimestamps []time.Time `json:"MADTimestamps"`
+
 	ShakeAlertOutliers   []float64   `json:"ShakeAlertOutliers"`
 	ShakeAlertTimestamps []time.Time `json:"ShakeAlertTimestamps"`
 }
