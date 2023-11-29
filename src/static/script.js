@@ -16,6 +16,28 @@ function addData(chart, newData) {
     chart.update();
 }
 
+function addLabels(madOutliers, madOutliersTimes, shakeOutliers, shakeOutliersTimes) {
+    //mad outliers
+    const madOutliersContainer = document.getElementById('madOutliers');
+    const formattedArrayMad = madOutliers.join(', '); // Format the array for display
+    madOutliersContainer.innerText = `MAD Outliers: [${formattedArrayMad}]`;
+
+    //mad outlier timestamps
+    const madOutliersTimesContainer = document.getElementById('madOutliersTimes');
+    const formattedArrayMadTimes = madOutliersTimes.join(', '); // Format the array for display
+    madOutliersTimesContainer.innerText = `MAD Outliers: [${formattedArrayMadTimes}]`;
+
+    //add shake alert outlier counts
+    const shakeOutliersContainer = document.getElementById('shakeOutliers');
+    const formattedArrayShake = shakeOutliers.join(', '); // Format the array for display
+    shakeOutliersContainer.innerText = `ShakeAlertOutliers: [${formattedArrayShake}]`;
+
+    //shake times
+    const shakeOutliersTimesContainer = document.getElementById('shakeOutliersTimes');
+    const formattedArrayShakeTimes = shakeOutliersTimes.join(', '); // Format the array for display
+    shakeOutliersTimesContainer.innerText = `ShakeAlertOutliers: [${formattedArrayShakeTimes}]`;
+}
+
 
 const ctx = document.getElementById('myChart').getContext('2d');
 const chart = new Chart(ctx, {
@@ -49,7 +71,15 @@ setInterval(() => {
         .then(response => response.json())
         .then(data => {
             const frequencies = data.map(result => result.Frequencies).flat();
+
+            const madOutliers = data.map(result => result.MADOutliers).flat();
+            const madOutliersTimes = data.map(result => result.MADTimestamps).flat();
+
+            const shakeAlertOutliers = data.map(result => result.ShakeAlertOutliers).flat();
+            const shakeAlertOutliersTimes = data.map(result => result.ShakeAlertTimestamps).flat();
+
             addData(chart, frequencies);
+            addLabels(madOutliers, madOutliersTimes, shakeAlertOutliers, shakeAlertOutliersTimes)
         })
         .catch(error => {
             console.error('Error fetching data:', error);

@@ -5,22 +5,53 @@
     <title>Graph Display</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-       #myChart {
+         #myChart {
             width: 400px;
             height: 500px;
         }
-        #numbersContainer {
+        #madOutliers {
             position: fixed;
             bottom: 10px;
             left: 10px;
             border: 1px solid #ccc;
             padding: 10px;
+            width: 400px;
         }
+
+         #madOutliersTimes {
+             position: fixed;
+             bottom: 10px;
+             left: 700px;
+             border: 1px solid #ccc;
+             padding: 10px;
+             width: 400px;
+         }
+
+   #shakeOutliers {
+       position: fixed;
+       bottom: 100px;
+       left: 10px;
+       border: 1px solid #ccc;
+       padding: 10px;
+       width: 400px;
+   }
+         #shakeOutliersTimes {
+             position: fixed;
+             bottom: 100px;
+             left: 700px;
+             border: 1px solid #ccc;
+             padding: 10px;
+             width: 400px;
+         }
+
     </style>
 </head>
 <body>
 <canvas id="myChart"></canvas>
-<div id="numbersContainer"></div>
+<div id="madOutliers"></div>
+<div id="shakeOutliers"></div>
+<div id="madOutliersTimes"></div>
+<div id="shakeOutliersTimes"></div>
 <script src="script.js"></script>
 
 </body>
