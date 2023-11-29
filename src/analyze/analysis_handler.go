@@ -14,31 +14,24 @@ var AllResults []common.Result //global so that it can be added onto by parser a
 // Takes in a Window, parses object into frequency counts, and then calls specified analysis functions
 //code to write the frequencies; the outliers; and the minReqs to files
 func AnalyzeBGPMessages(window common.Window) common.Result {
-	bucketMap := window.BucketMap
-
-	// Convert BucketMap to a map of timestamp to length of messages
-	lengthMap := make(map[time.Time]float64)
-
-	for timestamp, messages := range bucketMap {
-		lengthMap[timestamp] = float64(len(messages))
-	}
-
+	lengthMap := makeLengthMap(window)
 	// Turn map into sorted array of frequencies by timestamp
 	sortedFrequencies := GetSortedFrequencies(lengthMap)
 
 	//the file names will contain all the timestamps for a given folder that was processed
 	bltOutliers, bltOutlierTimes := BltMadWindow(window, 5) //add optimization to here
+	shakeAlertOutliers, shakeAlertOutlierTime := ShakeAlertWindow(window)
 	fmt.Printf("Sorted Array of Frequencies: \n%+v\n", sortedFrequencies)
 	fmt.Printf("BLT MAD Outliers: \n%+v\n", bltOutliers)
-	fmt.Printf("ShakeAlert Outliers: \n%+v\n", shake_alert.FindOutliers(sortedFrequencies))
+	fmt.Printf("ShakeAlert Outliers: \n%+v\n", shakeAlertOutliers)
 
 	//put all the results into the Result struct and pass write it out to a json
 	r := common.Result{
 		Frequencies:          sortedFrequencies,
 		MADOutliers:          bltOutliers,
 		MADTimestamps:        bltOutlierTimes,
-		ShakeAlertOutliers:   shake_alert.FindOutliers(sortedFrequencies),
-		ShakeAlertTimestamps: make([]time.Time, 0),
+		ShakeAlertOutliers:   shakeAlertOutliers,
+		ShakeAlertTimestamps: shakeAlertOutlierTime,
 	}
 	blt_mad.StoreResultIntoJson(r, "static_data/result.json")
 	maxPoints := 100
@@ -52,28 +45,47 @@ func AnalyzeBGPMessages(window common.Window) common.Result {
 	fmt.Println(AllResults)
 	fmt.Println("--------------------------------------AllResult------------------------------------")
 
-	//get min reqArray for the 97th percentile
-	//minReqArray := blt_mad.GetValuesLargerThanPercentile(sortedFrequencies, 97)
-	//minReqOutFileName := fmt.Sprintf("static_data/minReq/minOutFile%s.txt", timeStampsFull)
 	return r
 }
 
+//changed bltMad inputs to get timestamps and the outliers at the same time
 func BltMadWindow(window common.Window, tau float64) ([]float64, []time.Time) {
 	var outliers []float64
 	var times []time.Time
 
-	bucketMap := window.BucketMap
+	lengthMap := makeLengthMap(window)
+	data := GetSortedFrequencies(lengthMap)
 
+	for timestamp, _ := range lengthMap {
+		if blt_mad.IsAnOutlierBLT(data, tau, lengthMap[timestamp]) {
+			outliers = append(outliers, lengthMap[timestamp])
+			times = append(times, timestamp)
+		}
+	}
+	return outliers, times
+}
+
+//repeated code in three of these functions; moved outside to make the code easier to read
+func makeLengthMap(window common.Window) map[time.Time]float64 {
+	bucketMap := window.BucketMap
 	lengthMap := make(map[time.Time]float64)
 	for timestamp, messages := range bucketMap {
 		lengthMap[timestamp] = float64(len(messages))
 	}
+	return lengthMap
+}
+
+//changed shakeAlert inputs to get timestamps and the outliers at the same time
+func ShakeAlertWindow(window common.Window) ([]float64, []time.Time) {
+	var outliers []float64
+	var times []time.Time
 
 	//the frequencies needed to check if something is an outlier
+	lengthMap := makeLengthMap(window)
 	data := GetSortedFrequencies(lengthMap)
 
 	for timestamp, _ := range lengthMap {
-		if blt_mad.IsAnOutlier(data, tau, lengthMap[timestamp]) {
+		if shake_alert.IsAnOutlierShakeAlert(data, lengthMap[timestamp]) {
 			outliers = append(outliers, lengthMap[timestamp])
 			times = append(times, timestamp)
 		}

@@ -42,20 +42,6 @@ const chart = new Chart(ctx, {
     }
 });
 
-function printNumber() {
-    var number = 42; // You can set any number you want to display
-    var div = document.createElement('div');
-    div.style.position = 'fixed';
-    div.style.bottom = '10px';
-    div.style.left = '10px';
-    div.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-    div.style.color = '#fff';
-    div.style.padding = '5px';
-    div.style.borderRadius = '5px';
-    div.textContent = 'Number: ' + number;
-    document.body.appendChild(div);
-}
-
 
 
 setInterval(() => {
@@ -64,7 +50,6 @@ setInterval(() => {
         .then(data => {
             const frequencies = data.map(result => result.Frequencies).flat();
             addData(chart, frequencies);
-            printNumber()
         })
         .catch(error => {
             console.error('Error fetching data:', error);
