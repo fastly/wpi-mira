@@ -1,7 +1,6 @@
 package blt_mad
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -9,7 +8,6 @@ import (
 	"os"
 	"reflect"
 	"sort"
-	"strconv"
 )
 
 func RemoveZeros(data []float64) []float64 {
@@ -48,32 +46,6 @@ func sortData(data []float64) []float64 {
 	// Use the sort package to sort the array
 	sort.Float64s(sortedData)
 	return sortedData
-}
-
-func findMin(data []float64) float64 {
-	if len(data) == 0 {
-		return math.SmallestNonzeroFloat64
-	}
-	min := data[0]
-	for _, value := range data {
-		if value < min {
-			min = value
-		}
-	}
-	return min
-}
-
-func findMax(data []float64) float64 {
-	if len(data) == 0 {
-		return math.MaxFloat64
-	}
-	max := data[0]
-	for _, value := range data {
-		if value > max {
-			max = value
-		}
-	}
-	return max
 }
 
 func findMean(data []float64) float64 {
@@ -245,60 +217,6 @@ func WriteCSVFile(data interface{}, filename string) error {
 	}
 
 	return nil
-}
-
-//another way to write messages to csv but it gets messy because we are not working with string
-/*func WriteOutlierMessagesToCSV(fileName string, data []string) {
-	// Open the file in append mode, creating it if it doesn't exist
-	f, err := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
-	if err != nil {
-		fmt.Println("Error: ", err)
-		return
-	}
-	defer f.Close() // Ensure file is closed after the function finishes
-
-	// Create a CSV writer
-	w := csv.NewWriter(f)
-
-	// Write the data to the CSV file
-	err = w.Write(data)
-	if err != nil {
-		fmt.Println("Error writing to CSV: ", err)
-	}
-
-	// Flush the writer to ensure all data is written to the file
-	w.Flush()
-	if err := w.Error(); err != nil {
-		fmt.Println("Error flushing to CSV: ", err)
-	}
-}*/
-
-func TxtIntoArrayFloat64(inputFile string) ([]float64, error) {
-	var floats []float64
-
-	// Open the file
-	file, err := os.Open(inputFile)
-	defer file.Close()
-	if err != nil {
-		return nil, err
-	}
-
-	//scanner
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := scanner.Text()
-		value, err := strconv.ParseFloat(line, 64)
-		if err != nil {
-			continue //skipping the value and continue in the same line
-		}
-		floats = append(floats, value)
-	}
-
-	if err := scanner.Err(); err != nil {
-		return nil, err
-	}
-
-	return floats, nil
 }
 
 //check if one array contains the elements of the other
