@@ -10,8 +10,9 @@ import (
 )
 
 // Constantly read messages from channel, build up windows with frequency maps, calling analysis on windows when full
-func ProcessBGPMessages(msgChannel chan common.BGPMessage, config *config.Configuration) error {
+func ProcessBGPMessages(msgChannel chan common.BGPMessage, config *config.Configuration) (common.Result, error) {
 	maximumBuckets, _ := strconv.Atoi(config.WindowSize)
+	var res common.Result
 	// Each bucket is 60s
 	parseDuration := 60 * time.Second
 	maximumTimespan := time.Duration(maximumBuckets*60) * time.Second
@@ -58,7 +59,7 @@ func ProcessBGPMessages(msgChannel chan common.BGPMessage, config *config.Config
 				}
 
 				// Now window is ready for analysis
-				analyze.AnalyzeBGPMessages(window)
+				res = analyze.AnalyzeBGPMessages(window)
 			}
 
 			// Create new bucket for new timestamp
@@ -69,8 +70,7 @@ func ProcessBGPMessages(msgChannel chan common.BGPMessage, config *config.Config
 		// Append the message to the corresponding bucket
 		window.BucketMap[messageBucket] = append(window.BucketMap[messageBucket], msg)
 	}
-
-	return nil
+	return res, nil
 }
 
 // Returns the minimum key value of a bucketMap

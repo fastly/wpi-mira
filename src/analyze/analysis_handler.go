@@ -11,7 +11,7 @@ import (
 
 // Takes in a Window, parses object into frequency counts, and then calls specified analysis functions
 //code to write the frequencies; the outliers; and the minReqs to files
-func AnalyzeBGPMessages(window common.Window) {
+func AnalyzeBGPMessages(window common.Window) common.Result {
 	bucketMap := window.BucketMap
 
 	// Convert BucketMap to a map of timestamp to length of messages
@@ -29,25 +29,23 @@ func AnalyzeBGPMessages(window common.Window) {
 
 	//the file names will contain all the timestamps for a given folder that was processed
 	fmt.Printf("Sorted Array of Frequencies: \n%+v\n", sortedFrequencies)
-	freqOutFileName := fmt.Sprintf("static_data/freqData/freqOutFile%s.txt", timeStampsFull)
-	blt_mad.AppendFloat64ArrayToTxt(freqOutFileName, sortedFrequencies)
-
-	fmt.Printf("BLT MAD Outliers: \n%+v\n", blt_mad.BltMad(sortedFrequencies, 10))
-	bltOutFileName := fmt.Sprintf("static_data/madOutliers/madOutFile%s.txt", timeStampsFull)
-	blt_mad.AppendFloat64ArrayToTxt(bltOutFileName, blt_mad.BltMad(sortedFrequencies, 10))
-
+	fmt.Printf("BLT MAD Outliers: \n%+v\n", blt_mad.BltMad(sortedFrequencies, 5))
 	fmt.Printf("ShakeAlert Outliers: \n%+v\n", shake_alert.FindOutliers(sortedFrequencies))
-	shakeAlertOutFileName := fmt.Sprintf("static_data/shakeAlertOutliers/shakeOutFile%s.txt", timeStampsFull)
-	blt_mad.AppendFloat64ArrayToTxt(shakeAlertOutFileName, shake_alert.FindOutliers(sortedFrequencies))
+
+	//put all the results into the Result struct and pass write it out to a json
+	r := common.Result{
+		Frequencies:          sortedFrequencies,
+		MADOutliers:          blt_mad.BltMad(sortedFrequencies, 5),
+		MADTimestamps:        make([]time.Time, 0), //ask about how to actually get these
+		ShakeAlertOutliers:   shake_alert.FindOutliers(sortedFrequencies),
+		ShakeAlertTimestamps: make([]time.Time, 0),
+	}
+	blt_mad.StoreResultIntoJson(r, "static_data/result.json")
 
 	//get min reqArray for the 97th percentile
-	minReqArray := blt_mad.GetValuesLargerThanPercentile(sortedFrequencies, 97)
-	minReqOutFileName := fmt.Sprintf("static_data/minReq/minOutFile%s.txt", timeStampsFull)
-	blt_mad.AppendFloat64ArrayToTxt(minReqOutFileName, minReqArray)
-
-	//create a file with all the frequencies from a single folder to be put onto a graph
-	blt_mad.AppendFloat64ArrayToTxt("static_data/allFreq", sortedFrequencies)
-
+	//minReqArray := blt_mad.GetValuesLargerThanPercentile(sortedFrequencies, 97)
+	//minReqOutFileName := fmt.Sprintf("static_data/minReq/minOutFile%s.txt", timeStampsFull)
+	return r
 }
 
 // Takes in map of time objects to frequencies and puts them into an ordered array of frequencies based on increasing timestamps

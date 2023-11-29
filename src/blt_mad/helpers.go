@@ -2,7 +2,9 @@ package blt_mad
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"math"
 	"os"
 	"reflect"
@@ -171,7 +173,81 @@ func GetValuesLargerThanPercentile(numbers []float64, percentile float64) []floa
 	return largerValues
 }
 
-func AppendFloat64ArrayToTxt(fileName string, floatArray []float64) error {
+//used to simplify writing out the results into the output file
+func StoreResultIntoJson(data interface{}, filename string) error {
+	jsonData, err := json.MarshalIndent(data, "", "    ")
+	if err != nil {
+		return err
+	}
+
+	err = ioutil.WriteFile(filename, jsonData, 0644)
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(jsonData))
+	return nil
+}
+
+//unmarshall json here
+func WriteCSVFile(data interface{}, filename string) error {
+	var file *os.File
+	var err error
+
+	if _, statErr := os.Stat(filename); os.IsNotExist(statErr) {
+		// If the file does not exist, create it
+		file, err = os.Create(filename)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+
+		// Write the initial data to the file
+		jsonData, err := json.MarshalIndent([]interface{}{data}, "", "  ")
+		if err != nil {
+			return err
+		}
+
+		if _, err := file.Write(jsonData); err != nil {
+			return err
+		}
+	} else {
+		// If the file exists, open it in append mode
+		file, err = os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+
+		// Read the existing data from the file
+		existingData := []interface{}{}
+		decoder := json.NewDecoder(file)
+		if err := decoder.Decode(&existingData); err != nil {
+			return err
+		}
+
+		// Append new data to existing data
+		existingData = append(existingData, data)
+
+		// Move file cursor to the beginning
+		if _, err := file.Seek(0, 0); err != nil {
+			return err
+		}
+
+		// Write the updated data to the file
+		jsonData, err := json.MarshalIndent(existingData, "", "  ")
+		if err != nil {
+			return err
+		}
+
+		if _, err := file.Write(jsonData); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+/*func AppendFloat64ArrayToTxt(fileName string, floatArray []float64) error {
 	// Open the file in append mode, create if it doesn't exist
 	file, err := os.OpenFile(fileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
@@ -191,6 +267,10 @@ func AppendFloat64ArrayToTxt(fileName string, floatArray []float64) error {
 
 	fmt.Println("Float array appended to file successfully.")
 	return nil
+}*/
+
+func ArrayFromJson(filename string) {
+
 }
 
 func TxtIntoArrayFloat64(inputFile string) ([]float64, error) {

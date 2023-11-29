@@ -1,0 +1,11 @@
+{
+    "Frequencies": [
+        30
+    ],
+    "MADOutliers": null,
+    "MADTimestamps": [],
+    "ShakeAlertOutliers": [
+        30
+    ],
+    "ShakeAlertTimestamps": []
+}
