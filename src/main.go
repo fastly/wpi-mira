@@ -68,7 +68,7 @@ func main() {
 	var wg sync.WaitGroup
 
 	// Channel for sending BGP messages between parsing and processing
-	msgChannel := make(chan common.BGPMessage)
+	msgChannel := make(chan common.Message)
 
 	// Start the goroutines
 
@@ -84,8 +84,8 @@ func main() {
 
 	wg.Add(1)
 	go func() {
-		res, _ := process.ProcessBGPMessages(msgChannel, configStruct) //error handling done in the processBGPMessage
-		allResults = append(allResults, res)
+		process.ProcessBGPMessages(msgChannel, configStruct) //error handling done in the processBGPMessage
+		//allResults = append(allResults, res)
 		wg.Done()
 	}()
 

@@ -79,7 +79,7 @@ type RisLiveMessage struct {
 }
 
 // connects to ris live, starts go routine receiverHandler, manages connection and subscription
-func ParseRisLiveData(msgChannel chan common.BGPMessage, config *config.Configuration) error {
+func ParseRisLiveData(msgChannel chan common.Message, config *config.Configuration) error {
 
 	fmt.Println("starting...")
 
@@ -154,7 +154,7 @@ func ParseRisLiveData(msgChannel chan common.BGPMessage, config *config.Configur
 }
 
 // keep reading in new message from connection, send msg to parser, put parsed messages into channel
-func receiveHandler(msgChannel chan common.BGPMessage, conn *websocket.Conn) {
+func receiveHandler(msgChannel chan common.Message, conn *websocket.Conn) {
 
 	for {
 		//take in next msg from connection
@@ -174,7 +174,10 @@ func receiveHandler(msgChannel chan common.BGPMessage, conn *websocket.Conn) {
 
 		//put bgp messages into channel
 		for _, msg := range bgpMsgs {
-			msgChannel <- msg
+			msgChannel <- common.Message{
+				BGPMessage: msg,
+				Filter:     "",
+			}
 		}
 
 	}
