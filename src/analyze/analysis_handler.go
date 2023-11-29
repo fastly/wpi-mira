@@ -9,6 +9,8 @@ import (
 	"time"
 )
 
+var AllResults []common.Result //global so that it can be added onto by parser and seen by dataHandler
+
 // Takes in a Window, parses object into frequency counts, and then calls specified analysis functions
 //code to write the frequencies; the outliers; and the minReqs to files
 func AnalyzeBGPMessages(window common.Window) common.Result {
@@ -41,6 +43,16 @@ func AnalyzeBGPMessages(window common.Window) common.Result {
 		ShakeAlertTimestamps: make([]time.Time, 0),
 	}
 	blt_mad.StoreResultIntoJson(r, "static_data/result.json")
+	maxPoints := 100
+	//make sure that we do not get more than a threshold number of points
+	if len(AllResults)+1 > maxPoints {
+		AllResults = append(AllResults[1:], r) //append all the elements except for the first one
+	} else {
+		AllResults = append(AllResults, r)
+	}
+	fmt.Println("--------------------------------------AllResult------------------------------------")
+	fmt.Println(AllResults)
+	fmt.Println("--------------------------------------AllResult------------------------------------")
 
 	//get min reqArray for the 97th percentile
 	//minReqArray := blt_mad.GetValuesLargerThanPercentile(sortedFrequencies, 97)

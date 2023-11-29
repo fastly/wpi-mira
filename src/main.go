@@ -1,6 +1,7 @@
 package main
 
 import (
+	"BGPAlert/analyze"
 	"BGPAlert/common"
 	"BGPAlert/config"
 	"BGPAlert/parse"
@@ -14,27 +15,9 @@ import (
 	"time"
 )
 
-var allResults []common.Result //global so that it can be added onto by parser and seen by dataHandler
-
 func dataHandler(w http.ResponseWriter, r *http.Request) {
-	/*//encode all the values into the json file
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(allResults[0])*/
-	d := []common.Result{{
-		Frequencies:          []float64{1, 4, 111, 135, 186},
-		MADOutliers:          []float64{5, 8},
-		MADTimestamps:        []time.Time{},
-		ShakeAlertOutliers:   []float64{2, 10},
-		ShakeAlertTimestamps: []time.Time{}},
-		{
-			Frequencies:          []float64{100, 120, 130},
-			MADOutliers:          []float64{5, 8},
-			MADTimestamps:        []time.Time{},
-			ShakeAlertOutliers:   []float64{2, 10},
-			ShakeAlertTimestamps: []time.Time{}},
-	}
-	w.Header().Set("Content-Type", "application/json")
-	err := json.NewEncoder(w).Encode(d)
+	err := json.NewEncoder(w).Encode(analyze.AllResults)
 	if err != nil {
 		http.Error(w, "Error encoding JSON", http.StatusInternalServerError)
 		return
@@ -75,7 +58,6 @@ func main() {
 	// Can change folder directory to any folder inside of src/static_data
 
 	wg.Add(1)
-
 	go func() {
 		parse.ParseRisLiveData(msgChannel, configStruct) //this thing returns a list of all the results
 		//parse.ParseStaticFile("bgpTest1", msgChannel)
@@ -85,8 +67,12 @@ func main() {
 	wg.Add(1)
 	go func() {
 		process.ProcessBGPMessages(msgChannel, configStruct) //error handling done in the processBGPMessage
-		//allResults = append(allResults, res)
 		wg.Done()
+	}()
+
+	go func() {
+		parse.ParseRisLiveData(msgChannel, configStruct) //this thing returns a list of all the results
+		//parse.ParseStaticFile("bgpTest1", msgChannel)
 	}()
 
 	//http start

@@ -1,11 +1,18 @@
 {
     "Frequencies": [
-        30
+        4,
+        4,
+        4,
+        8,
+        546
     ],
     "MADOutliers": null,
     "MADTimestamps": [],
     "ShakeAlertOutliers": [
-        30
+        4,
+        4,
+        4,
+        546
     ],
     "ShakeAlertTimestamps": []
 }

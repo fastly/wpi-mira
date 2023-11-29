@@ -95,6 +95,7 @@ func ProcessBGPMessages(msgChannel chan common.Message, config *config.Configura
 		currWindow.BucketMap[messageBucket] = append(currWindow.BucketMap[messageBucket], msg.BGPMessage)
 	}
 
+	//check if the return statements are ok here?
 	return nil
 }
 

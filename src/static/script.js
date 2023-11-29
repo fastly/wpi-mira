@@ -1,29 +1,4 @@
 function addData(chart, newData) {
-    /*const maxDataPoints = 400;
-
-    if (newData.length === 0) {
-        return; // No new data to add
-    }
-
-    const currentDataLength = chart.data.labels.length;
-
-    if (currentDataLength >= maxDataPoints) {
-        const dataToRemove = currentDataLength - maxDataPoints + newData.length;
-
-        for (let i = 0; i < dataToRemove; i++) {
-            chart.data.labels.shift();
-            chart.data.datasets[0].data.shift();
-        }
-    }
-
-    for (let i = 0; i < newData.length; i++) {
-        chart.data.labels.push(`Point ${currentDataLength + i + 1}`);
-        chart.data.datasets[0].data.push(newData[i]);
-    }
-
-    chart.update();*/
-    const maxDataPoints = 400; //should not need this after the results array gets correctly modified
-
     if (newData.length === 0) {
         return; // No new data to add
     }
@@ -36,24 +11,24 @@ function addData(chart, newData) {
     for (let i = 0; i < newData.length; i++) {
         chart.data.labels.push(`Point ${i + 1}`);
         chart.data.datasets[0].data.push(newData[i]);
+
+        const numberElement = document.createElement('p');
+        const numberText = document.createTextNode(`Number ${i + 1}: ${newData[i]}`);
+        numberElement.appendChild(numberText);
     }
 
     chart.update();
 }
 
 
-function getFrequencies() {
-    return Math.floor(Math.random() * 100);
-}
-
 const ctx = document.getElementById('myChart').getContext('2d');
 const chart = new Chart(ctx, {
     type: 'line',
     data: {
-        labels: ['Point 1', 'Point 2', 'Point 3', 'Point 4', 'Point 5'],
+        labels: [],
         datasets: [{
-            label: 'Sample Data',
-            data: [20, 40, 30, 50, 25],
+            label: 'Message Counts Per Minute',
+            data: [],
             backgroundColor: 'rgba(54, 162, 235, 0.2)',
             borderColor: 'rgba(54, 162, 235, 1)',
             borderWidth: 1
@@ -85,13 +60,3 @@ setInterval(() => {
         });
 }, 3000);
 
-/*setInterval(() => {
-    /!*const newDataPoints = [];
-
-    // Generate multiple random data points and add them
-    for (let i = 0; i < 5; i++) {
-        const newDataPoint = generateRandomDataPoint();
-        newDataPoints.push(newDataPoint);
-    }*!/
-    addData(chart, frequencies);
-}, 3000)*/
