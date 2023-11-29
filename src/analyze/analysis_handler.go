@@ -18,27 +18,25 @@ func AnalyzeBGPMessages(window common.Window) common.Result {
 
 	// Convert BucketMap to a map of timestamp to length of messages
 	lengthMap := make(map[time.Time]float64)
-	timeStampsFull := []string{}
 
 	for timestamp, messages := range bucketMap {
 		lengthMap[timestamp] = float64(len(messages))
-		timeStampsFull = append(timeStampsFull, timestamp.Format("2006-01-02 15:04:05")) //double check if the formatting is ok
 	}
-	fmt.Println(timeStampsFull)
 
 	// Turn map into sorted array of frequencies by timestamp
 	sortedFrequencies := GetSortedFrequencies(lengthMap)
 
 	//the file names will contain all the timestamps for a given folder that was processed
+	bltOutliers, bltOutlierTimes := BltMadWindow(window, 5) //add optimization to here
 	fmt.Printf("Sorted Array of Frequencies: \n%+v\n", sortedFrequencies)
-	fmt.Printf("BLT MAD Outliers: \n%+v\n", blt_mad.BltMad(sortedFrequencies, 5))
+	fmt.Printf("BLT MAD Outliers: \n%+v\n", bltOutliers)
 	fmt.Printf("ShakeAlert Outliers: \n%+v\n", shake_alert.FindOutliers(sortedFrequencies))
 
 	//put all the results into the Result struct and pass write it out to a json
 	r := common.Result{
 		Frequencies:          sortedFrequencies,
-		MADOutliers:          blt_mad.BltMad(sortedFrequencies, 5),
-		MADTimestamps:        make([]time.Time, 0), //ask about how to actually get these
+		MADOutliers:          bltOutliers,
+		MADTimestamps:        bltOutlierTimes,
 		ShakeAlertOutliers:   shake_alert.FindOutliers(sortedFrequencies),
 		ShakeAlertTimestamps: make([]time.Time, 0),
 	}
@@ -58,6 +56,29 @@ func AnalyzeBGPMessages(window common.Window) common.Result {
 	//minReqArray := blt_mad.GetValuesLargerThanPercentile(sortedFrequencies, 97)
 	//minReqOutFileName := fmt.Sprintf("static_data/minReq/minOutFile%s.txt", timeStampsFull)
 	return r
+}
+
+func BltMadWindow(window common.Window, tau float64) ([]float64, []time.Time) {
+	var outliers []float64
+	var times []time.Time
+
+	bucketMap := window.BucketMap
+
+	lengthMap := make(map[time.Time]float64)
+	for timestamp, messages := range bucketMap {
+		lengthMap[timestamp] = float64(len(messages))
+	}
+
+	//the frequencies needed to check if something is an outlier
+	data := GetSortedFrequencies(lengthMap)
+
+	for timestamp, _ := range lengthMap {
+		if blt_mad.IsAnOutlier(data, tau, lengthMap[timestamp]) {
+			outliers = append(outliers, lengthMap[timestamp])
+			times = append(times, timestamp)
+		}
+	}
+	return outliers, times
 }
 
 // Takes in map of time objects to frequencies and puts them into an ordered array of frequencies based on increasing timestamps

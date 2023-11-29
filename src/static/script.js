@@ -11,10 +11,6 @@ function addData(chart, newData) {
     for (let i = 0; i < newData.length; i++) {
         chart.data.labels.push(`Point ${i + 1}`);
         chart.data.datasets[0].data.push(newData[i]);
-
-        const numberElement = document.createElement('p');
-        const numberText = document.createTextNode(`Number ${i + 1}: ${newData[i]}`);
-        numberElement.appendChild(numberText);
     }
 
     chart.update();
@@ -46,6 +42,20 @@ const chart = new Chart(ctx, {
     }
 });
 
+function printNumber() {
+    var number = 42; // You can set any number you want to display
+    var div = document.createElement('div');
+    div.style.position = 'fixed';
+    div.style.bottom = '10px';
+    div.style.left = '10px';
+    div.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+    div.style.color = '#fff';
+    div.style.padding = '5px';
+    div.style.borderRadius = '5px';
+    div.textContent = 'Number: ' + number;
+    document.body.appendChild(div);
+}
+
 
 
 setInterval(() => {
@@ -54,6 +64,7 @@ setInterval(() => {
         .then(data => {
             const frequencies = data.map(result => result.Frequencies).flat();
             addData(chart, frequencies);
+            printNumber()
         })
         .catch(error => {
             console.error('Error fetching data:', error);

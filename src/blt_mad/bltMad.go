@@ -19,11 +19,9 @@ func Mad(data []float64) float64 {
 	return result
 }
 
-//blt Mad
-
 func BltMad(data []float64, tau float64) []float64 {
 	var outliers []float64
-	noZeroData := removeZeros(data)
+	noZeroData := RemoveZeros(data)
 	if len(noZeroData) == 0 { //return empty array of outliers if the data array is empty
 		print("The are no non-zero message counts")
 	} else {
@@ -41,4 +39,18 @@ func BltMad(data []float64, tau float64) []float64 {
 	}
 
 	return outliers
+}
+
+func IsAnOutlier(data []float64, tau float64, point float64) bool {
+	//calculate blt formula
+	//everything is based on the noZeroData since we are looking at spikes rather than lack of messages
+	noZeroData := RemoveZeros(data)
+	med := FindMedian(noZeroData)
+	m := Mad(noZeroData)
+
+	bltScore := math.Abs(med - tau*m)
+	if point > bltScore {
+		return true
+	}
+	return false
 }

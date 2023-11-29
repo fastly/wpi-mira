@@ -12,7 +12,7 @@ import (
 	"strconv"
 )
 
-func removeZeros(data []float64) []float64 {
+func RemoveZeros(data []float64) []float64 {
 	var nonZeros []float64
 	for _, value := range data {
 		if value != 0.0 {
