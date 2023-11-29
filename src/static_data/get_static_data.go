@@ -23,7 +23,7 @@ func main() {
 	//to get the bgp updates the urls are of this format; sorted by the year and month
 	//"http://routeviews.org/route-views.ny/bgpdata/2021.11/UPDATES/"
 	//the links to .bz2 files contained within the main link in the configuration file; if the links can not be attained from the main link no files will be downloaded
-	configStruct, err := config.LoadConfig("config.json")
+	configStruct, err := config.LoadConfig("default-config.json")
 	if err != nil {
 		log.Fatal("Error loading configuration:", err)
 	}

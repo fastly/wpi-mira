@@ -6,6 +6,7 @@ import (
 	"BGPAlert/parse"
 	"BGPAlert/process"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -44,7 +45,20 @@ func main() {
 
 	startTime := time.Now()
 
-	configStruct, err := config.LoadConfig("config.json")
+	// define a flag for config file
+	configFile := flag.String("config", "default-config.json", "Path to configuration file")
+
+	//parse command line arguments
+	flag.Parse()
+
+	//indicate which config is being used
+	if *configFile == "default-default-config.json" { //default
+		fmt.Printf("No config file specified. Using default config file: %s\n", *configFile)
+	} else { //user input config file
+		fmt.Printf("Using config file: %s\n", *configFile)
+	}
+
+	configStruct, err := config.LoadConfig(*configFile)
 	if err != nil {
 		log.Fatal("Error loading configuration:", err)
 	}
