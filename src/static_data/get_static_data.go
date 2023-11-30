@@ -3,7 +3,6 @@ package main
 import (
 	"BGPAlert/config"
 	"fmt"
-	"golang.org/x/net/html"
 	"io"
 	"log"
 	"net/http"
@@ -11,6 +10,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"golang.org/x/net/html"
 )
 
 type Folder struct {
@@ -27,7 +28,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading configuration:", err)
 	}
-	config.ValidDateConfiguration(configStruct)
+	config.ValidateConfiguration(configStruct)
 	mainUrl := configStruct.URLStaticData
 	fmt.Println(mainUrl)
 
@@ -113,7 +114,7 @@ func downloadFolder(folder Folder) error {
 	return nil
 }
 
-//this works
+// this works
 func createFullUrls(urls []string, mainURL string) []string {
 	var result []string
 
