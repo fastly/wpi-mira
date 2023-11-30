@@ -16,7 +16,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading configuration:", err)
 	}
-	config.ValidDateConfiguration(configStruct)
+	config.ValidateConfiguration(configStruct)
 
 	// WaitGroup for waiting on goroutines to finish
 	var wg sync.WaitGroup

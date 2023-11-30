@@ -9,7 +9,6 @@ import (
 	"log"
 	"net/netip"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -24,7 +23,9 @@ var done chan interface{}
 var interrupt chan os.Signal
 
 type RisMessageData struct {
-	Host   string `json:"host,omitempty"`
+	Host   string `json:"host,omitempty"` //aka collector
+	Peer   string `json:"peer,omitempty"`
+	Path   string `json:"path,omitempty"` //aka ASN
 	Prefix string `json:"prefix,omitempty"`
 }
 
@@ -79,36 +80,14 @@ type RisLiveMessage struct {
 }
 
 // connects to ris live, starts go routine receiverHandler, manages connection and subscription
-func ParseRisLiveData(msgChannel chan common.BGPMessage, config *config.Configuration) error {
+func ParseRisLiveData(msgChannel chan common.Message, config *config.Configuration) error {
 
 	fmt.Println("starting...")
 
-	// create websocket connection to ris live websocket
-	conn, _, err := websocket.DefaultDialer.Dial(socketUrl, nil)
-	if err != nil {
-		return errors.New("websocket connection err, " + err.Error())
-	}
-	defer conn.Close()
-
-	go receiveHandler(msgChannel, conn)
-
-	fmt.Println("made connection")
-
-	/* Subscribe */
-	subscriptionPrefixes := strings.Split(config.Prefix, ",")
-
-	if len(subscriptionPrefixes) == 0 {
-		return errors.New("prefix in config is required")
-	}
-
-	for _, prefix := range subscriptionPrefixes {
-		subscription := RisMessage{"ris_subscribe", &RisMessageData{"", prefix}}
-		out, err := json.Marshal(subscription)
-		if err != nil {
-			return errors.New("Error marshalling subscription message, " + err.Error())
-		}
-		log.Println("Subscribing to: ", prefix)
-		conn.WriteMessage(websocket.TextMessage, out)
+	//for each subscription
+	for _, subscription := range config.Subscriptions {
+		//go routine handleSubscription
+		go handleSubscription(msgChannel, subscription)
 	}
 
 	// alternatives:
@@ -117,6 +96,33 @@ func ParseRisLiveData(msgChannel chan common.BGPMessage, config *config.Configur
 	// this would listen to all of the IPv4 address space, but from only one collector:
 	//subscription1 := RisMessage{"ris_subscribe", &RisMessageData{"rrc21", "0.0.0.0/0"}}
 
+}
+
+// handles the connection for each subscription
+func handleSubscription(msgChannel chan common.Message, subscription config.SubscriptionMsg) error {
+
+	// create websocket connection to ris live websocket
+	conn, _, err := websocket.DefaultDialer.Dial(socketUrl, nil)
+	if err != nil {
+		return errors.New("websocket connection err, " + err.Error())
+	}
+	defer conn.Close()
+
+	//call receive handler
+	go receiveHandler(msgChannel, conn, subscriptionToString(subscription))
+
+	fmt.Println("made connection")
+
+	//subscribe
+	sub := RisMessage{"ris_subscribe", &RisMessageData{subscription.Host, subscription.Peer, subscription.Path, subscription.Prefix}}
+	out, err := json.Marshal(sub)
+	if err != nil {
+		return errors.New("Error marshalling subscription message, " + err.Error())
+	}
+	log.Println("Subscribing to: ", subscriptionToString(subscription))
+	conn.WriteMessage(websocket.TextMessage, out)
+
+	//manage connection
 	/* Ping message (re-send this every minute or so */
 	ping := RisMessage{"ping", nil}
 	pingstr, err := json.Marshal(ping)
@@ -154,7 +160,9 @@ func ParseRisLiveData(msgChannel chan common.BGPMessage, config *config.Configur
 }
 
 // keep reading in new message from connection, send msg to parser, put parsed messages into channel
-func receiveHandler(msgChannel chan common.BGPMessage, conn *websocket.Conn) {
+func receiveHandler(msgChannel chan common.Message, conn *websocket.Conn, subscription string) {
+	var labeledMsg common.Message
+	labeledMsg.Filter = subscription
 
 	for {
 		//take in next msg from connection
@@ -174,7 +182,8 @@ func receiveHandler(msgChannel chan common.BGPMessage, conn *websocket.Conn) {
 
 		//put bgp messages into channel
 		for _, msg := range bgpMsgs {
-			msgChannel <- msg
+			labeledMsg.BGPMessage = msg
+			msgChannel <- labeledMsg
 		}
 
 	}
@@ -278,4 +287,35 @@ func float64ToTime(timestamp float64) (time.Time, error) {
 	// Convert to time.Time
 	resultTime := time.Unix(seconds, nanos)
 	return resultTime, nil
+}
+
+// toString for subscription struct
+// used for labeling each subscription filter
+func subscriptionToString(sub config.SubscriptionMsg) string {
+	result := "Subscription{"
+
+	if sub.Host != "" {
+		result += fmt.Sprintf("Host: %q, ", sub.Host)
+	}
+
+	if sub.Peer != "" {
+		result += fmt.Sprintf("Peer: %q, ", sub.Peer)
+	}
+
+	if sub.Path != "" {
+		result += fmt.Sprintf("Path: %q, ", sub.Path)
+	}
+
+	if sub.Prefix != "" {
+		result += fmt.Sprintf("Prefix: %q, ", sub.Prefix)
+	}
+
+	//remove the trailing comma and space if there is at least one field
+	if result != "MyStruct{" {
+		result = result[:len(result)-2]
+	}
+
+	result += "}"
+
+	return result
 }

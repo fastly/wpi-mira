@@ -8,16 +8,26 @@ import (
 	"strings"
 )
 
+type SubscriptionMsg struct {
+	Host   string `json:"host,omitempty"` //aka collector
+	Peer   string `json:"peer,omitempty"`
+	Path   string `json:"path,omitempty"` //aka ASN
+	Prefix string `json:"prefix,omitempty"`
+}
+
 type Configuration struct {
 	//cast onto the needed type when processing in algos
-	FileInputOption           string `json:"dataOption"`
-	StaticFile                string `json:"staticFilePath"`
-	OutlierDetectionAlgorithm string `json:"outlierDetectionAlgorithm"`
-	MadParameters             string `json:"madParameters"`
-	Prefix                    string `json:"prefix"` // can input a list of string with values seperated by a comma
-	Asn                       string `json:"asn"`
-	PeerIP                    string `json:"peerIP"`
-	Connector                 string `json:"connector"`
+	FileInputOption           string            `json:"dataOption"`
+	StaticFile                string            `json:"staticFilePath"`
+	OutlierDetectionAlgorithm string            `json:"outlierDetectionAlgorithm"`
+	MadParameters             string            `json:"madParameters"`
+	Subscriptions             []SubscriptionMsg `json:"subscriptions"`
+
+	//want to delete, but that would mess with validation
+	Prefix    string `json:"prefix"` // can input a list of string with values seperated by a comma
+	Asn       string `json:"asn"`
+	PeerIP    string `json:"peerIP"`
+	Connector string `json:"connector"`
 }
 
 func LoadConfig(filename string) (*Configuration, error) {
@@ -34,12 +44,7 @@ func LoadConfig(filename string) (*Configuration, error) {
 	return &config, nil
 }
 
-//to parse input of prefix, asn, peer ip, and connector if needed
-func parseByComma(data string) []string {
-	return strings.Split(data, ",")
-}
-
-func ValidDateConfiguration(config *Configuration) {
+func ValidateConfiguration(config *Configuration) {
 	//check that the fileInputOption is either live or static
 	//convert all strings to lower case to ignore any capitalizations
 	fileInputL := strings.ToLower(config.FileInputOption)

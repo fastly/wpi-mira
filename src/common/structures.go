@@ -18,6 +18,11 @@ type BGPMessage struct {
 	Prefix         netip.Prefix
 }
 
+type Message struct {
+	BGPMessage BGPMessage
+	Filter     string
+}
+
 type Window struct {
 	Filter    string
 	BucketMap map[time.Time][]BGPMessage
