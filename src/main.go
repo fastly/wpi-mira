@@ -70,11 +70,6 @@ func main() {
 		wg.Done()
 	}()
 
-	go func() {
-		parse.ParseRisLiveData(msgChannel, configStruct) //this thing returns a list of all the results
-		//parse.ParseStaticFile("bgpTest1", msgChannel)
-	}()
-
 	//http start
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/", fs)
