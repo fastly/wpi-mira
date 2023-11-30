@@ -1,24 +1,14 @@
 package blt_mad
 
 import (
-	"io/ioutil"
+	"bufio"
+	"fmt"
 	"math"
+	"os"
 	"reflect"
 	"sort"
 	"strconv"
-	"strings"
 )
-
-//convert a string of numbers into an array []float64 -> it actually works; all the functions can be called
-func convertToFloat64Array(str string, err error) []float64 {
-	var numbers []float64
-	numbersStr := strings.Fields(str)
-	for i, _ := range numbersStr {
-		f, _ := strconv.ParseFloat(numbersStr[i], 64)
-		numbers = append(numbers, f)
-	}
-	return numbers
-}
 
 func removeZeros(data []float64) []float64 {
 	var nonZeros []float64
@@ -30,8 +20,7 @@ func removeZeros(data []float64) []float64 {
 	return nonZeros
 }
 
-/*sort the array in ascending order and all the processing that will be done with an array will be done with it in ascending order*/
-func findMedian(data []float64) float64 {
+func FindMedian(data []float64) float64 {
 	var med float64
 	sortedData := sortData(data)
 	if len(sortedData) == 0 {
@@ -45,7 +34,6 @@ func findMedian(data []float64) float64 {
 		right := sortedData[(len(sortedData) / 2)]
 		med = (left + right) / 2
 	}
-
 	return med
 }
 
@@ -134,7 +122,7 @@ func containAllElements(mainArr []float64, subArr []float64) []float64 {
 }
 
 //https://medium.com/pragmatic-programmers/testing-floating-point-numbers-in-go-9872fe6de17f
-func withinTolerance(a float64, b float64, e float64) bool {
+func WithinTolerance(a float64, b float64, e float64) bool {
 	if a == b {
 		return true
 	}
@@ -146,12 +134,12 @@ func withinTolerance(a float64, b float64, e float64) bool {
 	}
 }
 
-func withinToleranceFloatSlice(a []float64, b []float64, e float64) bool {
+func WithinToleranceFloatSlice(a []float64, b []float64, e float64) bool {
 	if reflect.DeepEqual(a, b) {
 		return true
 	} else {
 		for i := 0; i < len(a); i++ {
-			if !withinTolerance(a[i], b[i], e) {
+			if !WithinTolerance(a[i], b[i], e) {
 				return false
 			}
 		}
@@ -159,13 +147,84 @@ func withinToleranceFloatSlice(a []float64, b []float64, e float64) bool {
 	return true
 }
 
-func readTxtToString(filePath string) (string, error) {
-	// Read the entire file into a byte slice
-	content, err := ioutil.ReadFile(filePath)
-	if err != nil {
-		return "", err
+func calculatePercentile(numbers []float64, percentile float64) float64 {
+	sortedList := sortData(numbers)
+	index := int(percentile / 100 * float64(len(sortedList)-1)) //index corresponding to the percentile
+	lower := sortedList[index]
+	upper := sortedList[index+1]
+	fractionalPart := percentile/100*float64(len(sortedList)-1) - float64(index)
+	value := lower + (upper-lower)*fractionalPart
+	return value
+}
+
+func GetValuesLargerThanPercentile(numbers []float64, percentile float64) []float64 {
+	valueAtPercentile := calculatePercentile(numbers, percentile)
+
+	// Get values larger than percentile% of the data
+	var largerValues []float64
+	for _, num := range numbers {
+		if num > valueAtPercentile {
+			largerValues = append(largerValues, num)
+		}
 	}
 
-	// Convert the byte slice to a string
-	return string(content), nil
+	return largerValues
+}
+
+func SaveArrayToFile(fileName string, arr []float64) error {
+	file, err := os.Create(fileName)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	for _, value := range arr {
+		_, err := fmt.Fprintf(file, "%f\n", value)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func TxtIntoArrayFloat64(inputFile string) ([]float64, error) {
+	var floats []float64
+
+	// Open the file
+	file, err := os.Open(inputFile)
+	defer file.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	//scanner
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		value, err := strconv.ParseFloat(line, 64)
+		if err != nil {
+			continue //skipping the value and continue in the same line
+		}
+		floats = append(floats, value)
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	return floats, nil
+}
+
+//check if one array contains the elements of the other
+//possibly simplify this function in the future; i might need to use this specific implementation for comparing outputs of shakeAlert and MAD
+func FindDifferentValues(mainArr []float64, subArr []float64) []float64 {
+	//use in BGP testing to check if the result contains the minimum outliers of interest given the parameters
+	var elementsMissing []float64
+	for _, subValue := range subArr {
+		if !containsValue(mainArr, subValue) {
+			elementsMissing = append(elementsMissing, subValue)
+		}
+	}
+	return elementsMissing
 }

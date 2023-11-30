@@ -19,15 +19,11 @@ type Configuration struct {
 	//cast onto the needed type when processing in algos
 	FileInputOption           string            `json:"dataOption"`
 	StaticFile                string            `json:"staticFilePath"`
+	URLStaticData             string            `json:"staticFilesLink"`
 	OutlierDetectionAlgorithm string            `json:"outlierDetectionAlgorithm"`
 	MadParameters             string            `json:"madParameters"`
 	Subscriptions             []SubscriptionMsg `json:"subscriptions"`
-
-	//want to delete, but that would mess with validation
-	Prefix    string `json:"prefix"` // can input a list of string with values seperated by a comma
-	Asn       string `json:"asn"`
-	PeerIP    string `json:"peerIP"`
-	Connector string `json:"connector"`
+	WindowSize                string            `json:"windowSize"`
 }
 
 func LoadConfig(filename string) (*Configuration, error) {
@@ -45,15 +41,22 @@ func LoadConfig(filename string) (*Configuration, error) {
 }
 
 func ValidateConfiguration(config *Configuration) {
+
 	//check that the fileInputOption is either live or static
 	//convert all strings to lower case to ignore any capitalizations
 	fileInputL := strings.ToLower(config.FileInputOption)
 	outlierL := strings.ToLower(config.OutlierDetectionAlgorithm)
 
+	//added to check if no window size was put in
+	if config.WindowSize == "" {
+		config.WindowSize = "360"
+		fmt.Println("No window size was passed in. The default window size was set to 360")
+	}
+
 	if fileInputL == "live" {
-		//require prefix and collector
-		if len(config.Connector) == 0 || len(config.Prefix) == 0 {
-			fmt.Println("Choosing live data input stream requires to input at least one value for the connector and at lease one value for the prefix")
+		//require at least 1 subscription
+		if len(config.Subscriptions) == 0 {
+			fmt.Println("Choosing live data input stream requires to input at least one subscription")
 		}
 	} else if fileInputL == "static" {
 		//require valid file path
