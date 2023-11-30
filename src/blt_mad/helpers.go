@@ -61,19 +61,6 @@ func findMean(data []float64) float64 {
 	return sum / float64(len(data))
 }
 
-// equalSlices checks if two slices are equal in content.
-func equalSlices(a, b []float64) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
-}
-
 func containsValue(arr []float64, target float64) bool {
 	for _, value := range arr {
 		if value == target {
@@ -81,18 +68,6 @@ func containsValue(arr []float64, target float64) bool {
 		}
 	}
 	return false
-}
-
-//check if one array contains the elements of the other
-func containAllElements(mainArr []float64, subArr []float64) []float64 {
-	//use in BGP testing to check if the result contains the minimum outliers of interest given the parameters
-	var elementsMissing []float64
-	for _, subValue := range subArr {
-		if !containsValue(mainArr, subValue) {
-			elementsMissing = append(elementsMissing, subValue)
-		}
-	}
-	return elementsMissing
 }
 
 //https://medium.com/pragmatic-programmers/testing-floating-point-numbers-in-go-9872fe6de17f
@@ -129,20 +104,6 @@ func calculatePercentile(numbers []float64, percentile float64) float64 {
 	fractionalPart := percentile/100*float64(len(sortedList)-1) - float64(index)
 	value := lower + (upper-lower)*fractionalPart
 	return value
-}
-
-func GetValuesLargerThanPercentile(numbers []float64, percentile float64) []float64 {
-	valueAtPercentile := calculatePercentile(numbers, percentile)
-
-	// Get values larger than percentile% of the data
-	var largerValues []float64
-	for _, num := range numbers {
-		if num > valueAtPercentile {
-			largerValues = append(largerValues, num)
-		}
-	}
-
-	return largerValues
 }
 
 //used to simplify writing out the results into the output file
