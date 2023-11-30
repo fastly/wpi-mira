@@ -3,6 +3,7 @@ package main
 import (
 	"BGPAlert/common"
 	"BGPAlert/config"
+	"BGPAlert/parse"
 	"BGPAlert/process"
 	"flag"
 	"fmt"
@@ -45,10 +46,17 @@ func main() {
 	// Can change folder directory to any folder inside of src/static_data
 	wg.Add(1)
 
-	go func() {
-		//parse.ParseStaticFile("bgptest1", msgChannel)
-		wg.Done()
-	}()
+	if configStruct.FileInputOption == "live" {
+		go func() {
+			parse.ParseRisLiveData(msgChannel, configStruct)
+			wg.Done()
+		}()
+	} else {
+		go func() {
+			parse.ParseStaticFile(configStruct.URLStaticData, msgChannel)
+			wg.Done()
+		}()
+	}
 
 	wg.Add(1)
 	go func() {
