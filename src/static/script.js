@@ -12,7 +12,6 @@ function addData(chart, newData) {
         chart.data.labels.push(`Point ${i + 1}`);
         chart.data.datasets[0].data.push(newData[i]);
     }
-
     chart.update();
 }
 
