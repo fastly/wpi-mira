@@ -12,10 +12,35 @@
             border: 1px solid #ccc; /* Optional: Add a border for visualization */
             padding: 10px; /* Optional: Add padding */
         }
-         #myChart {
+
+        .configParameters{
+            position: fixed;
+            left: 900px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: 300px;
+            height: 30px;
+        }
+        #prefix{
+            bottom: 400px;
+        }
+        #asn{
+            bottom: 300px;
+        }
+
+        #peerIP{
+            bottom: 200px;
+        }
+        #windowSize{
+            bottom: 100px;
+        }
+
+        #myChart {
             width: 400px;
             height: 500px;
         }
+
+
         #madOutliers {
             position: fixed;
             bottom: 10px;
@@ -24,28 +49,28 @@
             padding: 10px;
         }
 
-         #madOutliersTimes {
-             position: fixed;
-             bottom: 10px;
-             left: 400px;
-             border: 1px solid #ccc;
-             padding: 10px;
-         }
+        #madOutliersTimes {
+            position: fixed;
+            bottom: 10px;
+            left: 400px;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
 
-   #shakeOutliers {
-       position: fixed;
-       bottom: 300px;
-       left: 10px;
-       border: 1px solid #ccc;
-       padding: 10px;
-   }
-         #shakeOutliersTimes {
-             position: fixed;
-             bottom: 300px;
-             left: 400px;
-             border: 1px solid #ccc;
-             padding: 10px;
-         }
+        #shakeOutliers {
+            position: fixed;
+            bottom: 300px;
+            left: 10px;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        #shakeOutliersTimes {
+            position: fixed;
+            bottom: 300px;
+            left: 400px;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
 
     </style>
 </head>
@@ -55,6 +80,11 @@
 <div id="shakeOutliers" class="scroll-box"></div>
 <div id="madOutliersTimes" class="scroll-box"></div>
 <div id="shakeOutliersTimes" class="scroll-box"></div>
+
+<div id="prefix" class="configParameters"></div>
+<div id="asn" class="configParameters"></div>
+<div id="peerIP" class="configParameters"></div>
+<div id="windowSize" class="configParameters"></div>
 <script src="script.js" class="scroll-box"></script>
 
 </body>

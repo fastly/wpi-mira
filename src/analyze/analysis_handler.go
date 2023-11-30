@@ -3,6 +3,7 @@ package analyze
 import (
 	"BGPAlert/blt_mad"
 	"BGPAlert/common"
+	"BGPAlert/config"
 	"BGPAlert/shake_alert"
 	"fmt"
 	"sort"
@@ -14,7 +15,7 @@ var maxPoints = 20             //the max number of points to be displayed on the
 
 // Takes in a Window, parses object into frequency counts, and then calls specified analysis functions
 //code to write the frequencies; the outliers; and the minReqs to files
-func AnalyzeBGPMessages(window common.Window) common.Result {
+func AnalyzeBGPMessages(window common.Window, config *config.Configuration) common.Result {
 	lengthMap := makeLengthMap(window)
 	// Turn map into sorted array of frequencies by timestamp
 	sortedFrequencies := GetSortedFrequencies(lengthMap)
@@ -28,6 +29,11 @@ func AnalyzeBGPMessages(window common.Window) common.Result {
 
 	//put all the results into the Result struct and pass write it out to a json
 	r := common.Result{
+		Prefix:     config.Prefix,
+		ASN:        config.Asn,
+		PeerIP:     config.PeerIP,
+		WindowSize: config.WindowSize,
+
 		Frequencies: sortedFrequencies,
 
 		MADOutliers:   bltOutliers,

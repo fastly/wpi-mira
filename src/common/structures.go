@@ -37,6 +37,13 @@ type Window struct {
 //result struct needed to simplify getting all the info needed to be dispayed
 //use json marshall to parse and simplify the code to store
 type Result struct {
+	//config parameters
+	Prefix     string `json:"Prefix"`
+	ASN        string `json:"ASN"`
+	PeerIP     string `json:"PeerIP"`
+	WindowSize string `json:"WindowSize"`
+
+	//outputs from processing the live messages
 	Frequencies []float64 `json:"Frequencies"`
 
 	MADOutliers   []float64   `json:"MADOutliers"`

@@ -83,7 +83,7 @@ func ProcessBGPMessages(msgChannel chan common.Message, config *config.Configura
 				}
 
 				// Now window is ready for analysis
-				analyze.AnalyzeBGPMessages(*currWindow)
+				analyze.AnalyzeBGPMessages(*currWindow, config)
 			}
 
 			// Create new bucket for new timestamp
