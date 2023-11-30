@@ -80,7 +80,7 @@ type RisLiveMessage struct {
 }
 
 // connects to ris live, starts go routine receiverHandler, manages connection and subscription
-func ParseRisLiveData(msgChannel chan common.Message, config *config.Configuration) error {
+func ParseRisLiveData(msgChannel chan common.Message, config *config.Configuration) {
 
 	fmt.Println("starting...")
 

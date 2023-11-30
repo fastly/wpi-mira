@@ -4,8 +4,6 @@ import (
 	"BGPAlert/analyze"
 	"BGPAlert/common"
 	"BGPAlert/config"
-	"BGPAlert/parse"
-	"BGPAlert/process"
 	"log"
 	"sync"
 )
@@ -22,7 +20,7 @@ func main() {
 	var wg sync.WaitGroup
 
 	// Channel for sending BGP messages between parsing and processing
-	msgChannel := make(chan common.BGPMessage)
+	//msgChannel := make(chan common.Message)
 
 	// Channel for sending windows from processing to analyzing
 	windowChannel := make(chan common.Window)
@@ -32,12 +30,12 @@ func main() {
 	// Start the goroutines
 
 	go func() {
-		parse.ParseStaticFile("bgptest1", msgChannel)
+		//parse.ParseStaticFile("bgptest1", msgChannel)
 		wg.Done()
 	}()
 
 	go func() {
-		process.ProcessBGPMessages(msgChannel, windowChannel)
+		//process.ProcessBGPMessages(msgChannel, windowChannel)
 		wg.Done()
 	}()
 
