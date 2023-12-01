@@ -1,0 +1,7 @@
+{
+    "dataOption": "live",
+    "madParameters": 10, 
+    "windowSize": 20,
+    "subscriptions": [{"prefix": "151.101.0.0/16"}, 
+                      {"host": "rrc21", "prefix": "0.0.0.0/0"}]
+}

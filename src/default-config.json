@@ -1,9 +1,7 @@
 {
   "dataOption": "live",
-  "staticFilePath": "enter the pathway to static binary file with BGP data",
-  "staticFilesLink": "http://routeviews.org/route-views.ny/bgpdata/2021.11/UPDATES/",
-  "outlierDetectionAlgorithm": "mad",
-  "windowSize": "30",
-  "subscriptions": [{"prefix": "151.101.0.0/16"}, 
-                    {"host": "rrc21", "prefix": "0.0.0.0/0"}]
+  "madParameters": 10, 
+  "maxBuckets": 20,
+  "windowSize": 360,
+  "subscriptions": [{"prefix": "0.0.0.0/0"}]
 }
