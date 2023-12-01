@@ -45,7 +45,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading configuration:", err)
 	}
-	config.ValidDateConfiguration(configStruct)
+	config.ValidateConfiguration(configStruct)
 
 	// WaitGroup for waiting on goroutines to finish
 	var wg sync.WaitGroup
@@ -57,16 +57,20 @@ func main() {
 
 	// Can change folder directory to any folder inside of src/static_data
 
+	if configStruct.FileInputOption == "live" {
+		go func() {
+			parse.ParseRisLiveData(msgChannel, configStruct)
+			wg.Done()
+		}()
+	} else {
+		go func() {
+			parse.ParseStaticFile(configStruct.URLStaticData, msgChannel)
+			wg.Done()
+		}()
+	}
 	wg.Add(1)
 	go func() {
-		parse.ParseRisLiveData(msgChannel, configStruct) //this thing returns a list of all the results
-		//parse.ParseStaticFile("bgpTest1", msgChannel)
-		wg.Done()
-	}()
-
-	wg.Add(1)
-	go func() {
-		process.ProcessBGPMessages(msgChannel, configStruct) //error handling done in the processBGPMessage
+		process.ProcessBGPMessages(msgChannel, configStruct)
 		wg.Done()
 	}()
 

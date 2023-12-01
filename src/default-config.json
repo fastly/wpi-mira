@@ -3,9 +3,7 @@
   "staticFilePath": "enter the pathway to static binary file with BGP data",
   "staticFilesLink": "http://routeviews.org/route-views.ny/bgpdata/2021.11/UPDATES/",
   "outlierDetectionAlgorithm": "mad",
-  "prefix": "151.101.0.0/16,63.135.66.0/23",
-  "asn": "enter the ASNs of interest here",
-  "peerIp": "enter peer IP",
-  "connector": "enter connector or connectors of interests",
-  "windowSize": "5"
+  "windowSize": "30",
+  "subscriptions": [{"prefix": "151.101.0.0/16"}, 
+                    {"host": "rrc21", "prefix": "0.0.0.0/0"}]
 }

@@ -1,0 +1,6 @@
+{
+    "staticFilePath": "enter the pathway to static binary file with BGP data",
+    "dataOption": "static",
+    "madParameters": "",
+    "windowSize": 30
+}
