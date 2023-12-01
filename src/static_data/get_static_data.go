@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"golang.org/x/net/html"
@@ -24,7 +23,7 @@ func main() {
 	//to get the bgp updates the urls are of this format; sorted by the year and month
 	//"http://routeviews.org/route-views.ny/bgpdata/2021.11/UPDATES/"
 	//the links to .bz2 files contained within the main link in the configuration file; if the links can not be attained from the main link no files will be downloaded
-	configStruct, err := config.LoadConfig("config.json")
+	configStruct, err := config.LoadConfig("default-config.json")
 	if err != nil {
 		log.Fatal("Error loading configuration:", err)
 	}
@@ -47,7 +46,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	numFiles, _ := strconv.Atoi(configStruct.WindowSize)
+	numFiles := configStruct.WindowSize
 	partialUrls := extractBZ2URLs(doc)
 	allFolders := createFolders(partialUrls, mainUrl, numFiles)
 	for _, folder := range allFolders {
@@ -56,16 +55,6 @@ func main() {
 			return
 		}
 	}
-	/*outFile := fmt.Sprintf("static_data/rawBGPData/bgpTest%d.txt", 0)
-	outMinReqFile := fmt.Sprintf("static_data/minReq/bgpMinOutliers97thPercentileTest%d.txt", 0)
-	runProcessThroughOneBGPFolder(0, outFile, outMinReqFile, configStruct)
-		for i := 0; i <= len(allFolders)-1; i++ {
-			outFile := fmt.Sprintf("static_data/rawBGPData/bgpTest%d.txt", i)
-			outMinReqFile := fmt.Sprintf("static_data/minReq/bgpMinOutliers97thPercentileTest%d.txt", i)
-			runProcessThroughOneBGPFolder(i, outFile, outMinReqFile, configStruct)
-		}
-		//get all the means,mads, and taus into text files
-		GetMadsMediansTausIntoTxt()*/
 
 }
 
