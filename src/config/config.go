@@ -35,11 +35,6 @@ func LoadConfig(filename string) (*Configuration, error) {
 	return &config, nil
 }
 
-// to parse input of prefix, asn, peer ip, and connector if needed
-func parseByComma(data string) []string {
-	return strings.Split(data, ",")
-}
-
 func ValidDateConfiguration(config *Configuration) {
 	//check that the fileInputOption is either live or static
 	//convert all strings to lower case to ignore any capitalizations

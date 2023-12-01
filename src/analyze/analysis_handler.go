@@ -18,7 +18,7 @@ var maxPoints = 20             //the max number of points to be displayed on the
 func AnalyzeBGPMessages(window common.Window, config *config.Configuration) common.Result {
 	lengthMap := makeLengthMap(window)
 	// Turn map into sorted array of frequencies by timestamp
-	sortedFrequencies := GetSortedFrequencies(lengthMap)
+	sortedFrequencies := GetSortedFrequencies(lengthMap) //fix these duplicates with time stamps
 
 	//the file names will contain all the timestamps for a given folder that was processed
 	bltOutliers, bltOutlierTimes, bltOutlierMessages := BltMadWindow(window, 5) //add optimization to here
@@ -34,7 +34,7 @@ func AnalyzeBGPMessages(window common.Window, config *config.Configuration) comm
 		PeerIP:     config.PeerIP,
 		WindowSize: config.WindowSize,
 
-		Frequencies: sortedFrequencies,
+		Frequencies: sortedFrequencies, //make all of these maps and append onto them here; create them as global vars
 
 		MADOutliers:   bltOutliers,
 		MADTimestamps: bltOutlierTimes,
@@ -56,14 +56,11 @@ func AnalyzeBGPMessages(window common.Window, config *config.Configuration) comm
 	} else {
 		AllResults = append(AllResults, r)
 	}
-	fmt.Println("--------------------------------------AllResult------------------------------------")
-	fmt.Println(len(AllResults))
-	fmt.Println("--------------------------------------AllResult------------------------------------")
-
 	return r
 }
 
 //changed bltMad inputs to get timestamps and the outliers at the same time
+//this is also producing duplicates
 func BltMadWindow(window common.Window, tau float64) ([]float64, []time.Time, [][]common.BGPMessage) {
 	var outliers []float64
 	var times []time.Time

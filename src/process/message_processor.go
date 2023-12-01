@@ -71,7 +71,7 @@ func ProcessBGPMessages(msgChannel chan common.Message, config *config.Configura
 
 			// If we at least maximumBuckets in bucketMap we can perform analysis
 			if len(currWindow.BucketMap) >= maximumBuckets {
-				fmt.Println(fmt.Sprintf("len(currWindow.BucketMap): %d maximumBuckets: %d", len(currWindow.BucketMap), maximumBuckets))
+				fmt.Printf("len(currWindow.BucketMap): %d maximumBuckets: %d\n", len(currWindow.BucketMap), maximumBuckets)
 
 				// First want to remove timestamps out of scope so len(bucketMap) == maximumBuckets
 				minimumTimestamp := messageBucket.Add(-maximumTimespan)
