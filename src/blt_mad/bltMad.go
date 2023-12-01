@@ -42,7 +42,7 @@ func BltMad(data []float64, tau float64) []float64 {
 	return outliers
 }
 
-func IsAnOutlierBLT(data []int, tau float64, point int) bool {
+func IsAnOutlierBLT(data []float64, tau float64, point float64) bool {
 	//calculate blt formula
 	//everything is based on the noZeroData since we are looking at spikes rather than lack of messages
 	noZeroData := RemoveZeros(data)

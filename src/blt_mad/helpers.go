@@ -10,11 +10,11 @@ import (
 	"sort"
 )
 
-func RemoveZeros(data []int) []float64 {
+func RemoveZeros(data []float64) []float64 {
 	var nonZeros []float64
 	for _, value := range data {
 		if value != 0.0 {
-			nonZeros = append(nonZeros, float64(value))
+			nonZeros = append(nonZeros, value)
 		}
 	}
 	return nonZeros
