@@ -6,12 +6,13 @@ import (
 	"BGPAlert/config"
 	"BGPAlert/shake_alert"
 	"fmt"
+	"path/filepath"
 	"sort"
 	"time"
 )
 
-var recentResultsFile = "static_data/recentFullResult.json"
-var outlierMessagesFile = "outlierMessages.csv"
+var recentResultsFile, _ = filepath.Abs("static_data/recentFullResult.json")
+var outlierMessagesFile, _ = filepath.Abs("outlierMessages.csv")
 var AllResults []common.Result //global so that it can be added onto by parser and seen by dataHandler
 var maxPoints = 20             //the max number of points to be displayed on the graph;
 // make sure to divide this by the number
