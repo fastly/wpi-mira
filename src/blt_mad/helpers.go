@@ -2,6 +2,7 @@ package blt_mad
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -10,14 +11,19 @@ import (
 	"sort"
 )
 
-func RemoveZeros(data []float64) []float64 {
+func RemoveZeros(data []float64) ([]float64, error) {
 	var nonZeros []float64
 	for _, value := range data {
 		if value != 0.0 {
 			nonZeros = append(nonZeros, value)
 		}
 	}
-	return nonZeros
+
+	if len(nonZeros) == 0 {
+		return nonZeros, errors.New("the slice provided was all zeros")
+	}
+
+	return nonZeros, nil
 }
 
 func FindMedian(data []float64) float64 {
