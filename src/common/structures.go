@@ -39,3 +39,35 @@ type OutlierInfo struct {
 	Count     float64   `json:"Count,omitempty" `    //the number of messages in the bucket that is an outlier
 	//MsgsFile  *os.File  `json:"MsgsFile,omitempty"`  //`json:"MsgsFile,omitempty"`  a file that contains all the messages from the outlier buckets
 }
+
+//check how I can incorporate that
+//builder functions; https://hackernoon.com/go-design-patterns-an-introduction-to-builder
+/*type OutlierInfoBuilder struct {
+	OutlierInfo OutlierInfo
+}
+
+func NewBuilder() *OutlierInfoBuilder {
+	return &OutlierInfoBuilder{
+		OutlierInfo: OutlierInfo{},
+	}
+}
+
+func (rb *OutlierInfoBuilder) SetTimestamp(timestamp time.Time) {
+	rb.OutlierInfo.Timestamp = timestamp
+}
+
+func (rb *OutlierInfoBuilder) SetAlgorithm(alg int) {
+	rb.OutlierInfo.Algorithm = alg
+}
+
+func (rb *OutlierInfoBuilder) SetCount(count float64) {
+	rb.OutlierInfo.Count = count
+}
+
+func (rb *OutlierInfoBuilder) Build() OutlierInfo {
+	return rb.OutlierInfo
+}
+
+func (rb *OutlierInfoBuilder) GetTimestamp() time.Time {
+	return rb.OutlierInfo.Timestamp
+}*/

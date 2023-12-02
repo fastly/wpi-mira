@@ -15,9 +15,10 @@ import (
 	"time"
 )
 
+//encode a single result struct
 func dataHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	err := json.NewEncoder(w).Encode(analyze.AllResults)
+	err := json.NewEncoder(w).Encode(analyze.FinalResult)
 	if err != nil {
 		http.Error(w, "Error encoding JSON", http.StatusInternalServerError)
 		return

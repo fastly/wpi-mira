@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+//var OB = common.NewBuilder()  //builder for outlierInfo
 var FinalResult common.Result //global so that it can be added onto by parser and seen by dataHandler
 var maxPoints = 20            //the max number of points to be displayed on the graph; make sure to divide this by the number of points in each window or specify that maxPoints is the number of buckets that will be processed
 var optParam = 10.0
@@ -19,7 +20,7 @@ func AnalyzeBGPMessages(window common.Window, config *config.Configuration) {
 	lengthMap := makeLengthMap(window)
 	frequencies := FinalResult.AllFreq
 	// Turn map into sorted array of frequencies by timestamp
-	sortedFrequencies := GetSortedFrequencies(lengthMap) //fix these duplicates with time stamps
+	//sortedFrequencies := GetSortedFrequencies(lengthMap) //fix these duplicates with time stamps
 
 	//modify the frequencies for the final results
 	for timestamp, _ := range lengthMap {
@@ -37,8 +38,33 @@ func AnalyzeBGPMessages(window common.Window, config *config.Configuration) {
 
 	//modify the outliers for the final result; check the outliers for the incoming window and remove duplicates/update
 	windowOutliers := createOutliers(window) //a list of all the outliers in the individual window
+	windowOutlierTimes := getListTimes(windowOutliers)
+	resultOutlierTimes := getListTimes(FinalResult.AllOutliers)
+	for i, val := range windowOutlierTimes {
+		if !containsVal(resultOutlierTimes, val) {
+			FinalResult.AllOutliers = append(FinalResult.AllOutliers, windowOutliers[i]) //make sure that window outliers and outlier times are the same here
+		}
+	}
 
 	//cap the length of frequencies at maxNumWindows *  windowSize
+}
+
+func containsVal(times []time.Time, specificTime time.Time) bool {
+	for _, val := range times {
+		if val == specificTime { //check equal here
+			return true
+		}
+	}
+	return false
+}
+
+//there must be an easier way to do this
+func getListTimes(outliers []common.OutlierInfo) []time.Time {
+	times := []time.Time{}
+	for _, val := range outliers {
+		times = append(times, val.Timestamp)
+	}
+	return times
 }
 
 //for a given window check what the outliers are and record them into a list of structs
@@ -69,6 +95,7 @@ func createOutlierStruct(timestamp time.Time, algorithm int, count float64) comm
 		Algorithm: algorithm,
 		Count:     count,
 	}
+
 	return o
 }
 

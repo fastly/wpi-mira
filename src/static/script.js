@@ -1,6 +1,6 @@
 function addData(chart, newData) {
     if (newData.length === 0) {
-        return; // No new data to add
+        return;
     }
 
     // Clear existing data
@@ -15,20 +15,7 @@ function addData(chart, newData) {
     chart.update();
 }
 
-function addLabels(madOutliers, madOutliersTimes, shakeOutliers, shakeOutliersTimes, prefix, asn, peerIP, windowSize) {
-    //add all the config parameters
-    const prefixContainer = document.getElementById('prefix')
-    const asnContainer = document.getElementById('asn')
-    const peerIPContainer = document.getElementById('peerIP')
-    const windowSizeContainer = document.getElementById('windowSize')
-    const formattedPrefix = prefix[0];
-    const formattedASN  = asn[0];
-    const formattedPeerIP = peerIP[0];
-    const formattedWindowSize = windowSize[0];
-    prefixContainer.innerText = `Prefix: [${formattedPrefix}]`;
-    asnContainer.innerText = `ASN: [${formattedASN}]`;
-    peerIPContainer.innerText = `Peer IP: [${formattedPeerIP}]`;
-    windowSizeContainer.innerText = `Window Size: [${formattedWindowSize}]`;
+function addLabels(madOutliers, madOutliersTimes, shakeOutliers, shakeOutliersTimes) {
 
     //mad outliers
     const madOutliersContainer = document.getElementById('madOutliers');
@@ -83,21 +70,11 @@ setInterval(() => {
     fetch('http://localhost:8080/data')
         .then(response => response.json())
         .then(data => {
-            const prefix = data.map(result => result.Prefix).flat();
-            const asn = data.map(result => result.ASN).flat();
-            const peerIP = data.map(result => result.PeerIP).flat();
-            const windowSize = data.map(result => result.WindowSize).flat();
+            const allOutliers = data.map (result => result.AllOutliers) //figure out how to read those data struct in json
+            const allFreq = data.map(result => result.AllFreq)
 
-            const frequencies = data.map(result => result.Frequencies).flat();
-
-            const madOutliers = data.map(result => result.MADOutliers).flat();
-            const madOutliersTimes = data.map(result => result.MADTimestamps).flat();
-
-            const shakeAlertOutliers = data.map(result => result.ShakeAlertOutliers).flat();
-            const shakeAlertOutliersTimes = data.map(result => result.ShakeAlertTimestamps).flat();
-
-            addData(chart, frequencies);
-            addLabels(madOutliers, madOutliersTimes, shakeAlertOutliers, shakeAlertOutliersTimes, prefix, asn, peerIP, windowSize)
+            //addData(chart, frequencies);
+            //addLabels(madOutliers, madOutliersTimes, shakeAlertOutliers, shakeAlertOutliersTimes, prefix, asn, peerIP, windowSize)
         })
         .catch(error => {
             console.error('Error fetching data:', error);
