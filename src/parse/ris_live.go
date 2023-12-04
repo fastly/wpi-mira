@@ -286,30 +286,6 @@ func float64ToTime(timestamp float64) (time.Time, error) {
 // toString for subscription struct
 // used for labeling each subscription filter
 func subscriptionToString(sub config.SubscriptionMsg) string {
-	result := "Subscription{"
-
-	if sub.Host != "" {
-		result += fmt.Sprintf("Host: %q, ", sub.Host)
-	}
-
-	if sub.Peer != "" {
-		result += fmt.Sprintf("Peer: %q, ", sub.Peer)
-	}
-
-	if sub.Path != "" {
-		result += fmt.Sprintf("Path: %q, ", sub.Path)
-	}
-
-	if sub.Prefix != "" {
-		result += fmt.Sprintf("Prefix: %q, ", sub.Prefix)
-	}
-
-	//remove the trailing comma and space if there is at least one field
-	if result != "MyStruct{" {
-		result = result[:len(result)-2]
-	}
-
-	result += "}"
-
-	return result
+	tmp, _ := json.Marshal(sub)
+	return string(tmp)
 }
