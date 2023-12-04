@@ -90,12 +90,6 @@ func ParseRisLiveData(msgChannel chan common.Message, config *config.Configurati
 		go handleSubscription(msgChannel, subscription)
 	}
 
-	// alternatives:
-	// this would listen to one of Fastly's blocks of address space, from all collectors:
-	//subscription1 := RisMessage{"ris_subscribe", &RisMessageData{"", "151.101.0.0/16"}}
-	// this would listen to all of the IPv4 address space, but from only one collector:
-	//subscription1 := RisMessage{"ris_subscribe", &RisMessageData{"rrc21", "0.0.0.0/0"}}
-
 }
 
 // handles the connection for each subscription
