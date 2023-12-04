@@ -1,3 +1,6 @@
 .idea/
 src/go.sum
 *.bz2
+src/static_data/result.json
+src/static_data/recentFullResult.json
+src/outlierMessages.csv

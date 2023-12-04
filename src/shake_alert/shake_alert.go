@@ -85,3 +85,21 @@ func FindOutliers(data []float64) []float64 {
 
 	return outliers
 }
+
+//test this function!!!!!!!!!!!!!!!!!!!!
+func IsAnOutlierShakeAlert(data []float64, point float64) bool {
+	// count the number of neighbors within radius R
+	R := findR(data)
+	neighborCount := 0
+	for _, bin := range data {
+		if math.Abs(float64(bin-point)) < R {
+			neighborCount++
+		}
+	}
+
+	// if there are fewer than k neighbors, the current bin is an outlier
+	if neighborCount < k {
+		return true
+	}
+	return false
+}

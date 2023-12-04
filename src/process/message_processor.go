@@ -10,6 +10,7 @@ import (
 )
 
 // Constantly read messages from channel, build up windows with frequency maps, calling analysis on windows when full
+// Constantly read messages from channel, build up windows with frequency maps, calling analysis on windows when full
 func ProcessBGPMessages(msgChannel chan common.Message, config *config.Configuration) error {
 	// Parse windowSize from config
 	var maximumBuckets int
@@ -70,7 +71,7 @@ func ProcessBGPMessages(msgChannel chan common.Message, config *config.Configura
 
 			// If we at least maximumBuckets in bucketMap we can perform analysis
 			if len(currWindow.BucketMap) >= maximumBuckets {
-				fmt.Println(fmt.Sprintf("len(currWindow.BucketMap): %d maximumBuckets: %d", len(currWindow.BucketMap), maximumBuckets))
+				fmt.Printf("len(currWindow.BucketMap): %d maximumBuckets: %d\n", len(currWindow.BucketMap), maximumBuckets)
 
 				// First want to remove timestamps out of scope so len(bucketMap) == maximumBuckets
 				minimumTimestamp := messageBucket.Add(-maximumTimespan)
@@ -82,7 +83,7 @@ func ProcessBGPMessages(msgChannel chan common.Message, config *config.Configura
 				}
 
 				// Now window is ready for analysis
-				analyze.AnalyzeBGPMessages(*currWindow)
+				analyze.AnalyzeBGPMessages(*currWindow, config)
 			}
 
 			// Create new bucket for new timestamp
@@ -94,6 +95,7 @@ func ProcessBGPMessages(msgChannel chan common.Message, config *config.Configura
 		currWindow.BucketMap[messageBucket] = append(currWindow.BucketMap[messageBucket], msg.BGPMessage)
 	}
 
+	//check if the return statements are ok here?
 	return nil
 }
 
