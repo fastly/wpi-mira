@@ -3,7 +3,6 @@ package blt_mad
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"math"
 	"os"
@@ -123,7 +122,7 @@ func StoreResultIntoJson(data interface{}, filename string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(string(jsonData))
+	//fmt.Println(string(jsonData))
 	return nil
 }
 
