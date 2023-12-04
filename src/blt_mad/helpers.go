@@ -1,23 +1,29 @@
 package blt_mad
 
 import (
-	"bufio"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"math"
 	"os"
 	"reflect"
 	"sort"
-	"strconv"
 )
 
-func removeZeros(data []float64) []float64 {
+func RemoveZeros(data []float64) ([]float64, error) {
 	var nonZeros []float64
 	for _, value := range data {
 		if value != 0.0 {
 			nonZeros = append(nonZeros, value)
 		}
 	}
-	return nonZeros
+
+	if len(nonZeros) == 0 {
+		return nonZeros, errors.New("the slice provided was all zeros")
+	}
+
+	return nonZeros, nil
 }
 
 func FindMedian(data []float64) float64 {
@@ -48,32 +54,6 @@ func sortData(data []float64) []float64 {
 	return sortedData
 }
 
-func findMin(data []float64) float64 {
-	if len(data) == 0 {
-		return math.SmallestNonzeroFloat64
-	}
-	min := data[0]
-	for _, value := range data {
-		if value < min {
-			min = value
-		}
-	}
-	return min
-}
-
-func findMax(data []float64) float64 {
-	if len(data) == 0 {
-		return math.MaxFloat64
-	}
-	max := data[0]
-	for _, value := range data {
-		if value > max {
-			max = value
-		}
-	}
-	return max
-}
-
 func findMean(data []float64) float64 {
 	sum := 0.0
 	if len(data) == 0 {
@@ -87,19 +67,6 @@ func findMean(data []float64) float64 {
 	return sum / float64(len(data))
 }
 
-// equalSlices checks if two slices are equal in content.
-func equalSlices(a, b []float64) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
-}
-
 func containsValue(arr []float64, target float64) bool {
 	for _, value := range arr {
 		if value == target {
@@ -107,18 +74,6 @@ func containsValue(arr []float64, target float64) bool {
 		}
 	}
 	return false
-}
-
-//check if one array contains the elements of the other
-func containAllElements(mainArr []float64, subArr []float64) []float64 {
-	//use in BGP testing to check if the result contains the minimum outliers of interest given the parameters
-	var elementsMissing []float64
-	for _, subValue := range subArr {
-		if !containsValue(mainArr, subValue) {
-			elementsMissing = append(elementsMissing, subValue)
-		}
-	}
-	return elementsMissing
 }
 
 //https://medium.com/pragmatic-programmers/testing-floating-point-numbers-in-go-9872fe6de17f
@@ -157,63 +112,78 @@ func calculatePercentile(numbers []float64, percentile float64) float64 {
 	return value
 }
 
-func GetValuesLargerThanPercentile(numbers []float64, percentile float64) []float64 {
-	valueAtPercentile := calculatePercentile(numbers, percentile)
-
-	// Get values larger than percentile% of the data
-	var largerValues []float64
-	for _, num := range numbers {
-		if num > valueAtPercentile {
-			largerValues = append(largerValues, num)
-		}
-	}
-
-	return largerValues
-}
-
-func SaveArrayToFile(fileName string, arr []float64) error {
-	file, err := os.Create(fileName)
+//used to simplify writing out the results into the output file
+func StoreResultIntoJson(data interface{}, filename string) error {
+	jsonData, err := json.MarshalIndent(data, "", "    ")
 	if err != nil {
 		return err
 	}
-	defer file.Close()
 
-	for _, value := range arr {
-		_, err := fmt.Fprintf(file, "%f\n", value)
+	err = ioutil.WriteFile(filename, jsonData, 0644)
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(jsonData))
+	return nil
+}
+
+//unmarshall json here
+func WriteCSVFile(data interface{}, filename string) error {
+	var file *os.File
+	var err error
+
+	if _, statErr := os.Stat(filename); os.IsNotExist(statErr) {
+		// If the file does not exist, create it
+		file, err = os.Create(filename)
 		if err != nil {
+			return err
+		}
+		defer file.Close()
+
+		// Write the initial data to the file
+		jsonData, err := json.MarshalIndent([]interface{}{data}, "", "  ")
+		if err != nil {
+			return err
+		}
+
+		if _, err := file.Write(jsonData); err != nil {
+			return err
+		}
+	} else {
+		// If the file exists, open it in append mode
+		file, err = os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+
+		// Read the existing data from the file
+		existingData := []interface{}{}
+		decoder := json.NewDecoder(file)
+		if err := decoder.Decode(&existingData); err != nil {
+			return err
+		}
+
+		// Append new data to existing data
+		existingData = append(existingData, data)
+
+		// Move file cursor to the beginning
+		if _, err := file.Seek(0, 0); err != nil {
+			return err
+		}
+
+		// Write the updated data to the file
+		jsonData, err := json.MarshalIndent(existingData, "", "  ")
+		if err != nil {
+			return err
+		}
+
+		if _, err := file.Write(jsonData); err != nil {
 			return err
 		}
 	}
 
 	return nil
-}
-
-func TxtIntoArrayFloat64(inputFile string) ([]float64, error) {
-	var floats []float64
-
-	// Open the file
-	file, err := os.Open(inputFile)
-	defer file.Close()
-	if err != nil {
-		return nil, err
-	}
-
-	//scanner
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := scanner.Text()
-		value, err := strconv.ParseFloat(line, 64)
-		if err != nil {
-			continue //skipping the value and continue in the same line
-		}
-		floats = append(floats, value)
-	}
-
-	if err := scanner.Err(); err != nil {
-		return nil, err
-	}
-
-	return floats, nil
 }
 
 //check if one array contains the elements of the other

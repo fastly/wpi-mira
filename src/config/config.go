@@ -35,11 +35,6 @@ func LoadConfig(filename string) (*Configuration, error) {
 	return &config, nil
 }
 
-// to parse input of prefix, asn, peer ip, and connector if needed
-func parseByComma(data string) []string {
-	return strings.Split(data, ",")
-}
-
 func ValidDateConfiguration(config *Configuration) {
 	//check that the fileInputOption is either live or static
 	//convert all strings to lower case to ignore any capitalizations
@@ -64,11 +59,11 @@ func ValidDateConfiguration(config *Configuration) {
 			fmt.Println("Please enter a valid pathway to the static file")
 		}
 	} else if fileInputL != "live" && fileInputL != "static" {
-		fmt.Println("Please enter either live or static as a dataOption in config.json")
+		fmt.Println("Please enter either live or static as a dataOption in default-config.json")
 	} else if outlierL == "mad" {
 		//require mad parameter
 	} else if outlierL != "mad" && outlierL != "shakealert" {
-		fmt.Println("Please enter either mad or shakeAlert as input for outlierDetectionAlgorithm in config.json")
+		fmt.Println("Please enter either mad or shakeAlert as input for outlierDetectionAlgorithm in default-config.json")
 	}
 	fmt.Println("Configuration successful")
 

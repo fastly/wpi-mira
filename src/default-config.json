@@ -7,5 +7,5 @@
   "asn": "enter the ASNs of interest here",
   "peerIp": "enter peer IP",
   "connector": "enter connector or connectors of interests",
-  "windowSize": "30"
+  "windowSize": "360"
 }
