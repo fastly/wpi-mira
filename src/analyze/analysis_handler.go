@@ -11,22 +11,41 @@ import (
 	"time"
 )
 
-//need to create a map of results based on filter
+// need to create a map of results based on filter
 var fullResultFile, _ = filepath.Abs("fullResult.json")
 var AllResults common.Result //global so that it can be added onto by parser and seen by dataHandler
 var maxPoints = 20           //the max number of points to be displayed on the graph;
 var optParam = 5.0
+var resultMap = make(map[string]*common.Result)
 
 // make sure to divide this by the number
 //of points in each window or specify that maxPoints is the number of buckets that will be processed
 
 // Takes in a Window, parses object into frequency counts, and then calls specified analysis functions
-//code to write the frequencies; the outliers; and the minReqs to files
+// code to write the frequencies; the outliers; and the minReqs to files
 func AnalyzeBGPMessages(window common.Window, config *config.Configuration) {
+	// Get current result from map if it exists
+	currResult, exists := resultMap[window.Filter]
+
+	// If the result is not already in the map, create a new result for it
+	if !exists {
+		result := common.Result{
+			Filter:      window.Filter,
+			AllOutliers: make([]common.OutlierInfo, 0),
+			AllFreq:     make(map[time.Time]float64),
+		}
+
+		// Add window to the map
+		resultMap[window.Filter] = &result
+
+		// Update currWindow to point to the newly added window
+		currResult = &result
+	}
+
 	lengthMap := makeLengthMap(window)
 	// Turn map into sorted array of frequencies by timestamp
 	sortedFrequencies := GetSortedFrequencies(lengthMap) //fix these duplicates with time stamps
-	frequencies := AllResults.AllFreq
+	frequencies := currResult.AllFreq
 
 	//the file names will contain all the timestamps for a given folder that was processed
 	fmt.Printf("Sorted Array of Frequencies: \n%+v\n", sortedFrequencies)
@@ -53,15 +72,15 @@ func AnalyzeBGPMessages(window common.Window, config *config.Configuration) {
 	//modify the outliers for the final result; check the outliers for the incoming window and remove duplicates/update
 	windowOutliers := createOutliers(lengthMap) //a list of all the outliers in the individual window
 	windowOutlierTimes := getListTimes(windowOutliers)
-	resultOutlierTimes := getListTimes(AllResults.AllOutliers)
+	resultOutlierTimes := getListTimes(currResult.AllOutliers)
 	for i, val := range windowOutlierTimes {
 		if !containsVal(resultOutlierTimes, val) {
-			AllResults.AllOutliers = append(AllResults.AllOutliers, windowOutliers[i]) //make sure that window outliers and outlier times are the same here
+			currResult.AllOutliers = append(currResult.AllOutliers, windowOutliers[i]) //make sure that window outliers and outlier times are the same here
 		}
 	}
 
 	//put all the results into the Result struct and pass write it out to a json
-	blt_mad.StoreResultIntoJson(AllResults, fullResultFile) //storing the most recent result
+	blt_mad.StoreResultIntoJson(currResult, fullResultFile) //storing the most recent result
 
 }
 
@@ -74,7 +93,7 @@ func containsVal(times []time.Time, specificTime time.Time) bool {
 	return false
 }
 
-//there must be an easier way to do this
+// there must be an easier way to do this
 func getListTimes(outliers []common.OutlierInfo) []time.Time {
 	times := []time.Time{}
 	for _, val := range outliers {
@@ -83,9 +102,9 @@ func getListTimes(outliers []common.OutlierInfo) []time.Time {
 	return times
 }
 
-//for a given window check what the outliers are and record them into a list of structs
-//does not insert an algorithm if both determined it???????????????????????????????????????????????????
-//record all the values without repeat in the frequencies :(((((((((((((((((((((((((((((((((((((
+// for a given window check what the outliers are and record them into a list of structs
+// does not insert an algorithm if both determined it???????????????????????????????????????????????????
+// record all the values without repeat in the frequencies :(((((((((((((((((((((((((((((((((((((
 func createOutliers(lengthMap map[time.Time]float64) []common.OutlierInfo {
 	windowOutliers := []common.OutlierInfo{}
 	sortedFrequencies := GetSortedFrequencies(lengthMap)
@@ -118,7 +137,7 @@ func createOutlierStruct(timestamp time.Time, algorithm int, count float64) comm
 	return o
 }
 
-//repeated code in three of these functions; moved outside to make the code easier to read
+// repeated code in three of these functions; moved outside to make the code easier to read
 func makeLengthMap(window common.Window) map[time.Time]float64 {
 	bucketMap := window.BucketMap
 	lengthMap := make(map[time.Time]float64)
