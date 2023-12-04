@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -40,7 +41,7 @@ func LoadConfig(filename string) (*Configuration, error) {
 	return &config, nil
 }
 
-func ValidateConfiguration(config *Configuration) {
+func ValidateConfiguration(config *Configuration) error {
 
 	//check that the fileInputOption is either live or static
 	//convert all strings to lower case to ignore any capitalizations
@@ -56,7 +57,7 @@ func ValidateConfiguration(config *Configuration) {
 	if fileInputL == "live" {
 		//require at least 1 subscription
 		if len(config.Subscriptions) == 0 {
-			fmt.Println("Choosing live data input stream requires to input at least one subscription")
+			return errors.New("choosing live data input stream requires to input at least one subscription")
 		}
 	} else if fileInputL == "static" {
 		//require valid file path
@@ -73,4 +74,5 @@ func ValidateConfiguration(config *Configuration) {
 	}
 	fmt.Println("Configuration successful")
 
+	return nil
 }
