@@ -19,7 +19,7 @@ var maxPoints = 20             //the max number of points to be displayed on the
 //of points in each window or specify that maxPoints is the number of buckets that will be processed
 
 // Takes in a Window, parses object into frequency counts, and then calls specified analysis functions
-//code to write the frequencies; the outliers; and the minReqs to files
+// code to write the frequencies; the outliers; and the minReqs to files
 func AnalyzeBGPMessages(window common.Window, config *config.Configuration) common.Result {
 	lengthMap := makeLengthMap(window)
 	// Turn map into sorted array of frequencies by timestamp
@@ -34,9 +34,6 @@ func AnalyzeBGPMessages(window common.Window, config *config.Configuration) comm
 
 	//put all the results into the Result struct and pass write it out to a json
 	r := common.Result{
-		Prefix:     config.Prefix,
-		ASN:        config.Asn,
-		PeerIP:     config.PeerIP,
 		WindowSize: config.WindowSize,
 
 		Frequencies: sortedFrequencies, //make all of these maps and append onto them here; create them as global vars
@@ -64,8 +61,8 @@ func AnalyzeBGPMessages(window common.Window, config *config.Configuration) comm
 	return r
 }
 
-//changed bltMad inputs to get timestamps and the outliers at the same time
-//this is also producing duplicates
+// changed bltMad inputs to get timestamps and the outliers at the same time
+// this is also producing duplicates
 func BltMadWindow(data []float64, window common.Window, tau float64) ([]float64, []time.Time, [][]common.BGPMessage) {
 	var outliers []float64
 	var times []time.Time
@@ -84,7 +81,7 @@ func BltMadWindow(data []float64, window common.Window, tau float64) ([]float64,
 	return outliers, times, messages
 }
 
-//repeated code in three of these functions; moved outside to make the code easier to read
+// repeated code in three of these functions; moved outside to make the code easier to read
 func makeLengthMap(window common.Window) map[time.Time]float64 {
 	bucketMap := window.BucketMap
 	lengthMap := make(map[time.Time]float64)
@@ -94,7 +91,7 @@ func makeLengthMap(window common.Window) map[time.Time]float64 {
 	return lengthMap
 }
 
-//changed shakeAlert inputs to get timestamps and the outliers at the same time
+// changed shakeAlert inputs to get timestamps and the outliers at the same time
 func ShakeAlertWindow(data []float64, window common.Window) ([]float64, []time.Time, [][]common.BGPMessage) {
 	var outliers []float64
 	var times []time.Time
