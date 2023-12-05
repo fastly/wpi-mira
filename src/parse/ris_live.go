@@ -169,7 +169,8 @@ func receiveHandler(msgChannel chan common.Message, conn *websocket.Conn) {
 		if err != nil {
 			log.Println("Error parsing BGP message", err)
 		} else {
-			fmt.Printf("Parsed BGP Message: %+v\n", bgpMsgs) //prints parsed BGP msg
+			fmt.Println("")
+			//fmt.Printf("Parsed BGP Message: %+v\n", bgpMsgs) //prints parsed BGP msg
 		}
 
 		//put bgp messages into channel

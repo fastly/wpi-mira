@@ -7,6 +7,7 @@ import (
 	"BGPAlert/shake_alert"
 	"fmt"
 	"path/filepath"
+	"reflect"
 	"sort"
 	"time"
 )
@@ -53,7 +54,7 @@ func AnalyzeBGPMessages(window common.Window, config *config.Configuration) {
 	//modify the outliers for the final result; check the outliers for the incoming window and remove duplicates/update
 	windowOutliers := createOutliers(lengthMap) //a list of all the outliers in the individual window
 	windowOutlierTimes := getListTimes(windowOutliers)
-	resultOutlierTimes := getListTimes(AllResults.AllOutliers)
+	resultOutlierTimes := reflect.ValueOf(AllResults.AllOutliers).MapKeys() //get all the timestamps in the map of existing outliers
 	for i, val := range windowOutlierTimes {
 		if !containsVal(resultOutlierTimes, val) {
 			AllResults.AllOutliers = append(AllResults.AllOutliers, windowOutliers[i]) //make sure that window outliers and outlier times are the same here

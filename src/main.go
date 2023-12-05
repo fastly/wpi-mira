@@ -22,6 +22,7 @@ func dataHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error encoding JSON", http.StatusInternalServerError)
 		return
 	}
+	//fmt.Println(analyze.AllResults)
 }
 
 func main() {

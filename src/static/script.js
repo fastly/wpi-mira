@@ -1,4 +1,5 @@
-function addData(chart, newData) {
+function addData(chart, allFreqMap) {
+    const newData = Object.values(allFreqMap)
     if (newData.length === 0) {
         return; // No new data to add
     }
@@ -15,40 +16,10 @@ function addData(chart, newData) {
     chart.update();
 }
 
-function addLabels(madOutliers, madOutliersTimes, shakeOutliers, shakeOutliersTimes, prefix, asn, peerIP, windowSize) {
-    //add all the config parameters
-    const prefixContainer = document.getElementById('prefix')
-    const asnContainer = document.getElementById('asn')
-    const peerIPContainer = document.getElementById('peerIP')
-    const windowSizeContainer = document.getElementById('windowSize')
-    const formattedPrefix = prefix[0];
-    const formattedASN  = asn[0];
-    const formattedPeerIP = peerIP[0];
-    const formattedWindowSize = windowSize[0];
-    prefixContainer.innerText = `Prefix: [${formattedPrefix}]`;
-    asnContainer.innerText = `ASN: [${formattedASN}]`;
-    peerIPContainer.innerText = `Peer IP: [${formattedPeerIP}]`;
-    windowSizeContainer.innerText = `Window Size: [${formattedWindowSize}]`;
 
-    //mad outliers
-    const madOutliersContainer = document.getElementById('madOutliers');
-    const formattedArrayMad = madOutliers.join(', '); // Format the array for display
-    madOutliersContainer.innerText = `MAD Outliers: [${formattedArrayMad}]`;
+function addLabels(allOutliers) {
+  const outlierList = allOutliers.AllOutliers
 
-    //mad outlier timestamps
-    const madOutliersTimesContainer = document.getElementById('madOutliersTimes');
-    const formattedArrayMadTimes = madOutliersTimes.join(', '); // Format the array for display
-    madOutliersTimesContainer.innerText = `MAD Outliers: [${formattedArrayMadTimes}]`;
-
-    //add shake alert outlier counts
-    const shakeOutliersContainer = document.getElementById('shakeOutliers');
-    const formattedArrayShake = shakeOutliers.join(', '); // Format the array for display
-    shakeOutliersContainer.innerText = `ShakeAlertOutliers: [${formattedArrayShake}]`;
-
-    //shake times
-    const shakeOutliersTimesContainer = document.getElementById('shakeOutliersTimes');
-    const formattedArrayShakeTimes = shakeOutliersTimes.join(', '); // Format the array for display
-    shakeOutliersTimesContainer.innerText = `ShakeAlertOutliers: [${formattedArrayShakeTimes}]`;
 }
 
 
@@ -77,27 +48,25 @@ const chart = new Chart(ctx, {
     }
 });
 
+const data = {
+    "2023-12-04T18:44:00-05:00": 1,
+    "2023-12-04T18:45:00-05:00": 8,
+    "2023-12-04T18:46:00-05:00": 2,
+};
+const float64Values = Object.values(data);
+console.log(float64Values);
+addData(chart, float64Values)
+addLabels(float64Values)
+
 
 
 setInterval(() => {
     fetch('http://localhost:8080/data')
         .then(response => response.json())
         .then(data => {
-            const prefix = data.map(result => result.Prefix).flat();
-            const asn = data.map(result => result.ASN).flat();
-            const peerIP = data.map(result => result.PeerIP).flat();
-            const windowSize = data.map(result => result.WindowSize).flat();
-
-            const frequencies = data.map(result => result.Frequencies).flat();
-
-            const madOutliers = data.map(result => result.MADOutliers).flat();
-            const madOutliersTimes = data.map(result => result.MADTimestamps).flat();
-
-            const shakeAlertOutliers = data.map(result => result.ShakeAlertOutliers).flat();
-            const shakeAlertOutliersTimes = data.map(result => result.ShakeAlertTimestamps).flat();
-
-            addData(chart, frequencies);
-            addLabels(madOutliers, madOutliersTimes, shakeAlertOutliers, shakeAlertOutliersTimes, prefix, asn, peerIP, windowSize)
+            const allFreqMap = data.AllFreq
+            const allOutliers = data.AllOutliers
+            addData(chart, allFreqMap);
         })
         .catch(error => {
             console.error('Error fetching data:', error);
