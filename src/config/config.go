@@ -12,7 +12,7 @@ import (
 type SubscriptionMsg struct {
 	Host   string `json:"host,omitempty"` //aka collector
 	Peer   string `json:"peer,omitempty"`
-	Path   string `json:"path,omitempty"` //aka ASN
+	Asn    int    `json:"asn,omitempty"` //aka ASN
 	Prefix string `json:"prefix,omitempty"`
 }
 

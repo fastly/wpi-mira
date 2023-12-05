@@ -25,7 +25,7 @@ var interrupt chan os.Signal
 type RisMessageData struct {
 	Host   string `json:"host,omitempty"` //aka collector
 	Peer   string `json:"peer,omitempty"`
-	Path   string `json:"path,omitempty"` //aka ASN
+	Asn    int    `json:"asn,omitempty"` //aka ASN
 	Prefix string `json:"prefix,omitempty"`
 }
 
@@ -85,15 +85,15 @@ func ParseRisLiveData(msgChannel chan common.Message, config *config.Configurati
 	fmt.Println("starting...")
 
 	//for each subscription
-	for _, subscription := range config.Subscriptions {
+	for i, subscription := range config.Subscriptions {
 		//go routine handleSubscription
-		go handleSubscription(msgChannel, subscription)
+		go handleSubscription(msgChannel, subscription, i)
 	}
 
 }
 
 // handles the connection for each subscription
-func handleSubscription(msgChannel chan common.Message, subscription config.SubscriptionMsg) error {
+func handleSubscription(msgChannel chan common.Message, subscription config.SubscriptionMsg, i int) error {
 
 	// create websocket connection to ris live websocket
 	conn, _, err := websocket.DefaultDialer.Dial(socketUrl, nil)
@@ -103,17 +103,17 @@ func handleSubscription(msgChannel chan common.Message, subscription config.Subs
 	defer conn.Close()
 
 	//call receive handler
-	go receiveHandler(msgChannel, conn, subscriptionToString(subscription))
+	go receiveHandler(msgChannel, conn, subscriptionToString(subscription), i)
 
 	fmt.Println("made connection")
 
 	//subscribe
-	sub := RisMessage{"ris_subscribe", &RisMessageData{subscription.Host, subscription.Peer, subscription.Path, subscription.Prefix}}
+	sub := RisMessage{"ris_subscribe", &RisMessageData{subscription.Host, subscription.Peer, subscription.Asn, subscription.Prefix}}
 	out, err := json.Marshal(sub)
 	if err != nil {
 		return errors.New("Error marshalling subscription message, " + err.Error())
 	}
-	log.Println("Subscribing to: ", subscriptionToString(subscription))
+	log.Println("Subscribing to: ", i, " ", subscriptionToString(subscription))
 	conn.WriteMessage(websocket.TextMessage, out)
 
 	//manage connection
@@ -154,7 +154,7 @@ func handleSubscription(msgChannel chan common.Message, subscription config.Subs
 }
 
 // keep reading in new message from connection, send msg to parser, put parsed messages into channel
-func receiveHandler(msgChannel chan common.Message, conn *websocket.Conn, subscription string) {
+func receiveHandler(msgChannel chan common.Message, conn *websocket.Conn, subscription string, i int) {
 	var labeledMsg common.Message
 	labeledMsg.Filter = subscription
 
@@ -171,7 +171,7 @@ func receiveHandler(msgChannel chan common.Message, conn *websocket.Conn, subscr
 		if err != nil {
 			log.Println("Error parsing BGP message", err)
 		} else {
-			fmt.Printf("Parsed BGP Message: %+v\n", bgpMsgs) //prints parsed BGP msg
+			fmt.Printf("Parsed BGP Message: %d %+v\n", i, bgpMsgs) //prints parsed BGP msg
 		}
 
 		//put bgp messages into channel
