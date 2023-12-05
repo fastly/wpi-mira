@@ -27,7 +27,7 @@ func AnalyzeBGPMessages(window common.Window, config *config.Configuration) comm
 
 	//the file names will contain all the timestamps for a given folder that was processed
 	bltOutliers, bltOutlierTimes, bltOutlierMessages := BltMadWindow(sortedFrequencies, window, 5) //add optimization to here
-	shakeAlertOutliers, shakeAlertOutlierTime, shakeAlertOutlierMessages := ShakeAlertWindow(sortedFrequencies, window)
+	shakeAlertOutliers, shakeAlertOutlierTime, shakeAlertOutlierMessages := ShakeAlertWindow(sortedFrequencies, window, config)
 	fmt.Printf("Sorted Array of Frequencies: \n%+v\n", sortedFrequencies)
 	fmt.Printf("BLT MAD Outliers: \n%+v\n", bltOutliers)
 	fmt.Printf("ShakeAlert Outliers: \n%+v\n", shakeAlertOutliers)
@@ -92,7 +92,7 @@ func makeLengthMap(window common.Window) map[time.Time]float64 {
 }
 
 // changed shakeAlert inputs to get timestamps and the outliers at the same time
-func ShakeAlertWindow(data []float64, window common.Window) ([]float64, []time.Time, [][]common.BGPMessage) {
+func ShakeAlertWindow(data []float64, window common.Window, config *config.Configuration) ([]float64, []time.Time, [][]common.BGPMessage) {
 	var outliers []float64
 	var times []time.Time
 	var messages [][]common.BGPMessage //array of arrays of messages for a given bucket map
@@ -102,7 +102,7 @@ func ShakeAlertWindow(data []float64, window common.Window) ([]float64, []time.T
 	lengthMap := makeLengthMap(window)
 
 	for timestamp, _ := range lengthMap {
-		if shake_alert.IsAnOutlierShakeAlert(data, lengthMap[timestamp]) {
+		if shake_alert.IsAnOutlierShakeAlert(data, lengthMap[timestamp], config.ShakeAlertParameter) {
 			outliers = append(outliers, lengthMap[timestamp])
 			times = append(times, timestamp)
 			messages = append(messages, bucketMap[timestamp])

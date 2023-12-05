@@ -17,14 +17,15 @@ type SubscriptionMsg struct {
 }
 
 type Configuration struct {
-	//cast onto the needed type when processing in algos
-	FileInputOption           string            `json:"dataOption"`
-	StaticFile                string            `json:"staticFilePath"`
-	URLStaticData             string            `json:"staticFilesLink"`
-	OutlierDetectionAlgorithm string            `json:"outlierDetectionAlgorithm"`
-	MadParameters             string            `json:"madParameters"`
-	Subscriptions             []SubscriptionMsg `json:"subscriptions"`
-	WindowSize                string            `json:"windowSize"`
+	FileInputOption     string            `json:"dataOption"`
+	Algorithm           string            `json:"anomalyDetectionAlgo"`
+	StaticFile          string            `json:"staticFilePath"`  //path to specific static file
+	URLStaticData       string            `json:"staticFilesLink"` //link to routeviews bz2 folder
+	MadParameters       int               `json:"madParameters"`
+	ShakeAlertParameter int               `json:"shakeAlertParameter"`
+	MaxBuckets          int               `json:"maxBuckets"`
+	WindowSize          int               `json:"windowSize"`
+	Subscriptions       []SubscriptionMsg `json:"subscriptions"`
 }
 
 func LoadConfig(filename string) (*Configuration, error) {
@@ -73,6 +74,5 @@ func ValidateConfiguration(config *Configuration) error {
 		fmt.Println("Please enter either mad or shakeAlert as input for outlierDetectionAlgorithm in default-config.json")
 	}
 	fmt.Println("Configuration successful")
-
 	return nil
 }
