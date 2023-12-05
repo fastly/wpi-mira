@@ -13,10 +13,17 @@ import (
 
 // need to create a map of results based on filter
 var fullResultFile, _ = filepath.Abs("fullResult.json")
-var AllResults common.Result //global so that it can be added onto by parser and seen by dataHandler
-var maxPoints = 20           //the max number of points to be displayed on the graph;
+
+// var AllResults common.Result //global so that it can be added onto by parser and seen by dataHandler
+var maxPoints = 20 //the max number of points to be displayed on the graph;
 var optParam = 5.0
-var resultMap = make(map[string]*common.Result)
+var ResultMap = make(map[string]*common.Result)
+
+const (
+	BLTMAD     = 1
+	SHAKEALERT = 2
+	BOTHALERTS = 3
+)
 
 // make sure to divide this by the number
 //of points in each window or specify that maxPoints is the number of buckets that will be processed
@@ -25,18 +32,18 @@ var resultMap = make(map[string]*common.Result)
 // code to write the frequencies; the outliers; and the minReqs to files
 func AnalyzeBGPMessages(window common.Window, config *config.Configuration) {
 	// Get current result from map if it exists
-	currResult, exists := resultMap[window.Filter]
+	currResult, exists := ResultMap[window.Filter]
 
 	// If the result is not already in the map, create a new result for it
 	if !exists {
 		result := common.Result{
 			Filter:      window.Filter,
-			AllOutliers: make([]common.OutlierInfo, 0),
+			AllOutliers: make(map[time.Time]common.OutlierInfo),
 			AllFreq:     make(map[time.Time]float64),
 		}
 
 		// Add window to the map
-		resultMap[window.Filter] = &result
+		ResultMap[window.Filter] = &result
 
 		// Update currWindow to point to the newly added window
 		currResult = &result
@@ -44,13 +51,13 @@ func AnalyzeBGPMessages(window common.Window, config *config.Configuration) {
 
 	lengthMap := makeLengthMap(window)
 	// Turn map into sorted array of frequencies by timestamp
-	sortedFrequencies := GetSortedFrequencies(lengthMap) //fix these duplicates with time stamps
+	sortedFrequencies, sortedTimestamps := GetSortedFrequencies(lengthMap) //fix these duplicates with time stamps
 	frequencies := currResult.AllFreq
 
 	//the file names will contain all the timestamps for a given folder that was processed
 	fmt.Printf("Sorted Array of Frequencies: \n%+v\n", sortedFrequencies)
-	bltOutliers := blt_mad.BltMad(sortedFrequencies, optParam)
-	shakeAlertOutliers := shake_alert.FindOutliers(sortedFrequencies)
+	bltOutliers, bltIndexes := blt_mad.BltMad(sortedFrequencies, optParam)
+	shakeAlertOutliers, shakeAlertIndexes := shake_alert.FindOutliers(sortedFrequencies)
 	fmt.Printf("BLT MAD Outliers: \n%+v\n", bltOutliers)
 	fmt.Printf("ShakeAlert Outliers: \n%+v\n", shakeAlertOutliers)
 
@@ -68,20 +75,46 @@ func AnalyzeBGPMessages(window common.Window, config *config.Configuration) {
 		}
 	}
 
-	//create window outliers for this particular analysis call
-	//modify the outliers for the final result; check the outliers for the incoming window and remove duplicates/update
-	windowOutliers := createOutliers(lengthMap) //a list of all the outliers in the individual window
-	windowOutlierTimes := getListTimes(windowOutliers)
-	resultOutlierTimes := getListTimes(currResult.AllOutliers)
-	for i, val := range windowOutlierTimes {
-		if !containsVal(resultOutlierTimes, val) {
-			currResult.AllOutliers = append(currResult.AllOutliers, windowOutliers[i]) //make sure that window outliers and outlier times are the same here
+	// Update outliers for both BLT MAD and ShakeAlert outliers
+	updateOutliers(currResult, BLTMAD, bltIndexes, sortedTimestamps, sortedFrequencies)
+	updateOutliers(currResult, SHAKEALERT, shakeAlertIndexes, sortedTimestamps, sortedFrequencies)
+
+	// Store results into json
+	blt_mad.StoreResultIntoJson(currResult, fullResultFile) //storing the most recent result
+}
+
+func updateOutliers(currResult *common.Result, algorithm int, indexes []int, sortedTimestamps []time.Time, sortedFrequencies []float64) {
+	for _, index := range indexes {
+		// Get outlier timestamp
+		outlierTimestamp := sortedTimestamps[index]
+		outlierFrequency := sortedFrequencies[index]
+
+		// Go through current outliers and see if timestamp exists
+		currOutlier, exists := currResult.AllOutliers[outlierTimestamp]
+
+		// If the outlier is not already in the map, create a new outlier for it
+		if !exists {
+			currResult.AllOutliers[outlierTimestamp] = createOutlierStruct(outlierTimestamp, algorithm, outlierFrequency)
+		} else { // If outlier not in map, need to possibly update it
+			if currOutlier.Count != outlierFrequency {
+				currOutlier.Count = outlierFrequency
+			}
+
+			// Update algorithm based on conditions
+			switch {
+			case currOutlier.Algorithm != BOTHALERTS:
+				if algorithm == BLTMAD && currOutlier.Algorithm == SHAKEALERT ||
+					algorithm == SHAKEALERT && currOutlier.Algorithm == BLTMAD {
+					currOutlier.Algorithm = BOTHALERTS
+				} else {
+					currOutlier.Algorithm = algorithm
+				}
+			}
+
+			// Store the updated outlier back in the map
+			currResult.AllOutliers[outlierTimestamp] = currOutlier
 		}
 	}
-
-	//put all the results into the Result struct and pass write it out to a json
-	blt_mad.StoreResultIntoJson(currResult, fullResultFile) //storing the most recent result
-
 }
 
 func containsVal(times []time.Time, specificTime time.Time) bool {
@@ -107,7 +140,7 @@ func getListTimes(outliers []common.OutlierInfo) []time.Time {
 // record all the values without repeat in the frequencies :(((((((((((((((((((((((((((((((((((((
 func createOutliers(lengthMap map[time.Time]float64) []common.OutlierInfo {
 	windowOutliers := []common.OutlierInfo{}
-	sortedFrequencies := GetSortedFrequencies(lengthMap)
+	sortedFrequencies, _ := GetSortedFrequencies(lengthMap)
 
 	//check if each individual entry in the length map is an outlier and create an outlier struct if needed
 	for timestamp, _ := range lengthMap {
@@ -148,7 +181,7 @@ func makeLengthMap(window common.Window) map[time.Time]float64 {
 }
 
 // Takes in map of time objects to frequencies and puts them into an ordered array of frequencies based on increasing timestamps
-func GetSortedFrequencies(bucketMap map[time.Time]float64) []float64 {
+func GetSortedFrequencies(bucketMap map[time.Time]float64) ([]float64, []time.Time) {
 	var timestamps []time.Time
 
 	// Create a slice of timestamps and a corresponding slice of values in the order of timestamps
@@ -167,5 +200,5 @@ func GetSortedFrequencies(bucketMap map[time.Time]float64) []float64 {
 		sortedValues[i] = bucketMap[timestamp]
 	}
 
-	return sortedValues
+	return sortedValues, timestamps
 }

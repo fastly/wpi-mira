@@ -23,7 +23,7 @@ type Message struct {
 	Filter     string
 }
 
-//used to write the struct onto a json output
+// used to write the struct onto a json output
 type OutlierMessages struct {
 	MADOutlierMessages [][]BGPMessage `json:"MADOutlierMessages"`
 	ShakeAlertMessages [][]BGPMessage `json:"ShakeAlertMessages"`
@@ -35,9 +35,9 @@ type Window struct {
 }
 
 type Result struct {
-	Filter      string                `json:"Filter"`                //filter
-	AllOutliers []OutlierInfo         `json:"AllOutliers,omitempty"` //list of all the outliers
-	AllFreq     map[time.Time]float64 `json:"AllFreq,omitempty"`     //map of all the frequencies by timestamp to avoid repeats and keep track of missed data
+	Filter      string                    `json:"Filter"`                //filter
+	AllOutliers map[time.Time]OutlierInfo `json:"AllOutliers,omitempty"` //list of all the outliers
+	AllFreq     map[time.Time]float64     `json:"AllFreq,omitempty"`     //map of all the frequencies by timestamp to avoid repeats and keep track of missed data
 }
 
 type OutlierInfo struct {
