@@ -47,16 +47,10 @@ func ValidateConfiguration(config *Configuration) error {
 	//convert all strings to lower case to ignore any capitalizations
 	fileInputL := strings.ToLower(config.FileInputOption)
 
-	//check that the fileInputOption is either live or static
-	if fileInputL != "live" && fileInputL != "static" {
-		return errors.New("DataOption in config.json must be either 'live' or 'static'")
-	}
-
 	//checks for valid input corresponding to choice of live vs static data analysis
 	if fileInputL == "live" {
 		//require at least 1 subscription
 		if len(config.Subscriptions) == 0 {
-			return errors.New("choosing live data input stream requires to input at least one subscription")
 			return errors.New("choosing live data input stream requires to input at least one subscription")
 		}
 	} else if fileInputL == "static" {
@@ -65,6 +59,9 @@ func ValidateConfiguration(config *Configuration) error {
 		if os.IsNotExist(err) {
 			return errors.New("Invalid pathway to static file: " + err.Error())
 		}
+	} else {
+		//return error if input is neither live or static
+		return errors.New("DataOption in config.json must be either 'live' or 'static'")
 	}
 
 	//require mad parameter
@@ -95,7 +92,5 @@ func ValidateConfiguration(config *Configuration) error {
 
 	//no errors found - valid config file
 	fmt.Println("Configuration successful")
-	return nil
-
 	return nil
 }
