@@ -2,23 +2,29 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
 )
 
+type SubscriptionMsg struct {
+	Host   string `json:"host,omitempty"` //aka collector
+	Peer   string `json:"peer,omitempty"`
+	Asn    int    `json:"asn,omitempty"` //aka ASN
+	Prefix string `json:"prefix,omitempty"`
+}
+
 type Configuration struct {
 	//cast onto the needed type when processing in algos
-	FileInputOption           string `json:"dataOption"`
-	StaticFile                string `json:"staticFilePath"`
-	URLStaticData             string `json:"staticFilesLink"`
-	OutlierDetectionAlgorithm string `json:"outlierDetectionAlgorithm"`
-	Prefix                    string `json:"prefix"` // can input a list of string with values seperated by a comma
-	Asn                       string `json:"asn"`
-	PeerIP                    string `json:"peerIP"`
-	Connector                 string `json:"connector"`
-	WindowSize                string `json:"windowSize"`
+	FileInputOption           string            `json:"dataOption"`
+	StaticFile                string            `json:"staticFilePath"`
+	URLStaticData             string            `json:"staticFilesLink"`
+	OutlierDetectionAlgorithm string            `json:"outlierDetectionAlgorithm"`
+	MadParameters             string            `json:"madParameters"`
+	Subscriptions             []SubscriptionMsg `json:"subscriptions"`
+	WindowSize                string            `json:"windowSize"`
 }
 
 func LoadConfig(filename string) (*Configuration, error) {
@@ -35,7 +41,8 @@ func LoadConfig(filename string) (*Configuration, error) {
 	return &config, nil
 }
 
-func ValidDateConfiguration(config *Configuration) {
+func ValidateConfiguration(config *Configuration) error {
+
 	//check that the fileInputOption is either live or static
 	//convert all strings to lower case to ignore any capitalizations
 	fileInputL := strings.ToLower(config.FileInputOption)
@@ -48,9 +55,9 @@ func ValidDateConfiguration(config *Configuration) {
 	}
 
 	if fileInputL == "live" {
-		//require prefix and collector
-		if len(config.Connector) == 0 || len(config.Prefix) == 0 {
-			fmt.Println("Choosing live data input stream requires to input at least one value for the connector and at lease one value for the prefix")
+		//require at least 1 subscription
+		if len(config.Subscriptions) == 0 {
+			return errors.New("choosing live data input stream requires to input at least one subscription")
 		}
 	} else if fileInputL == "static" {
 		//require valid file path
@@ -67,4 +74,5 @@ func ValidDateConfiguration(config *Configuration) {
 	}
 	fmt.Println("Configuration successful")
 
+	return nil
 }
