@@ -59,6 +59,9 @@ func ValidateConfiguration(config *Configuration) error {
 		if os.IsNotExist(err) {
 			return errors.New("Invalid pathway to static file: " + err.Error())
 		}
+		if err != nil {
+			return errors.New("Error validating static file path: " + err.Error())
+		}
 	} else {
 		//return error if input is neither live or static
 		return errors.New("DataOption in config.json must be either 'live' or 'static'")
