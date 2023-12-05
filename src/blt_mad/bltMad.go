@@ -20,9 +20,10 @@ func Mad(data []float64) float64 {
 	return result
 }
 
-//only neeed for optimization
-func BltMad(data []float64, tau float64) []float64 {
+// only neeed for optimization
+func BltMad(data []float64, tau float64) ([]float64, []int) {
 	var outliers []float64
+	var indexes []int
 	noZeroData, err := RemoveZeros(data)
 	if err != nil {
 		log.Fatal(err)
@@ -33,30 +34,12 @@ func BltMad(data []float64, tau float64) []float64 {
 		m := Mad(noZeroData)
 
 		bltScore := math.Abs(med - tau*m)
-		for _, value := range noZeroData {
+		for i, value := range noZeroData {
 			if value > bltScore {
 				outliers = append(outliers, value)
+				indexes = append(indexes, i)
 			}
 		}
 	}
-
-	return outliers
-}
-
-func IsAnOutlierBLT(data []float64, tau float64, point float64) bool {
-	//calculate blt formula
-	//everything is based on the noZeroData since we are looking at spikes rather than lack of messages
-	noZeroData, err := RemoveZeros(data)
-	if err != nil {
-		log.Fatal(err)
-	} else {
-		med := FindMedian(noZeroData)
-		m := Mad(noZeroData)
-
-		bltScore := math.Abs(med - tau*m)
-		if point > bltScore {
-			return true
-		}
-	}
-	return false
+	return outliers, indexes
 }

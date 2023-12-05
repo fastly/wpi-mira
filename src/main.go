@@ -54,8 +54,9 @@ func main() {
 	// Channel for sending BGP messages between parsing and processing
 	msgChannel := make(chan common.Message)
 	freqInit := make(map[time.Time]float64)
-	analyze.AllResults.AllOutliers = []common.OutlierInfo{} //initialize the list of outlier structs for frequencies
-	analyze.AllResults.AllFreq = freqInit                   //initialize map frequencies
+	outlierInit := make(map[time.Time]common.OutlierInfo)
+	analyze.AllResults.AllOutliers = outlierInit //init map of outliers
+	analyze.AllResults.AllFreq = freqInit        //initialize map frequencies
 
 	// Start the goroutines
 
