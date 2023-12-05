@@ -45,7 +45,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading configuration:", err)
 	}
-	config.ValidDateConfiguration(configStruct)
+	config.ValidateConfiguration(configStruct)
 
 	// WaitGroup for waiting on goroutines to finish
 	var wg sync.WaitGroup
@@ -59,8 +59,7 @@ func main() {
 
 	wg.Add(1)
 	go func() {
-		parse.ParseRisLiveData(msgChannel, configStruct) //this thing returns a list of all the results
-		//parse.ParseStaticFile("bgpTest1", msgChannel)
+		parse.ParseRisLiveData(msgChannel, configStruct)
 		wg.Done()
 	}()
 
