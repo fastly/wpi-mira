@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"time"
 )
 
@@ -34,7 +35,7 @@ func AnalyzeBGPMessages(window common.Window, config *config.Configuration) comm
 
 	//put all the results into the Result struct and pass write it out to a json
 	r := common.Result{
-		WindowSize: config.WindowSize,
+		WindowSize: strconv.Itoa(config.WindowSize),
 
 		Frequencies: sortedFrequencies, //make all of these maps and append onto them here; create them as global vars
 
