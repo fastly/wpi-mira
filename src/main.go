@@ -1,16 +1,28 @@
 package main
 
 import (
+	"BGPAlert/analyze"
 	"BGPAlert/common"
 	"BGPAlert/config"
 	"BGPAlert/parse"
 	"BGPAlert/process"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
+	"net/http"
 	"sync"
 	"time"
 )
+
+func dataHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	err := json.NewEncoder(w).Encode(analyze.AllResults)
+	if err != nil {
+		http.Error(w, "Error encoding JSON", http.StatusInternalServerError)
+		return
+	}
+}
 
 func main() {
 
@@ -23,7 +35,7 @@ func main() {
 	flag.Parse()
 
 	//indicate which config is being used
-	if *configFile == "default-config.json" { //default
+	if *configFile == "default-default-config.json" { //default
 		fmt.Printf("No config file specified. Using default config file: %s\n", *configFile)
 	} else { //user input config file
 		fmt.Printf("Using config file: %s\n", *configFile)
@@ -44,6 +56,7 @@ func main() {
 	// Start the goroutines
 
 	// Can change folder directory to any folder inside of src/static_data
+
 	wg.Add(1)
 
 	if configStruct.FileInputOption == "live" {
@@ -60,9 +73,20 @@ func main() {
 
 	wg.Add(1)
 	go func() {
-		process.ProcessBGPMessages(msgChannel, configStruct)
+		process.ProcessBGPMessages(msgChannel, configStruct) //error handling done in the processBGPMessage
 		wg.Done()
 	}()
+
+	//http start
+	fs := http.FileServer(http.Dir("static"))
+	http.Handle("/", fs)
+	http.HandleFunc("/data", dataHandler) //data handler to write data onto the local server
+
+	log.Println("Server started on port 8080")
+	err = http.ListenAndServe(":8080", nil)
+	if err != nil {
+		log.Fatal("Server error:", err)
+	}
 
 	// Wait for all goroutines to finish
 	wg.Wait()

@@ -9,6 +9,7 @@ import (
 )
 
 // Constantly read messages from channel, build up windows with frequency maps, calling analysis on windows when full
+// Constantly read messages from channel, build up windows with frequency maps, calling analysis on windows when full
 func ProcessBGPMessages(msgChannel chan common.Message, config *config.Configuration) error {
 
 	// Each bucket is 60s
@@ -72,7 +73,7 @@ func ProcessBGPMessages(msgChannel chan common.Message, config *config.Configura
 				}
 
 				// Now window is ready for analysis
-				analyze.AnalyzeBGPMessages(*currWindow)
+				analyze.AnalyzeBGPMessages(*currWindow, config)
 			}
 
 			// Create new bucket for new timestamp
@@ -84,6 +85,7 @@ func ProcessBGPMessages(msgChannel chan common.Message, config *config.Configura
 		currWindow.BucketMap[messageBucket] = append(currWindow.BucketMap[messageBucket], msg.BGPMessage)
 	}
 
+	//check if the return statements are ok here?
 	return nil
 }
 

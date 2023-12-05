@@ -12,7 +12,7 @@ import (
 type SubscriptionMsg struct {
 	Host   string `json:"host,omitempty"` //aka collector
 	Peer   string `json:"peer,omitempty"`
-	Path   string `json:"path,omitempty"` //aka ASN
+	Asn    int    `json:"asn,omitempty"` //aka ASN
 	Prefix string `json:"prefix,omitempty"`
 }
 
@@ -57,6 +57,7 @@ func ValidateConfiguration(config *Configuration) error {
 		//require at least 1 subscription
 		if len(config.Subscriptions) == 0 {
 			return errors.New("choosing live data input stream requires to input at least one subscription")
+			return errors.New("choosing live data input stream requires to input at least one subscription")
 		}
 	} else if fileInputL == "static" {
 		//require valid file path
@@ -96,4 +97,5 @@ func ValidateConfiguration(config *Configuration) error {
 	fmt.Println("Configuration successful")
 	return nil
 
+	return nil
 }
