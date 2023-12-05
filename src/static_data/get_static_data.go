@@ -27,7 +27,10 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading configuration:", err)
 	}
-	config.ValidateConfiguration(configStruct)
+	err = configStruct.ValidateConfiguration()
+	if err != nil {
+		log.Fatalf("Failed to validate config: %v", err)
+	}
 	mainUrl := configStruct.URLStaticData
 	fmt.Println(mainUrl)
 
