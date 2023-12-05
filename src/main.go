@@ -48,7 +48,7 @@ func main() {
 
 	err = configStruct.ValidateConfiguration() 
 	if err != nil {
-		log.Fatal("Failed to validate configuration")
+		log.Fatalf("Failed to validate configuration: %v", err)
 	}
 
 	// WaitGroup for waiting on goroutines to finish
