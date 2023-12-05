@@ -66,28 +66,29 @@ func ValidateConfiguration(config *Configuration) error {
 
 	//require mad parameter
 	//set mad param to default value if no val set in config
-	if config.MadParameters <= 0 {
+	if config.MadParameters <= 0 || config.MadParameters > 1000 {
 		config.MadParameters = 10
-		fmt.Println("Invalid mad parameter. The default mad parameter set to 10")
+		fmt.Println("No valid mad parameter given. The default mad parameter was set to 10")
 	}
 
 	//require maxBuckets
 	//set maxBuckets to default value if not set in config
 	if config.MaxBuckets <= 0 {
 		config.MaxBuckets = 20
-		fmt.Println("Invalid maxBuckets value. The default maxBuckets set to 20")
+		fmt.Println("No valid maxBuckets value given. The default maxBuckets was set to 20")
 	}
 
 	//added to check if no window size was put in
 	if config.WindowSize <= 0 {
 		config.WindowSize = 360
-		fmt.Println("Invalid window size. The default window size was set to 360")
+		fmt.Println("No valid window size given. The default window size was set to 360")
 	}
 
 	//check if maxBuckets * windowSize is not greater than 1k - could lead to messy graph
 	//if so, give a warning
 	if (config.MaxBuckets * config.WindowSize) >= 1000 {
-		fmt.Println("WARNING: Plot may crash")
+		//return error if input is neither live or static
+		return errors.New("WindowSize and/or maxBuckets too large - plot may crash")
 	}
 
 	//no errors found - valid config file
