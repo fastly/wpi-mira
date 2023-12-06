@@ -17,12 +17,20 @@ import (
 
 func dataHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	err := json.NewEncoder(w).Encode(analyze.AllResults)
+	err := json.NewEncoder(w).Encode(analyze.ResultMap)
 	if err != nil {
 		http.Error(w, "Error encoding JSON", http.StatusInternalServerError)
 		return
 	}
-	//fmt.Println(analyze.AllResults)
+}
+
+func msgHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	err := json.NewEncoder(w).Encode(analyze.ResultMap)
+	if err != nil {
+		http.Error(w, "Error encoding JSON", http.StatusInternalServerError)
+		return
+	}
 }
 
 func main() {
@@ -53,11 +61,12 @@ func main() {
 
 	// Channel for sending BGP messages between parsing and processing
 	msgChannel := make(chan common.Message)
-	freqInit := make(map[time.Time]float64)
-	outlierInit := make(map[time.Time]common.OutlierInfo)
-	analyze.AllResults.AllOutliers = outlierInit //init map of outliers
+	/*freqInit := make(map[time.Time]float64)
+	outlierInit := make(map[time.Time]common.OutlierInfo)*/
+	analyze.ResultMap = make(map[string]*common.Result)
+	/*analyze.AllResults.AllOutliers = outlierInit //init map of outliers
 	analyze.AllResults.AllFreq = freqInit        //initialize map frequencies
-
+	*/
 	// Start the goroutines
 
 	// Can change folder directory to any folder inside of src/static_data
@@ -78,6 +87,7 @@ func main() {
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/", fs)
 	http.HandleFunc("/data", dataHandler) //data handler to write data onto the local server
+	http.HandleFunc("/msgs", msgHandler)
 
 	log.Println("Server started on port 8080")
 	err = http.ListenAndServe(":8080", nil)

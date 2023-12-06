@@ -12,13 +12,10 @@
             border: 1px solid #ccc; /* Optional: Add a border for visualization */
             padding: 10px; /* Optional: Add padding */
         }
-
-
         #myChart {
             width: 400px;
             height: 500px;
         }
-
         #outliers {
             position: fixed;
             bottom: 300px;
@@ -26,7 +23,6 @@
             border: 1px solid #ccc;
             padding: 10px;
         }
-
         #outliersTimes {
             position: fixed;
             bottom: 300px;
@@ -41,6 +37,11 @@
 <canvas id="myChart"></canvas>
 <div id="outliers" class="scroll-box"></div>
 <div id="outliersTimes" class="scroll-box"></div>
+<div id="dropdownContainer">
+    <h1>Select filter display:</h1>
+    <select id="subscriptionSelect"></select>
+    <button onclick="openPage()">Go</button>
+</div>
 <script src="script.js" class="scroll-box"></script>
 
 </body>

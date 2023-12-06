@@ -11,8 +11,9 @@ import (
 )
 
 //need to create a map of results based on filter -> filtering pr
-var AllResults common.Result //global so that it can be added onto by parser and seen by dataHandler
+//var AllResults common.Result //global so that it can be added onto by parser and seen by dataHandler
 var maxPoints = 5            //i did not want to add this into config yet because it will conflic with jolene's pr
+var ResultMap map[string]*common.Result
 
 const (
 	OPTPARAM   = 5.0
@@ -24,10 +25,28 @@ const (
 // Takes in a Window, parses object into frequency counts, and then calls specified analysis functions
 //code to write the frequencies; the outliers; and the minReqs to files
 func AnalyzeBGPMessages(window common.Window, config *config.Configuration) {
+	// Get current result from map if it exists
+	currResult, exists := ResultMap[window.Filter]
+
+	// If the result is not already in the map, create a new result for it
+	if !exists {
+		result := common.Result{
+			Filter:      window.Filter,
+			AllOutliers: make(map[time.Time]common.OutlierInfo),
+			AllFreq:     make(map[time.Time]float64),
+		}
+
+		// Add window to the map
+		ResultMap[window.Filter] = &result
+
+		// Update currWindow to point to the newly added window
+		currResult = &result
+	}
+
 	lengthMap := makeLengthMap(window)
 	// Turn map into sorted array of frequencies by timestamp
 	sortedFrequencies, sortedTimestamps := GetSortedFrequencies(lengthMap) //fix these duplicates with time stamps
-	frequencies := AllResults.AllFreq
+	frequencies := currResult.AllFreq
 
 	//the file names will contain all the timestamps for a given folder that was processed
 	fmt.Printf("Sorted Array of Frequencies: \n%+v\n", sortedFrequencies)
@@ -37,7 +56,7 @@ func AnalyzeBGPMessages(window common.Window, config *config.Configuration) {
 	fmt.Printf("ShakeAlert Outliers: \n%+v\n", shakeAlertOutliers)
 
 	//check the amount of the frequencies in results
-	if (len(AllResults.AllFreq) + 1) > maxPoints { //adding one more frequency would result in more than needed points
+	if (len(currResult.AllFreq) + 1) > maxPoints { //adding one more frequency would result in more than needed points
 		//remove the first item in the freq map; no modifications to the outlier map
 		firstResultKey := getSmallestTimestamp(getListOfKeys(frequencies))
 		delete(frequencies, firstResultKey)
@@ -57,8 +76,8 @@ func AnalyzeBGPMessages(window common.Window, config *config.Configuration) {
 		}
 
 		// Update outliers for both BLT MAD and ShakeAlert outliers
-		updateOutliers(AllResults, BLTMAD, bltIndexes, sortedTimestamps, sortedFrequencies)
-		updateOutliers(AllResults, SHAKEALERT, shakeAlertIndexes, sortedTimestamps, sortedFrequencies)
+		updateOutliers(currResult, BLTMAD, bltIndexes, sortedTimestamps, sortedFrequencies)
+		updateOutliers(currResult, SHAKEALERT, shakeAlertIndexes, sortedTimestamps, sortedFrequencies)
 
 	} else { //have not reached the max amount of points and can keep adding results
 		//modify the frequencies for the final results
@@ -74,10 +93,9 @@ func AnalyzeBGPMessages(window common.Window, config *config.Configuration) {
 				frequencies[timestamp] = lengthMap[timestamp]
 			}
 		}
-
 		// Update outliers for both BLT MAD and ShakeAlert outliers
-		updateOutliers(AllResults, BLTMAD, bltIndexes, sortedTimestamps, sortedFrequencies)
-		updateOutliers(AllResults, SHAKEALERT, shakeAlertIndexes, sortedTimestamps, sortedFrequencies)
+		updateOutliers(currResult, BLTMAD, bltIndexes, sortedTimestamps, sortedFrequencies)
+		updateOutliers(currResult, SHAKEALERT, shakeAlertIndexes, sortedTimestamps, sortedFrequencies)
 	}
 
 }
@@ -105,7 +123,7 @@ func getSmallestTimestamp(timestamps []time.Time) time.Time {
 	return smallest
 }
 
-func updateOutliers(currResult common.Result, algorithm int, indexes []int, sortedTimestamps []time.Time, sortedFrequencies []float64) {
+func updateOutliers(currResult *common.Result, algorithm int, indexes []int, sortedTimestamps []time.Time, sortedFrequencies []float64) {
 	for _, index := range indexes {
 		// Get outlier timestamp
 		outlierTimestamp := sortedTimestamps[index]
