@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"golang.org/x/net/html"
@@ -28,7 +27,10 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading configuration:", err)
 	}
-	config.ValidateConfiguration(configStruct)
+	err = configStruct.ValidateConfiguration()
+	if err != nil {
+		log.Fatalf("Failed to validate config: %v", err)
+	}
 	mainUrl := configStruct.URLStaticData
 	fmt.Println(mainUrl)
 
@@ -47,7 +49,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	numFiles, _ := strconv.Atoi(configStruct.WindowSize)
+	numFiles := configStruct.WindowSize
 	partialUrls := extractBZ2URLs(doc)
 	allFolders := createFolders(partialUrls, mainUrl, numFiles)
 	for _, folder := range allFolders {

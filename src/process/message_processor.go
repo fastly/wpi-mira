@@ -5,26 +5,15 @@ import (
 	"BGPAlert/common"
 	"BGPAlert/config"
 	"fmt"
-	"strconv"
 	"time"
 )
 
 // Constantly read messages from channel, build up windows with frequency maps, calling analysis on windows when full
-// Constantly read messages from channel, build up windows with frequency maps, calling analysis on windows when full
 func ProcessBGPMessages(msgChannel chan common.Message, config *config.Configuration) error {
-	// Parse windowSize from config
-	var maximumBuckets int
-	// If windowSize can't be parsed to an int -> just default to 30
-	if windowSize, err := strconv.ParseInt(config.WindowSize, 10, 64); err != nil {
-		fmt.Println("Inputted config size is not a number, defaulting to 30")
-		maximumBuckets = 30
-	} else {
-		maximumBuckets = int(windowSize)
-	}
 
 	// Each bucket is 60s
 	parseDuration := 60 * time.Second
-	maximumTimespan := time.Duration(maximumBuckets*60) * time.Second
+	maximumTimespan := time.Duration(config.MaxBuckets*60) * time.Second
 
 	// Stores windows that will be used for analysis
 	windows := make(map[string]*common.Window)
@@ -69,9 +58,9 @@ func ProcessBGPMessages(msgChannel chan common.Message, config *config.Configura
 				}
 			}
 
-			// If we at least maximumBuckets in bucketMap we can perform analysis
-			if len(currWindow.BucketMap) >= maximumBuckets {
-				fmt.Printf("len(currWindow.BucketMap): %d maximumBuckets: %d\n", len(currWindow.BucketMap), maximumBuckets)
+			// if there are enough buckets to fill the window, then perform analysis
+			if len(currWindow.BucketMap) >= config.WindowSize {
+				fmt.Printf("len(currWindow.BucketMap): %d maximumBuckets: %d", len(currWindow.BucketMap), config.WindowSize)
 
 				// First want to remove timestamps out of scope so len(bucketMap) == maximumBuckets
 				minimumTimestamp := messageBucket.Add(-maximumTimespan)

@@ -20,7 +20,7 @@ type BGPMessage struct {
 
 type Message struct {
 	BGPMessage BGPMessage
-	Filter     string
+	Filter     string //toString of subscription
 }
 
 //used to write the struct onto a json output

@@ -55,23 +55,23 @@ type RisMessage struct {
 */
 
 type RisAnnouncement struct {
-	NextHop  string   `json:next_hop`
-	Prefixes []string `json:prefixes`
+	NextHop  string   `json:"next_hop"`
+	Prefixes []string `json:"prefixes"`
 }
 
 type RisLiveMessageData struct {
-	Timestamp     float64           `json:timestamp`
-	Peer          string            `json:peer`
+	Timestamp     float64           `json:"timestamp"`
+	Peer          string            `json:"peer"`
 	PeerAsn       string            `json:"peer_asn"` //"peer_asn":"396998"
-	Id            string            `json:id`
-	Host          string            `json:host`
-	Type          string            `json:type`
-	Path          []int             `json:path`
-	Community     [][]int           `json:community`
-	Origin        string            `json:origin`
-	Med           int               `json:med`
-	Announcements []RisAnnouncement `json:announcements`
-	Withdrawals   []string          `json:withdrawals` //string of prefixes being withdrawn
+	Id            string            `json:"id"`
+	Host          string            `json:"host"`
+	Type          string            `json:"type"`
+	Path          []int             `json:"path"`
+	Community     [][]int           `json:"community"`
+	Origin        string            `json:"origin"`
+	Med           int               `json:"med"`
+	Announcements []RisAnnouncement `json:"announcements"`
+	Withdrawals   []string          `json:"withdrawals"` //string of prefixes being withdrawn
 }
 
 type RisLiveMessage struct {
@@ -195,7 +195,6 @@ func parseLiveMessage(data []byte) ([]common.BGPMessage, error) {
 	if err != nil {
 		log.Println("Bad parse:", err)
 		return nil, err
-		//log.Println("Original message:", data)
 	}
 
 	//check is TYPE is ris message

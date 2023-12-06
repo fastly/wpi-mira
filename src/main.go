@@ -35,7 +35,7 @@ func main() {
 	flag.Parse()
 
 	//indicate which config is being used
-	if *configFile == "default-default-config.json" { //default
+	if *configFile == "default-config.json" { //default
 		fmt.Printf("No config file specified. Using default config file: %s\n", *configFile)
 	} else { //user input config file
 		fmt.Printf("Using config file: %s\n", *configFile)
@@ -45,7 +45,11 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading configuration:", err)
 	}
-	config.ValidateConfiguration(configStruct)
+
+	err = configStruct.ValidateConfiguration()
+	if err != nil {
+		log.Fatalf("Failed to validate configuration: %v", err)
+	}
 
 	// WaitGroup for waiting on goroutines to finish
 	var wg sync.WaitGroup
@@ -58,10 +62,20 @@ func main() {
 	// Can change folder directory to any folder inside of src/static_data
 
 	wg.Add(1)
-	go func() {
-		parse.ParseRisLiveData(msgChannel, configStruct)
-		wg.Done()
-	}()
+
+	if configStruct.FileInputOption == "live" {
+		//starts a go routine to parse live data if live option selected
+		go func() {
+			parse.ParseRisLiveData(msgChannel, configStruct)
+			wg.Done()
+		}()
+	} else {
+		//starts a go routine to parse static data if static option selected
+		go func() {
+			parse.ParseStaticFile(configStruct.URLStaticData, msgChannel)
+			wg.Done()
+		}()
+	}
 
 	wg.Add(1)
 	go func() {
