@@ -9,13 +9,6 @@ import (
 	"strings"
 )
 
-type SubscriptionMsg struct {
-	Host   string `json:"host,omitempty"` //aka collector
-	Peer   string `json:"peer,omitempty"`
-	Asn    int    `json:"asn,omitempty"` //aka ASN
-	Prefix string `json:"prefix,omitempty"`
-}
-
 type Configuration struct {
 	//cast onto the needed type when processing in algos
 	FileInputOption           string            `json:"dataOption"`
@@ -25,6 +18,13 @@ type Configuration struct {
 	MadParameters             string            `json:"madParameters"`
 	Subscriptions             []SubscriptionMsg `json:"subscriptions"`
 	WindowSize                string            `json:"windowSize"`
+}
+
+type SubscriptionMsg struct {
+	Host   string `json:"host,omitempty"` //aka collector
+	Peer   string `json:"peer,omitempty"`
+	Asn    int    `json:"asn,omitempty"` //aka ASN
+	Prefix string `json:"prefix,omitempty"`
 }
 
 func LoadConfig(filename string) (*Configuration, error) {

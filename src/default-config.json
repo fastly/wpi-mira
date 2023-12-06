@@ -3,7 +3,6 @@
   "staticFilePath": "enter the pathway to static binary file with BGP data",
   "staticFilesLink": "http://routeviews.org/route-views.ny/bgpdata/2021.11/UPDATES/",
   "outlierDetectionAlgorithm": "mad",
-  "windowSize": "30",
-  "subscriptions": [{"prefix": "151.101.0.0/16"}, 
-                    {"path": 8137}]
+  "windowSize": "10",
+  "subscriptions": [{"prefix": "151.101.0.0/16"}]
 }
