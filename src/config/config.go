@@ -56,11 +56,12 @@ func (c *Configuration) ValidateConfiguration() error {
 	} else if fileInputL == "static" {
 		//require valid file path
 		_, err := os.Stat(c.StaticFile)
-		if os.IsNotExist(err) {
-			return errors.New("Invalid pathway to static file: " + err.Error())
-		}
 		if err != nil {
-			return errors.New("Error validating static file path: " + err.Error())
+			if os.IsNotExist(err) {
+				return errors.New("Invalid pathway to static file: " + err.Error())
+			} else {
+				return errors.New("Error validating static file path: " + err.Error())
+			}
 		}
 	} else {
 		//return error if input is neither live or static
@@ -89,7 +90,7 @@ func (c *Configuration) ValidateConfiguration() error {
 
 	//check if maxBuckets * windowSize is not greater than 1k - could lead to messy graph
 	//if so, give a warning
-	if (c.MaxBuckets * c.WindowSize) >= 1000 {
+	if (c.MaxBuckets * c.WindowSize) >= 10000 {
 		//return error if input is neither live or static
 		return errors.New("WindowSize and/or maxBuckets too large - plot may crash")
 	}

@@ -46,7 +46,7 @@ func main() {
 		log.Fatal("Error loading configuration:", err)
 	}
 
-	err = configStruct.ValidateConfiguration() 
+	err = configStruct.ValidateConfiguration()
 	if err != nil {
 		log.Fatalf("Failed to validate configuration: %v", err)
 	}
