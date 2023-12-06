@@ -23,9 +23,10 @@ type SubscriptionMsg struct {
 }
 
 type Configuration struct {
-	FileInputOption string            `json:"dataOption"`           //required
+	FileInputOption string            `json:"dataOption"`           //required ("live" or "static")
 	StaticFile      string            `json:"staticFilePath"`       //required for static
 	Subscriptions   []SubscriptionMsg `json:"subscriptions"`        //required for live
+	Algorithm       string            `json:"anomalyDetectionAlgo"` //optional - set to both if omitted ("bltMad" or "shakeAlert" or "both")
 	ShakeAlertParam int               `json:"shakeAlertParameters"` //optional - set to default if omitted
 	MaxBuckets      int               `json:"maxBuckets"`           //optional - set to default if omitted
 	WindowSize      int               `json:"windowSize"`           //optional - set to default if omitted
@@ -72,6 +73,12 @@ func (c *Configuration) ValidateConfiguration() error {
 	} else {
 		//return error if input is neither live or static
 		return errors.New("DataOption in config.json must be either 'live' or 'static'")
+	}
+
+	//sets algorithm to both if no valid input is given
+	if c.Algorithm != "bltMad" && c.Algorithm != "shakeAlert" && c.Algorithm != "both" {
+		c.Algorithm = "both"
+		fmt.Println("No valid algorithm given. The default algorithm was set to both")
 	}
 
 	//set shakeAlertParam to default value if not set in config or if invalid input given
