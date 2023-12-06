@@ -7,8 +7,7 @@ import (
 
 // constants
 const (
-	windowSize = 391
-	k          = 5 //# of neighbors
+	k = 5 //# of neighbors
 )
 
 // finds p-th percentile of data
@@ -86,8 +85,8 @@ func FindOutliers(data []float64) []float64 {
 	return outliers
 }
 
-//test this function!!!!!!!!!!!!!!!!!!!!
-func IsAnOutlierShakeAlert(data []float64, point float64) bool {
+// TODO: test!
+func IsAnOutlierShakeAlert(data []float64, point float64, k int) bool {
 	// count the number of neighbors within radius R
 	R := findR(data)
 	neighborCount := 0
@@ -98,8 +97,5 @@ func IsAnOutlierShakeAlert(data []float64, point float64) bool {
 	}
 
 	// if there are fewer than k neighbors, the current bin is an outlier
-	if neighborCount < k {
-		return true
-	}
-	return false
+	return neighborCount < k
 }

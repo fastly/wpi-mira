@@ -20,10 +20,10 @@ type BGPMessage struct {
 
 type Message struct {
 	BGPMessage BGPMessage
-	Filter     string //toString of subscription
+	Filter     string //toString of subscription struct
 }
 
-//used to write the struct onto a json output
+// used to write the struct onto a json output
 type OutlierMessages struct {
 	MADOutlierMessages [][]BGPMessage `json:"MADOutlierMessages"`
 	ShakeAlertMessages [][]BGPMessage `json:"ShakeAlertMessages"`
@@ -34,8 +34,8 @@ type Window struct {
 	BucketMap map[time.Time][]BGPMessage
 }
 
-//result struct needed to simplify getting all the info needed to be dispayed
-//use json marshall to parse and simplify the code to store
+// result struct needed to simplify getting all the info needed to be dispayed
+// use json marshall to parse and simplify the code to store
 type Result struct {
 	//config parameters
 	Prefix     string `json:"Prefix"`
