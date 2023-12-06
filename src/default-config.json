@@ -1,7 +1,4 @@
 {
   "dataOption": "live",
-  "madParameters": 10, 
-  "maxBuckets": 20,
-  "windowSize": 360,
-  "subscriptions": [{"prefix": "0.0.0.0/0"}]
+  "subscriptions": [{"path": 54113}]
 }
