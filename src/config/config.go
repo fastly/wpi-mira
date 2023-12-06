@@ -9,21 +9,27 @@ import (
 	"strings"
 )
 
+const (
+	madParamDefault   = 10
+	maxBucketDefault  = 20
+	windowSizeDefault = 360
+)
+
 type SubscriptionMsg struct {
 	Host   string `json:"host,omitempty"` //aka collector
 	Peer   string `json:"peer,omitempty"`
-	Asn    int    `json:"asn,omitempty"` //aka ASN
+	Asn    int    `json:"asn,omitempty"`
 	Prefix string `json:"prefix,omitempty"`
 }
 
 type Configuration struct {
-	FileInputOption string            `json:"dataOption"`
-	StaticFile      string            `json:"staticFilePath"`  //path to specific static file
-	URLStaticData   string            `json:"staticFilesLink"` //link to routeviews bz2 folder
-	MadParameters   int               `json:"madParameters"`
-	MaxBuckets      int               `json:"maxBuckets"`
-	WindowSize      int               `json:"windowSize"`
-	Subscriptions   []SubscriptionMsg `json:"subscriptions"`
+	FileInputOption string            `json:"dataOption"`      //required
+	StaticFile      string            `json:"staticFilePath"`  //required for static
+	Subscriptions   []SubscriptionMsg `json:"subscriptions"`   //required for live
+	MadParameters   int               `json:"madParameters"`   //optional - set to default if omitted
+	MaxBuckets      int               `json:"maxBuckets"`      //optional - set to default if omitted
+	WindowSize      int               `json:"windowSize"`      //optional - set to default if omitted
+	URLStaticData   string            `json:"staticFilesLink"` //only required for use in get_static_data.go
 }
 
 // load config json file
@@ -71,27 +77,26 @@ func (c *Configuration) ValidateConfiguration() error {
 	//require mad parameter
 	//set mad param to default value if no val set in config
 	if c.MadParameters <= 0 || c.MadParameters > 1000 {
-		c.MadParameters = 10
+		c.MadParameters = madParamDefault
 		fmt.Println("No valid mad parameter given. The default mad parameter was set to 10")
 	}
 
 	//require maxBuckets
 	//set maxBuckets to default value if not set in config
 	if c.MaxBuckets <= 0 {
-		c.MaxBuckets = 20
+		c.MaxBuckets = maxBucketDefault
 		fmt.Println("No valid maxBuckets value given. The default maxBuckets was set to 20")
 	}
 
 	//added to check if no window size was put in
 	if c.WindowSize <= 0 {
-		c.WindowSize = 360
+		c.WindowSize = windowSizeDefault
 		fmt.Println("No valid window size given. The default window size was set to 360")
 	}
 
 	//check if maxBuckets * windowSize is not greater than 1k - could lead to messy graph
-	//if so, give a warning
 	if (c.MaxBuckets * c.WindowSize) >= 10000 {
-		//return error if input is neither live or static
+		//return error
 		return errors.New("WindowSize and/or maxBuckets too large - plot may crash")
 	}
 
