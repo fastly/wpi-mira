@@ -39,7 +39,7 @@ func AnalyzeBGPMessages(window common.Window, config *config.Configuration) {
 	//check the amount of the frequencies in results
 	if (len(AllResults.AllFreq) + 1) > maxPoints { //adding one more frequency would result in more than needed points
 		//remove the first item in the freq map; no modifications to the outlier map
-		firstResultKey := getFirstKeyResult(frequencies)
+		firstResultKey := getSmallestTimestamp(getListOfKeys(frequencies))
 		delete(frequencies, firstResultKey)
 
 		//now update the results
@@ -82,11 +82,27 @@ func AnalyzeBGPMessages(window common.Window, config *config.Configuration) {
 
 }
 
-func getFirstKeyResult(result map[time.Time]float64) time.Time {
-	for key := range result {
-		return key // Return the first key encountered
+func getListOfKeys(dataMap map[time.Time]float64) []time.Time {
+	keys := []time.Time{}
+	for timestamp, _ := range dataMap {
+		keys = append(keys, timestamp)
 	}
-	return time.Time{} // Return empty string if map is empty
+	return keys
+}
+
+//use the olderst timestamp when removing the data points
+func getSmallestTimestamp(timestamps []time.Time) time.Time {
+	if len(timestamps) == 0 {
+		return time.Time{}
+	}
+
+	smallest := timestamps[0]
+	for _, ts := range timestamps {
+		if ts.Before(smallest) {
+			smallest = ts
+		}
+	}
+	return smallest
 }
 
 func updateOutliers(currResult common.Result, algorithm int, indexes []int, sortedTimestamps []time.Time, sortedFrequencies []float64) {

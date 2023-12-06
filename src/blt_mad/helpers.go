@@ -1,7 +1,7 @@
 package blt_mad
 
 import (
-	"errors"
+	"fmt"
 	"math"
 	"reflect"
 	"sort"
@@ -16,7 +16,8 @@ func RemoveZeros(data []float64) ([]float64, error) {
 	}
 
 	if len(nonZeros) == 0 {
-		return nonZeros, errors.New("the slice provided was all zeros")
+		fmt.Println("The slice provided was all zeros; defaulted to calling analysis with [0.0]")
+		return []float64{0.0}, nil
 	}
 
 	return nonZeros, nil
