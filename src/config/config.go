@@ -10,9 +10,12 @@ import (
 )
 
 const (
-	madParamDefault   = 10
+	shakeParamDefault = 5
 	maxBucketDefault  = 20
 	windowSizeDefault = 360
+	madAlgo           = "bltMad"
+	shakeAlgo         = "shakeAlert"
+	bothAlgo          = "both"
 )
 
 type SubscriptionMsg struct {
@@ -23,13 +26,14 @@ type SubscriptionMsg struct {
 }
 
 type Configuration struct {
-	FileInputOption string            `json:"dataOption"`      //required
-	StaticFile      string            `json:"staticFilePath"`  //required for static
-	Subscriptions   []SubscriptionMsg `json:"subscriptions"`   //required for live
-	MadParameters   int               `json:"madParameters"`   //optional - set to default if omitted
-	MaxBuckets      int               `json:"maxBuckets"`      //optional - set to default if omitted
-	WindowSize      int               `json:"windowSize"`      //optional - set to default if omitted
-	URLStaticData   string            `json:"staticFilesLink"` //only required for use in get_static_data.go
+	FileInputOption string            `json:"dataOption"`           //required ("live" or "static")
+	StaticFile      string            `json:"staticFilePath"`       //required for static
+	Subscriptions   []SubscriptionMsg `json:"subscriptions"`        //required for live
+	Algorithm       string            `json:"anomalyDetectionAlgo"` //optional - set to both if omitted ("bltMad" or "shakeAlert" or "both")
+	ShakeAlertParam int               `json:"shakeAlertParameters"` //optional - set to default if omitted
+	MaxBuckets      int               `json:"maxBuckets"`           //optional - set to default if omitted
+	WindowSize      int               `json:"windowSize"`           //optional - set to default if omitted
+	URLStaticData   string            `json:"staticFilesLink"`      //only required for use in get_static_data.go
 }
 
 // load config json file
@@ -74,21 +78,25 @@ func (c *Configuration) ValidateConfiguration() error {
 		return errors.New("DataOption in config.json must be either 'live' or 'static'")
 	}
 
-	//require mad parameter
-	//set mad param to default value if no val set in config
-	if c.MadParameters <= 0 || c.MadParameters > 1000 {
-		c.MadParameters = madParamDefault
-		fmt.Println("No valid mad parameter given. The default mad parameter was set to 10")
+	//sets algorithm to both if no valid input is given
+	if c.Algorithm != madAlgo && c.Algorithm != shakeAlgo && c.Algorithm != bothAlgo {
+		c.Algorithm = "both"
+		fmt.Println("No valid algorithm given. The default algorithm was set to both")
 	}
 
-	//require maxBuckets
-	//set maxBuckets to default value if not set in config
+	//set shakeAlertParam to default value if not set in config or if invalid input given
+	if c.ShakeAlertParam <= 0 || c.ShakeAlertParam > c.WindowSize {
+		c.ShakeAlertParam = shakeParamDefault
+		fmt.Println("No valid shakeAlertParam value given. The default shakeAlertParam was set to 5")
+	}
+
+	//set maxBuckets to default value if not set in config or if invalid input given
 	if c.MaxBuckets <= 0 {
 		c.MaxBuckets = maxBucketDefault
 		fmt.Println("No valid maxBuckets value given. The default maxBuckets was set to 20")
 	}
 
-	//added to check if no window size was put in
+	//added to check if no window size was put in or if invalid input given
 	if c.WindowSize <= 0 {
 		c.WindowSize = windowSizeDefault
 		fmt.Println("No valid window size given. The default window size was set to 360")
