@@ -180,7 +180,7 @@ func receiveHandler(msgChannel chan common.Message, conn *websocket.Conn, subscr
 		// an update is covered by the prefix in the subscription.
 		for _, msg := range bgpMsgs {
 			if subscription.Prefix != "" {
-				// assume this prefix has already by RIS live or we wouldn't be here
+				// assume this prefix has already been parsed by RIS live or we wouldn't be here
 				subscriptionPrefix, _ := netip.ParsePrefix(subscription.Prefix)
 				// if this message's prefix *isn't* covered by this subscription,
 				// go to the start of the loop
