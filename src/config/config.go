@@ -2,25 +2,41 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
 )
 
-type Configuration struct {
-	//cast onto the needed type when processing in algos
-	FileInputOption           string `json:"dataOption"`
-	StaticFile                string `json:"staticFilePath"`
-	URLStaticData             string `json:"staticFilesLink"`
-	OutlierDetectionAlgorithm string `json:"outlierDetectionAlgorithm"`
-	Prefix                    string `json:"prefix"` // can input a list of string with values seperated by a comma
-	Asn                       string `json:"asn"`
-	PeerIP                    string `json:"peerIP"`
-	Connector                 string `json:"connector"`
-	WindowSize                string `json:"windowSize"`
+const (
+	shakeParamDefault = 5
+	maxBucketDefault  = 20
+	windowSizeDefault = 360
+	madAlgo           = "bltMad"
+	shakeAlgo         = "shakeAlert"
+	bothAlgo          = "both"
+)
+
+type SubscriptionMsg struct {
+	Host   string `json:"host,omitempty"` //aka collector
+	Peer   string `json:"peer,omitempty"`
+	Asn    int    `json:"asn,omitempty"`
+	Prefix string `json:"prefix,omitempty"`
 }
 
+type Configuration struct {
+	FileInputOption string            `json:"dataOption"`           //required ("live" or "static")
+	StaticFile      string            `json:"staticFilePath"`       //required for static
+	Subscriptions   []SubscriptionMsg `json:"subscriptions"`        //required for live
+	Algorithm       string            `json:"anomalyDetectionAlgo"` //optional - set to both if omitted ("bltMad" or "shakeAlert" or "both")
+	ShakeAlertParam int               `json:"shakeAlertParameters"` //optional - set to default if omitted
+	MaxBuckets      int               `json:"maxBuckets"`           //optional - set to default if omitted
+	WindowSize      int               `json:"windowSize"`           //optional - set to default if omitted
+	URLStaticData   string            `json:"staticFilesLink"`      //only required for use in get_static_data.go
+}
+
+// load config json file
 func LoadConfig(filename string) (*Configuration, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -35,36 +51,64 @@ func LoadConfig(filename string) (*Configuration, error) {
 	return &config, nil
 }
 
-func ValidDateConfiguration(config *Configuration) {
-	//check that the fileInputOption is either live or static
+// checks if each value in the config file is valid input
+func (c *Configuration) ValidateConfiguration() error {
+
 	//convert all strings to lower case to ignore any capitalizations
-	fileInputL := strings.ToLower(config.FileInputOption)
-	outlierL := strings.ToLower(config.OutlierDetectionAlgorithm)
+	fileInputL := strings.ToLower(c.FileInputOption)
 
-	//added to check if no window size was put in
-	if config.WindowSize == "" {
-		config.WindowSize = "360"
-		fmt.Println("No window size was passed in. The default window size was set to 360")
-	}
-
+	//checks for valid input corresponding to choice of live vs static data analysis
 	if fileInputL == "live" {
-		//require prefix and collector
-		if len(config.Connector) == 0 || len(config.Prefix) == 0 {
-			fmt.Println("Choosing live data input stream requires to input at least one value for the connector and at lease one value for the prefix")
+		//require at least 1 subscription
+		if len(c.Subscriptions) == 0 {
+			return errors.New("choosing live data input stream requires to input at least one subscription")
 		}
 	} else if fileInputL == "static" {
 		//require valid file path
-		_, err := os.Stat(config.StaticFile)
-		if os.IsNotExist(err) {
-			fmt.Println("Please enter a valid pathway to the static file")
+		_, err := os.Stat(c.StaticFile)
+		if err != nil {
+			if os.IsNotExist(err) {
+				return errors.New("Invalid pathway to static file: " + err.Error())
+			} else {
+				return errors.New("Error validating static file path: " + err.Error())
+			}
 		}
-	} else if fileInputL != "live" && fileInputL != "static" {
-		fmt.Println("Please enter either live or static as a dataOption in default-config.json")
-	} else if outlierL == "mad" {
-		//require mad parameter
-	} else if outlierL != "mad" && outlierL != "shakealert" {
-		fmt.Println("Please enter either mad or shakeAlert as input for outlierDetectionAlgorithm in default-config.json")
+	} else {
+		//return error if input is neither live or static
+		return errors.New("DataOption in config.json must be either 'live' or 'static'")
 	}
-	fmt.Println("Configuration successful")
 
+	//sets algorithm to both if no valid input is given
+	if c.Algorithm != madAlgo && c.Algorithm != shakeAlgo && c.Algorithm != bothAlgo {
+		c.Algorithm = "both"
+		fmt.Println("No valid algorithm given. The default algorithm was set to both")
+	}
+
+	//set shakeAlertParam to default value if not set in config or if invalid input given
+	if c.ShakeAlertParam <= 0 || c.ShakeAlertParam > c.WindowSize {
+		c.ShakeAlertParam = shakeParamDefault
+		fmt.Println("No valid shakeAlertParam value given. The default shakeAlertParam was set to 5")
+	}
+
+	//set maxBuckets to default value if not set in config or if invalid input given
+	if c.MaxBuckets <= 0 {
+		c.MaxBuckets = maxBucketDefault
+		fmt.Println("No valid maxBuckets value given. The default maxBuckets was set to 20")
+	}
+
+	//added to check if no window size was put in or if invalid input given
+	if c.WindowSize <= 0 {
+		c.WindowSize = windowSizeDefault
+		fmt.Println("No valid window size given. The default window size was set to 360")
+	}
+
+	//check if maxBuckets * windowSize is not greater than 1k - could lead to messy graph
+	if (c.MaxBuckets * c.WindowSize) >= 10000 {
+		//return error
+		return errors.New("WindowSize and/or maxBuckets too large - plot may crash")
+	}
+
+	//no errors found - valid config file
+	fmt.Println("Configuration successful")
+	return nil
 }
