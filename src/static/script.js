@@ -70,30 +70,24 @@ function addLabels(result) {
     const formattedOutliersTimes = timestampList.join(', '); // Format the array for display
     outliersTimesContainer.innerText = `Outliers Times: [${formattedOutliersTimes}]`;
 
-
-
 }
 
-//fetch data from different endpoints based on each of the
-async function fetchData(url) {
+
+async function fetchByUrl(url) {
     try {
         const response = await fetch(url);
 
         if (!response.ok) {
             throw new Error('Network response was not ok.');
         }
-
         const data = await response.json();
         return data;
-
-
-
     } catch (error) {
         console.error('Error fetching data:', error);
-        // Handle errors or return a default value
         return null;
     }
 }
+
 
 /*//open a new page for every subscription
 function openPage() {
@@ -149,8 +143,32 @@ function populateTable(data) {
 }
 
 setInterval(() => {
+    const url = 'http://localhost:8080/data';
+    fetchByUrl(url)
+        .then(data => {
+            if (data) {
+                console.log('Fetched data:', data);
+                //add subscriptions to the dropdown as they populate in the results
+                const filters = Object.keys(data) //create urls based localhost:8080/filter
+                const results = Object.values(data)
+
+                const firstFilter = filters[0]
+                const firstResult = results[0]
+
+                //populateDropdown(filters);
+
+                //get the results by keys
+                addData(chart, firstResult); //getting data
+                addLabels(firstResult);
+            } else {
+                console.log('No data fetched');
+            }
+        });
+
+
+
    // data = fetchData('http://localhost:8080/data')
-    fetch('http://localhost:8080/data')
+   /* fetch('http://localhost:8080/data')
         .then(response => response.json())
         .then(data => {
             //add subscriptions to the dropdown as they populate in the results
@@ -169,6 +187,6 @@ setInterval(() => {
         })
         .catch(error => {
             console.error('Error fetching data:', error);
-        });
+        });*/
 }, 3000); //updates every 3 seconds
 
