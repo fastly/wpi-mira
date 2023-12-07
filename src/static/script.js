@@ -24,7 +24,9 @@ const chart = new Chart(ctx, {
 });
 
 
-function addData(chart, allFreqMap) {
+function addData(chart, result) {
+    const allFreqMap = result.AllFreq
+
     const newData = Object.values(allFreqMap) //frequencies at each individual time stamp
     const timeStamps = Object.keys(allFreqMap) //timestamps for labeling points
     if (newData.length === 0) {
@@ -42,7 +44,10 @@ function addData(chart, allFreqMap) {
     }
     chart.update();
 }
-function addLabels(allOutliers) {
+
+
+function addLabels(result) {
+    const allOutliers = result.AllOutliers
     const outlierList = Object.values(allOutliers)
 
     const timestampList = [];
@@ -69,13 +74,35 @@ function addLabels(allOutliers) {
 
 }
 
+//fetch data from different endpoints based on each of the
+async function fetchData(url) {
+    try {
+        const response = await fetch(url);
 
-//open a new page for every subscription
+        if (!response.ok) {
+            throw new Error('Network response was not ok.');
+        }
+
+        const data = await response.json();
+        return data;
+
+
+
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        // Handle errors or return a default value
+        return null;
+    }
+}
+
+/*//open a new page for every subscription
 function openPage() {
     var sub = document.getElementById("subscriptionSelect").value;
     var url = "index.html";
     var newWindow = window.open(url, "_blank");
 }
+
+
 
 function populateDropdown(itemsToAdd) {
     const dropdown = document.getElementById("subscriptionSelect");
@@ -93,21 +120,51 @@ function populateDropdown(itemsToAdd) {
             dropdown.appendChild(newOption);
         }
     });
+}*/
+
+
+
+// Function to populate the table with data
+function populateTable(data) {
+    const tableBody = document.getElementById('tableBody');
+
+    // Clear any existing rows
+    tableBody.innerHTML = '';
+
+    // Loop through the data and create table rows
+    data.forEach(item => {
+        const row = document.createElement('tr');
+
+
+        const timeCell = document.createElement('td');
+        timeCell.textContent = item.time;
+        row.appendChild(timeCell);
+
+        const countsCell = document.createElement('td');
+        countsCell.textContent = item.counts;
+        row.appendChild(countsCell);
+
+        tableBody.appendChild(row);
+    });
 }
+
 setInterval(() => {
+   // data = fetchData('http://localhost:8080/data')
     fetch('http://localhost:8080/data')
         .then(response => response.json())
         .then(data => {
             //add subscriptions to the dropdown as they populate in the results
-            const filters = Object.keys(data)
-            populateDropdown(filters);
+            const filters = Object.keys(data) //create urls based localhost:8080/filter
+            const results = Object.values(data)
 
-            const allResultMaps  = Object.values(data)
+            const firstFilter = filters[0]
+            const firstResult = results[0]
 
-            const allFreqMap = data.AllFreq
-            const allOutliers = data.AllOutliers
-            addData(chart, allFreqMap);
-            addLabels(allOutliers);
+            //populateDropdown(filters);
+
+            //get the results by keys
+            addData(chart, firstResult); //getting data
+            addLabels(firstResult);
 
         })
         .catch(error => {
