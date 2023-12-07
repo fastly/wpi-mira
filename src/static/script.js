@@ -26,7 +26,7 @@ function addLabels(allOutliers) {
 
     for (let i = 0; i < outlierList.length; i++) {
         timestamp = new Date(outlierList[i].Timestamp);
-        count =outlierList[i].Count;
+        count = outlierList[i].Count;
         timestampList.push(timestamp)
         valsList.push(count)
     }

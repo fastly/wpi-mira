@@ -22,7 +22,9 @@ const (
 )
 
 // Takes in a Window, parses object into frequency counts, and then calls specified analysis functions
-//code to write the frequencies; the outliers; and the minReqs to files
+/*
+TODO: code to write the frequencies; the outliers; and the minReqs to files
+*/
 func AnalyzeBGPMessages(window common.Window, config *config.Configuration) {
 	lengthMap := makeLengthMap(window)
 	// Turn map into sorted array of frequencies by timestamp
@@ -37,20 +39,16 @@ func AnalyzeBGPMessages(window common.Window, config *config.Configuration) {
 	fmt.Printf("ShakeAlert Outliers: \n%+v\n", shakeAlertOutliers)
 
 	//check the amount of the frequencies in results
-	if (len(AllResults.AllFreq) + 1) > maxPoints { //adding one more frequency would result in more than needed points
+	if len(AllResults.AllFreq)+1 > maxPoints { //adding one more frequency would result in more than needed points
 		//remove the first item in the freq map; no modifications to the outlier map
 		firstResultKey := getSmallestTimestamp(getListOfKeys(frequencies))
 		delete(frequencies, firstResultKey)
 
 		//now update the results
-		for timestamp, _ := range lengthMap {
+		for timestamp := range lengthMap {
 			_, resultVal := frequencies[timestamp]
-			if resultVal { //if there exists a value at a given time stamp in the final results
-				if frequencies[timestamp] < lengthMap[timestamp] { //check if the existing value is smaller than the incoming
-					frequencies[timestamp] = lengthMap[timestamp]
-				} else {
-					continue //if smaller append onto map else skip
-				}
+			if resultVal && frequencies[timestamp] < lengthMap[timestamp] { //if there exists a value at a given time stamp in the final results
+				frequencies[timestamp] = lengthMap[timestamp]
 			} else { //the timestamp is not in the results so append
 				frequencies[timestamp] = lengthMap[timestamp]
 			}
@@ -62,14 +60,10 @@ func AnalyzeBGPMessages(window common.Window, config *config.Configuration) {
 
 	} else { //have not reached the max amount of points and can keep adding results
 		//modify the frequencies for the final results
-		for timestamp, _ := range lengthMap {
+		for timestamp := range lengthMap {
 			_, resultVal := frequencies[timestamp]
-			if resultVal { //if there exists a value at a given time stamp in the final results
-				if frequencies[timestamp] < lengthMap[timestamp] { //check if the existing value is smaller than the incoming
-					frequencies[timestamp] = lengthMap[timestamp]
-				} else {
-					continue //if smaller append onto map else skip
-				}
+			if resultVal && frequencies[timestamp] < lengthMap[timestamp] { //if there exists a value at a given time stamp in the final results
+				frequencies[timestamp] = lengthMap[timestamp]
 			} else { //the timestamp is not in the results so append
 				frequencies[timestamp] = lengthMap[timestamp]
 			}
@@ -84,16 +78,16 @@ func AnalyzeBGPMessages(window common.Window, config *config.Configuration) {
 
 func getListOfKeys(dataMap map[time.Time]float64) []time.Time {
 	keys := []time.Time{}
-	for timestamp, _ := range dataMap {
+	for timestamp := range dataMap {
 		keys = append(keys, timestamp)
 	}
 	return keys
 }
 
 //use the olderst timestamp when removing the data points
-func getSmallestTimestamp(timestamps []time.Time) time.Time {
+func getSmallestTimestamp(timestamps []time.Time) *time.Time {
 	if len(timestamps) == 0 {
-		return time.Time{}
+		return nil
 	}
 
 	smallest := timestamps[0]
@@ -102,7 +96,7 @@ func getSmallestTimestamp(timestamps []time.Time) time.Time {
 			smallest = ts
 		}
 	}
-	return smallest
+	return &smallest
 }
 
 func updateOutliers(currResult common.Result, algorithm int, indexes []int, sortedTimestamps []time.Time, sortedFrequencies []float64) {
@@ -138,13 +132,9 @@ func updateOutliers(currResult common.Result, algorithm int, indexes []int, sort
 	}
 }
 func createOutlierStruct(timestamp time.Time, algorithm int, count float64) common.OutlierInfo {
-	o := common.OutlierInfo{
-		Timestamp: timestamp,
+	return common.OutlierInfo{Timestamp: timestamp,
 		Algorithm: algorithm,
-		Count:     count,
-	}
-
-	return o
+		Count:     count}
 }
 
 // repeated code in three of these functions; moved outside to make the code easier to read
