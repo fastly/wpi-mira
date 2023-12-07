@@ -103,7 +103,7 @@ func handleSubscription(msgChannel chan common.Message, subscription config.Subs
 	defer conn.Close()
 
 	//call receive handler
-	go receiveHandler(msgChannel, conn, subscriptionToString(subscription), i)
+	go receiveHandler(msgChannel, conn, subscription, i)
 
 	fmt.Println("made connection")
 
@@ -154,9 +154,9 @@ func handleSubscription(msgChannel chan common.Message, subscription config.Subs
 }
 
 // keep reading in new message from connection, send msg to parser, put parsed messages into channel
-func receiveHandler(msgChannel chan common.Message, conn *websocket.Conn, subscription string, i int) {
+func receiveHandler(msgChannel chan common.Message, conn *websocket.Conn, subscription config.SubscriptionMsg, i int) {
 	var labeledMsg common.Message
-	labeledMsg.Filter = subscription
+	labeledMsg.Filter = subscriptionToString(subscription)
 
 	for {
 		//take in next msg from connection
