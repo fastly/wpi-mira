@@ -42,7 +42,7 @@ func AnalyzeBGPMessages(window common.Window, config *config.Configuration) {
 	if len(AllResults.AllFreq)+1 > maxPoints { //adding one more frequency would result in more than needed points
 		//remove the first item in the freq map; no modifications to the outlier map
 		firstResultKey := getSmallestTimestamp(getListOfKeys(frequencies))
-		delete(frequencies, firstResultKey)
+		delete(frequencies, *firstResultKey)
 
 		//now update the results
 		for timestamp := range lengthMap {
