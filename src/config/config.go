@@ -13,6 +13,9 @@ const (
 	shakeParamDefault = 5
 	maxBucketDefault  = 20
 	windowSizeDefault = 360
+	madAlgo           = "bltMad"
+	shakeAlgo         = "shakeAlert"
+	bothAlgo          = "both"
 )
 
 type SubscriptionMsg struct {
@@ -76,7 +79,7 @@ func (c *Configuration) ValidateConfiguration() error {
 	}
 
 	//sets algorithm to both if no valid input is given
-	if c.Algorithm != "bltMad" && c.Algorithm != "shakeAlert" && c.Algorithm != "both" {
+	if c.Algorithm != madAlgo && c.Algorithm != shakeAlgo && c.Algorithm != bothAlgo {
 		c.Algorithm = "both"
 		fmt.Println("No valid algorithm given. The default algorithm was set to both")
 	}
