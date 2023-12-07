@@ -7,7 +7,8 @@ import (
 
 // constants
 const (
-	k = 5 //# of neighbors
+	windowSize = 391
+	k          = 5 //# of neighbors
 )
 
 // finds p-th percentile of data
@@ -59,16 +60,20 @@ func findR(data []float64) float64 {
 // detect outliers using the density-based algorithm
 // input: array of ints, where each index represents a time bin and value is the count for that time bin
 // output: values of outliers aka counts
-func FindOutliers(data []float64) []float64 {
+func FindOutliers(data []float64) ([]float64, []int) {
 	//result of outliers
 	var outliers []float64
+	var indexes []int
+
+	dataCopy := make([]float64, len(data))
+	copy(dataCopy, data)
 
 	//iterate thru each time bin
 	for i := 0; i < len(data); i++ {
 		currentBin := data[i]
 
 		// count the number of neighbors within radius R
-		R := findR(data)
+		R := findR(dataCopy)
 		neighborCount := 0
 		for _, bin := range data {
 			if math.Abs(float64(bin-currentBin)) < R {
@@ -79,23 +84,9 @@ func FindOutliers(data []float64) []float64 {
 		// if there are fewer than k neighbors, the current bin is an outlier
 		if neighborCount < k {
 			outliers = append(outliers, currentBin)
+			indexes = append(indexes, i)
 		}
 	}
 
-	return outliers
-}
-
-// TODO: test!
-func IsAnOutlierShakeAlert(data []float64, point float64, k int) bool {
-	// count the number of neighbors within radius R
-	R := findR(data)
-	neighborCount := 0
-	for _, bin := range data {
-		if math.Abs(float64(bin-point)) < R {
-			neighborCount++
-		}
-	}
-
-	// if there are fewer than k neighbors, the current bin is an outlier
-	return neighborCount < k
+	return outliers, indexes
 }

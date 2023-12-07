@@ -20,10 +20,10 @@ type BGPMessage struct {
 
 type Message struct {
 	BGPMessage BGPMessage
-	Filter     string //toString of subscription struct
+	Filter     string
 }
 
-// used to write the struct onto a json output
+//used to write the struct onto a json output
 type OutlierMessages struct {
 	MADOutlierMessages [][]BGPMessage `json:"MADOutlierMessages"`
 	ShakeAlertMessages [][]BGPMessage `json:"ShakeAlertMessages"`
@@ -34,21 +34,14 @@ type Window struct {
 	BucketMap map[time.Time][]BGPMessage
 }
 
-// result struct needed to simplify getting all the info needed to be dispayed
-// use json marshall to parse and simplify the code to store
 type Result struct {
-	//config parameters
-	Prefix     string `json:"Prefix"`
-	ASN        string `json:"ASN"`
-	PeerIP     string `json:"PeerIP"`
-	WindowSize string `json:"WindowSize"`
+	AllOutliers map[time.Time]OutlierInfo `json:"AllOutliers"` //list of all the outliers
+	AllFreq     map[time.Time]float64     `json:"AllFreq"`     //map of all the frequencies by timestamp to avoid repeats and keep track of missed data
+}
 
-	//outputs from processing the live messages
-	Frequencies []float64 `json:"Frequencies"`
-
-	MADOutliers   []float64   `json:"MADOutliers"`
-	MADTimestamps []time.Time `json:"MADTimestamps"`
-
-	ShakeAlertOutliers   []float64   `json:"ShakeAlertOutliers"`
-	ShakeAlertTimestamps []time.Time `json:"ShakeAlertTimestamps"`
+type OutlierInfo struct {
+	Timestamp time.Time `json:"Timestamp"` //time stamps of the outlier bucket
+	Algorithm int       `json:"Algorithm"` //0 if mad 1 if shakeAlert 2 if both
+	Count     float64   `json:"Count" `    //the number of messages in the bucket that is an outlier
+	//MsgsFile  *os.File  `json:"MsgsFile,omitempty"`  //will be added into the msg pr
 }

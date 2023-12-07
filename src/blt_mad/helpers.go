@@ -1,12 +1,8 @@
 package blt_mad
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
-	"io/ioutil"
 	"math"
-	"os"
 	"reflect"
 	"sort"
 )
@@ -20,7 +16,8 @@ func RemoveZeros(data []float64) ([]float64, error) {
 	}
 
 	if len(nonZeros) == 0 {
-		return nonZeros, errors.New("the slice provided was all zeros")
+		fmt.Println("The slice provided was all zeros; defaulted to calling analysis with [0.0]")
+		return []float64{0.0}, nil
 	}
 
 	return nonZeros, nil
@@ -100,101 +97,4 @@ func WithinToleranceFloatSlice(a []float64, b []float64, e float64) bool {
 		}
 	}
 	return true
-}
-
-func calculatePercentile(numbers []float64, percentile float64) float64 {
-	sortedList := sortData(numbers)
-	index := int(percentile / 100 * float64(len(sortedList)-1)) //index corresponding to the percentile
-	lower := sortedList[index]
-	upper := sortedList[index+1]
-	fractionalPart := percentile/100*float64(len(sortedList)-1) - float64(index)
-	value := lower + (upper-lower)*fractionalPart
-	return value
-}
-
-//used to simplify writing out the results into the output file
-func StoreResultIntoJson(data interface{}, filename string) error {
-	jsonData, err := json.MarshalIndent(data, "", "    ")
-	if err != nil {
-		return err
-	}
-
-	err = ioutil.WriteFile(filename, jsonData, 0644)
-	if err != nil {
-		return err
-	}
-	fmt.Println(string(jsonData))
-	return nil
-}
-
-//unmarshall json here
-func WriteCSVFile(data interface{}, filename string) error {
-	var file *os.File
-	var err error
-
-	if _, statErr := os.Stat(filename); os.IsNotExist(statErr) {
-		// If the file does not exist, create it
-		file, err = os.Create(filename)
-		if err != nil {
-			return err
-		}
-		defer file.Close()
-
-		// Write the initial data to the file
-		jsonData, err := json.MarshalIndent([]interface{}{data}, "", "  ")
-		if err != nil {
-			return err
-		}
-
-		if _, err := file.Write(jsonData); err != nil {
-			return err
-		}
-	} else {
-		// If the file exists, open it in append mode
-		file, err = os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
-		if err != nil {
-			return err
-		}
-		defer file.Close()
-
-		// Read the existing data from the file
-		existingData := []interface{}{}
-		decoder := json.NewDecoder(file)
-		if err := decoder.Decode(&existingData); err != nil {
-			return err
-		}
-
-		// Append new data to existing data
-		existingData = append(existingData, data)
-
-		// Move file cursor to the beginning
-		if _, err := file.Seek(0, 0); err != nil {
-			return err
-		}
-
-		// Write the updated data to the file
-		jsonData, err := json.MarshalIndent(existingData, "", "  ")
-		if err != nil {
-			return err
-		}
-
-		if _, err := file.Write(jsonData); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-//check if one array contains the elements of the other
-//possibly simplify this function in the future; i might need to use this specific implementation for comparing outputs of shakeAlert and MAD
-func FindDifferentValues(mainArr []float64, subArr []float64) []float64 {
-	//use in BGP testing to check if the result contains the minimum outliers of interest given the parameters
-	var elementsMissing []float64
-	for _, subValue := range subArr {
-		if !containsValue(mainArr, subValue) {
-			elementsMissing = append(elementsMissing, subValue)
-		}
-	}
-	return elementsMissing
 }

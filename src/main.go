@@ -22,6 +22,7 @@ func dataHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error encoding JSON", http.StatusInternalServerError)
 		return
 	}
+	//fmt.Println(analyze.AllResults)
 }
 
 func main() {
@@ -56,6 +57,10 @@ func main() {
 
 	// Channel for sending BGP messages between parsing and processing
 	msgChannel := make(chan common.Message)
+	freqInit := make(map[time.Time]float64)
+	outlierInit := make(map[time.Time]common.OutlierInfo)
+	analyze.AllResults.AllOutliers = outlierInit //init map of outliers
+	analyze.AllResults.AllFreq = freqInit        //initialize map frequencies
 
 	// Start the goroutines
 
