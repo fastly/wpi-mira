@@ -1,10 +1,3 @@
-export let numbersGiven; //this works sometimes?
-/*
-TODO: potentially link the url and the data for the prefix in one struct
- */
-// Function to populate the dropdown with values from a list of strings
-
-
 function populateDropdown(listOfStrings) {
     const select = document.getElementById("subscriptionSelect");
     const existingOptions = Array.from(select.options).map(option => option.textContent.toLowerCase());
@@ -22,10 +15,6 @@ function populateDropdown(listOfStrings) {
 
 function getEndpointForSub (query) { //take in a subscription string and turn it into a link for the end point
     const baseUrl = 'http://localhost:8080/frequencies';
-    // Encode the query object as a URI component
-    const encodedQuery = encodeURIComponent(JSON.stringify(query));
-
-    // Construct the final URL with the encoded query as a parameter
     const finalUrl = `${baseUrl}?subscription=${query}`;
     console.log(finalUrl)
 
@@ -51,8 +40,8 @@ export function openPage() {
 
                 const filters = Object.keys(data); //create urls based localhost:8080/filter
                 const counts = Object.values(data);
-                numbersGiven = [1,2,3,4]
-                console.log(numbersGiven)
+                let numbersGiven = [1,2,3,4];
+                console.log(numbersGiven);
 
 
                 const newPage = window.open('mainData.html', '_blank');
@@ -111,11 +100,6 @@ setInterval(() => {
                 console.log('Fetched data:', data);
                 //add subscriptions to the dropdown as they populate in the results
                 const filters = Object.keys(data) //create urls based localhost:8080/filter
-                /*const results = Object.values(data)
-
-                const firstFilter = filters[0]
-                const firstResult = results[0]*/
-
                 populateDropdown(filters)
 
 

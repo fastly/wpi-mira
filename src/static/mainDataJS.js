@@ -47,7 +47,7 @@ setInterval(() => {
     fetch('http://localhost:8080/data')
         .then(response => response.json())
         .then(data => {
-            addData(chart, [1,2,3,4]);
+            addData(chart, [1,2,3]);
         })
         .catch(error => {
             console.error('Error fetching data:', error);
