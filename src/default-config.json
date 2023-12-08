@@ -1,4 +1,6 @@
 {
   "dataOption": "live",
-  "subscriptions": [{"path": 54113}]
+  "subscriptions": [{"prefix": "151.101.0.0/12"},
+    {"prefix": "151.101.0.0/16"}],
+  "windowSize": 10
 }
