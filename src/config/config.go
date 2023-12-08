@@ -21,7 +21,7 @@ const (
 type SubscriptionMsg struct {
 	Host   string `json:"host,omitempty"` //aka collector
 	Peer   string `json:"peer,omitempty"`
-	Asn    int    `json:"asn,omitempty"`
+	Path   string `json:"path,omitempty"`
 	Prefix string `json:"prefix,omitempty"`
 }
 
