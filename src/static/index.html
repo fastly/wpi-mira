@@ -3,13 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <title>Main Display</title>
-    <script type = "module" src="script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
+    <style>
+        #myChart {
+            width: 400px;
+            height: 500px;
+            bottom: 500px;
+        }
+    </style>
 </head>
 <body>
+<canvas id="myChart"></canvas>
 <div id="dropdownContainer" class="">
     <h1>Select filter display:</h1>
     <select id="subscriptionSelect"></select>
-    <button id = "goButton">Go</button>
+    <button onclick="openPage()" >Go</button>
 </div>
 </body>
 </html>

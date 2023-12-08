@@ -21,14 +21,36 @@ function getEndpointForSub (query) { //take in a subscription string and turn it
     return finalUrl;
 }
 
-//opens up a page based on the prefix selected
-export function openPage() {
 
+//opens a page with all the data on it
+function openPage() {
     //the items are the filters
     const select = document.getElementById("subscriptionSelect");
     const selectedOption = select.options[select.selectedIndex];
     const selectedUrl = selectedOption.value;
+    getData(selectedUrl);
+    const newPage = window.open('index.html', '_blank');
+}
 
+function addData(chart, newData) {
+    if (newData.length === 0) {
+        return; // No new data to add
+    }
+
+    // Clear existing data
+    chart.data.labels = [];
+    chart.data.datasets[0].data = [];
+
+    // Add new data
+    for (let i = 0; i < newData.length; i++) {
+        chart.data.labels.push(i);
+        chart.data.datasets[0].data.push(newData[i]);
+    }
+    chart.update();
+}
+
+//opens up a page based on the prefix selected
+function getData(selectedUrl) {
     //for every item that is selected on the page; pop up the data for frequencies and counts from the given subscription endpoint
 
     const url = getEndpointForSub(selectedUrl);
@@ -41,32 +63,7 @@ export function openPage() {
                 const filters = Object.keys(data); //create urls based localhost:8080/filter
                 const counts = Object.values(data);
                 let numbersGiven = [1,2,3,4];
-                console.log(numbersGiven);
-
-
-                const newPage = window.open('mainData.html', '_blank');
-
-
-                if (newPage) {
-                    // Wait for the new page to load
-                    newPage.onload = function() {
-                        // Access the document within the new window
-                        const newDoc = newPage.document;
-                        // Find an element in the new window and add data
-                        const newData =  counts.join(', '); // Your new data
-                        // For example, let's find a div with id 'dataContainer' and add the new data
-                        const dataContainer = newDoc.getElementById('outliers');
-                        if (dataContainer) {
-                            dataContainer.innerHTML = newData;
-                        } else {
-                            console.error('Element not found in new window');
-                        }
-                    };
-
-                    //newPage.document.close();
-                } else {
-                    alert('Pop-up blocked! Please allow pop-ups for this website.');
-                }
+                addData(chart, numbersGiven)
 
             } else {
                 console.log('No data fetched');
@@ -74,7 +71,9 @@ export function openPage() {
         });
 }
 
-document.getElementById('goButton').addEventListener('click', openPage);
+
+
+//document.getElementById('goButton').addEventListener('click', openPage);
 
 async function fetchByUrl(url) {
     try {
@@ -91,23 +90,42 @@ async function fetchByUrl(url) {
     }
 }
 
+const ctx = document.getElementById('myChart').getContext('2d');
+const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: [],
+        datasets: [{
+            label: 'Message Counts Per Minute',
+            data: [],
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        aspectRatio: 0.5,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
 
 setInterval(() => {
     const url = 'http://localhost:8080/data';
+
+
     fetchByUrl(url)
         .then(data => {
             if (data) {
                 console.log('Fetched data:', data);
                 //add subscriptions to the dropdown as they populate in the results
                 const filters = Object.keys(data) //create urls based localhost:8080/filter
-                populateDropdown(filters)
-
-
-                //populateDropdown(filters);
-
-                //get the results by keys
-                //addData(chart, firstResult); //getting data
-                //addLabels(firstResult);
+                populateDropdown(filters);
             } else {
                 console.log('No data fetched');
             }
