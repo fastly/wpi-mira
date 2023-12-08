@@ -4,16 +4,23 @@
     <meta charset="UTF-8">
     <title>Main Display</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="script.js"></script>
+
     <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100vw; /* Full width of viewport */
+            height: 100vh; /* Full height of viewport */
+        }
+
         #myChart {
-            width: 400px;
-            height: 500px;
-            bottom: 500px;
+            width: 90%;
+            height: 100%;
+            /*bottom: 500px;*/
         }
     </style>
 </head>
-<body>
+<body onload="onLoad()">
 <canvas id="myChart"></canvas>
 <div id="dropdownContainer" class="">
     <h1>Select filter display:</h1>
@@ -21,5 +28,6 @@
     <button onclick="openPage()" >Go</button>
 </div>
 </body>
+<script src="script.js"></script>
 </html>
 

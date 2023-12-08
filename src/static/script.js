@@ -28,8 +28,9 @@ function openPage() {
     const select = document.getElementById("subscriptionSelect");
     const selectedOption = select.options[select.selectedIndex];
     const selectedUrl = selectedOption.value;
-    getData(selectedUrl);
-    const newPage = window.open('index.html', '_blank');
+    let url = new URL(window.location.href);
+    url.searchParams.set("p", selectedUrl);
+    window.open(url, '_blank');
 }
 
 function addData(chart, newData) {
@@ -50,7 +51,7 @@ function addData(chart, newData) {
 }
 
 //opens up a page based on the prefix selected
-function getData(selectedUrl) {
+function getData(chart, selectedUrl) {
     //for every item that is selected on the page; pop up the data for frequencies and counts from the given subscription endpoint
 
     const url = getEndpointForSub(selectedUrl);
@@ -62,8 +63,8 @@ function getData(selectedUrl) {
 
                 const filters = Object.keys(data); //create urls based localhost:8080/filter
                 const counts = Object.values(data);
-                let numbersGiven = [1,2,3,4];
-                addData(chart, numbersGiven)
+                console.log(counts);
+                addData(chart, counts);
 
             } else {
                 console.log('No data fetched');
@@ -71,9 +72,6 @@ function getData(selectedUrl) {
         });
 }
 
-
-
-//document.getElementById('goButton').addEventListener('click', openPage);
 
 async function fetchByUrl(url) {
     try {
@@ -90,44 +88,61 @@ async function fetchByUrl(url) {
     }
 }
 
-const ctx = document.getElementById('myChart').getContext('2d');
-const chart = new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: [],
-        datasets: [{
-            label: 'Message Counts Per Minute',
-            data: [],
-            backgroundColor: 'rgba(54, 162, 235, 0.2)',
-            borderColor: 'rgba(54, 162, 235, 1)',
-            borderWidth: 1
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        aspectRatio: 0.5,
-        scales: {
-            y: {
-                beginAtZero: true
-            }
-        }
-    }
-});
 
-setInterval(() => {
-    const url = 'http://localhost:8080/data';
+function onLoad() {
+    setInterval(() => {
+        const url = 'http://localhost:8080/data';
+        fetchByUrl(url)
+            .then(data => {
+                if (data) {
+                    console.log('Fetched data:', data);
+                    //add subscriptions to the dropdown as they populate in the results
+                    const filters = Object.keys(data) //create urls based localhost:8080/filter
+                    populateDropdown(filters);
 
+                } else {
+                    console.log('No data fetched');
+                }
+            });
+    }, 3000); //updates every 3 seconds
 
-    fetchByUrl(url)
-        .then(data => {
-            if (data) {
-                console.log('Fetched data:', data);
-                //add subscriptions to the dropdown as they populate in the results
-                const filters = Object.keys(data) //create urls based localhost:8080/filter
-                populateDropdown(filters);
-            } else {
-                console.log('No data fetched');
+    //find query parameter
+    const urlSearchParams = new URLSearchParams(window.location.search);
+    const subs = urlSearchParams.get("p");
+    if (typeof subs === "string" && subs.length !== 0) {
+        const ctx = document.getElementById('myChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Message Counts Per Minute',
+                    data: [],
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                aspectRatio: 0.5,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
             }
         });
-}, 3000); //updates every 3 seconds
+
+
+        setInterval(() => {
+            getData(chart, subs);
+            }, 3000);
+
+    }
+
+
+}
+
+
