@@ -7,10 +7,15 @@
 
     <style>
         body, html {
-            margin: 0;
-            padding: 0;
             width: 100vw; /* Full width of viewport */
             height: 100vh; /* Full height of viewport */
+        }
+
+        .top-right-element {
+            position: fixed;
+            top: 0;
+            right: 50px;
+
         }
 
         #myChart {
@@ -22,7 +27,7 @@
 </head>
 <body onload="onLoad()">
 <canvas id="myChart"></canvas>
-<div id="dropdownContainer" class="">
+<div id="dropdownContainer" class="top-right-element">
     <h1>Select filter display:</h1>
     <select id="subscriptionSelect"></select>
     <button onclick="openPage()" >Go</button>

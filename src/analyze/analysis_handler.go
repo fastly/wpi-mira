@@ -12,7 +12,7 @@ import (
 
 //need to create a map of results based on filter -> filtering pr
 //var AllResults common.Result //global so that it can be added onto by parser and seen by dataHandler
-var maxPoints = 5            //i did not want to add this into config yet because it will conflic with jolene's pr
+var maxPoints = 5 //i did not want to add this into config yet because it will conflic with jolene's pr
 var ResultMap map[string]*common.Result
 
 const (

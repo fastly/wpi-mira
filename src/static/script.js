@@ -33,7 +33,7 @@ function openPage() {
     window.open(url, '_blank');
 }
 
-function addData(chart, newData) {
+function addData(chart, newData, dataLabels) {
     if (newData.length === 0) {
         return; // No new data to add
     }
@@ -54,7 +54,9 @@ function addData(chart, newData) {
 function getData(chart, selectedUrl) {
     //for every item that is selected on the page; pop up the data for frequencies and counts from the given subscription endpoint
 
+
     const url = getEndpointForSub(selectedUrl);
+    console.log(url);
     fetchByUrl(url)
         .then(data => {
             if (data) {
@@ -64,14 +66,13 @@ function getData(chart, selectedUrl) {
                 const filters = Object.keys(data); //create urls based localhost:8080/filter
                 const counts = Object.values(data);
                 console.log(counts);
-                addData(chart, counts);
+                addData(chart, counts, filters);
 
             } else {
                 console.log('No data fetched');
             }
         });
 }
-
 
 async function fetchByUrl(url) {
     try {
@@ -87,7 +88,6 @@ async function fetchByUrl(url) {
         return null;
     }
 }
-
 
 function onLoad() {
     setInterval(() => {
@@ -134,7 +134,6 @@ function onLoad() {
                 }
             }
         });
-
 
         setInterval(() => {
             getData(chart, subs);

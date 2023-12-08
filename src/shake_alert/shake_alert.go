@@ -7,8 +7,7 @@ import (
 
 // constants
 const (
-	windowSize = 391
-	k          = 5 //# of neighbors
+	k = 5 //# of neighbors
 )
 
 // finds p-th percentile of data
