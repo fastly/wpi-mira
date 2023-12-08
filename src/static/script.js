@@ -1,27 +1,122 @@
-const ctx = document.getElementById('myChart').getContext('2d');
-const chart = new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: [],
-        datasets: [{
-            label: 'Message Counts Per Minute',
-            data: [],
-            backgroundColor: 'rgba(54, 162, 235, 0.2)',
-            borderColor: 'rgba(54, 162, 235, 1)',
-            borderWidth: 1
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        aspectRatio: 0.5,
-        scales: {
-            y: {
-                beginAtZero: true
+/*
+TODO: potentially link the url and the data for the prefix in one struct
+ */
+// Function to populate the dropdown with values from a list of strings
+function populateDropdown(listOfStrings) {
+    const select = document.getElementById("subscriptionSelect");
+    const existingOptions = Array.from(select.options).map(option => option.textContent.toLowerCase());
+
+    listOfStrings.forEach(function(string) {
+        const lowercaseString = string.toLowerCase();
+        if (!existingOptions.includes(lowercaseString)) {
+            const option = document.createElement("option");
+            option.value = lowercaseString.replace(/\s+/g, '-'); // Example conversion to lowercase and replacing spaces with hyphens
+            option.textContent = string;
+            select.appendChild(option);
+        }
+    });
+}
+
+function getEndpointForSub (query) { //take in a subscription string and turn it into a link for the end point
+    const baseUrl = 'http://localhost:8080/frequencies';
+    // Encode the query object as a URI component
+    const encodedQuery = encodeURIComponent(JSON.stringify(query));
+
+    // Construct the final URL with the encoded query as a parameter
+    const finalUrl = `${baseUrl}?subscription=${query}`;
+    console.log(finalUrl)
+
+    return finalUrl;
+}
+
+
+//opens up a page based on the prefix selected
+function openPage() {
+
+    //the items are the filters
+    const select = document.getElementById("subscriptionSelect");
+    const selectedOption = select.options[select.selectedIndex];
+    const selectedUrl = selectedOption.value;
+
+    //for every item that is selected on the page; pop up the data for frequencies and counts from the given subscription endpoint
+
+    const url = getEndpointForSub(selectedUrl);
+    fetchByUrl(url)
+        .then(data => {
+            if (data) {
+                console.log('Fetched data:', data);
+                //add subscriptions to the dropdown as they populate in the result
+
+                const filters = Object.keys(data) //create urls based localhost:8080/filter
+                const counts = Object.values(data)
+
+                const newPage = window.open('mainData.html', '_blank');
+                if (newPage) {
+                    newPage.document.close();
+                } else {
+                    alert('Pop-up blocked! Please allow pop-ups for this website.');
+                }
+
+            } else {
+                console.log('No data fetched');
+            }
+        });
+    /*    const select = document.getElementById("subscriptionSelect");
+        const selectedOption = select.options[select.selectedIndex];
+        const selectedUrl = selectedOption.value;
+        window.open(selectedUrl, '_blank');
+        // window.location.href = selectedUrl;
+
+     if (selectedUrl) {
+            fetchByUrl("http://localhost:8080/data")
+                .then(data => {
+                    if (data) {
+                        console.log('Fetched data:', data);
+                        // Process fetched data as needed (e.g., displaying in UI)
+                        // Example: addData(chart, data);
+                        // Example: addLabels(data);
+                    } else {
+                        console.log('No data fetched');
+                    }
+                });
+        }*/
+}
+
+/*
+function openPage() {
+    const select = document.getElementById("subscriptionSelect");
+    const selectedUrl = select.value;
+    window.location.href = selectedUrl;
+}*/
+
+function createChart(){
+    const ctx = document.getElementById('myChart').getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Message Counts Per Minute',
+                data: [],
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 0.5,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
             }
         }
-    }
-});
+    });
+
+
+}
 
 
 function addData(chart, result) {
@@ -45,7 +140,7 @@ function addData(chart, result) {
     chart.update();
 }
 
-
+//works with a box right now; need to make this more readable
 function addLabels(result) {
     const allOutliers = result.AllOutliers
     const outlierList = Object.values(allOutliers)
@@ -89,58 +184,7 @@ async function fetchByUrl(url) {
 }
 
 
-/*//open a new page for every subscription
-function openPage() {
-    var sub = document.getElementById("subscriptionSelect").value;
-    var url = "index.html";
-    var newWindow = window.open(url, "_blank");
-}
 
-
-
-function populateDropdown(itemsToAdd) {
-    const dropdown = document.getElementById("subscriptionSelect");
-
-    itemsToAdd.forEach(item => {
-        // Check if the item already exists in the dropdown
-        const exists = [...dropdown.options].some(option => option.text === item);
-        if (!exists) {
-            // Create a new option element
-            const newOption = document.createElement("option");
-            newOption.value = item; // Set value (you can change this if needed)
-            newOption.text = item; // Set text
-
-            // Append the new option to the dropdown
-            dropdown.appendChild(newOption);
-        }
-    });
-}*/
-
-
-
-// Function to populate the table with data
-function populateTable(data) {
-    const tableBody = document.getElementById('tableBody');
-
-    // Clear any existing rows
-    tableBody.innerHTML = '';
-
-    // Loop through the data and create table rows
-    data.forEach(item => {
-        const row = document.createElement('tr');
-
-
-        const timeCell = document.createElement('td');
-        timeCell.textContent = item.time;
-        row.appendChild(timeCell);
-
-        const countsCell = document.createElement('td');
-        countsCell.textContent = item.counts;
-        row.appendChild(countsCell);
-
-        tableBody.appendChild(row);
-    });
-}
 
 setInterval(() => {
     const url = 'http://localhost:8080/data';
@@ -155,38 +199,17 @@ setInterval(() => {
                 const firstFilter = filters[0]
                 const firstResult = results[0]
 
+                populateDropdown(filters)
+
+
                 //populateDropdown(filters);
 
                 //get the results by keys
-                addData(chart, firstResult); //getting data
-                addLabels(firstResult);
+                //addData(chart, firstResult); //getting data
+                //addLabels(firstResult);
             } else {
                 console.log('No data fetched');
             }
         });
-
-
-
-   // data = fetchData('http://localhost:8080/data')
-   /* fetch('http://localhost:8080/data')
-        .then(response => response.json())
-        .then(data => {
-            //add subscriptions to the dropdown as they populate in the results
-            const filters = Object.keys(data) //create urls based localhost:8080/filter
-            const results = Object.values(data)
-
-            const firstFilter = filters[0]
-            const firstResult = results[0]
-
-            //populateDropdown(filters);
-
-            //get the results by keys
-            addData(chart, firstResult); //getting data
-            addLabels(firstResult);
-
-        })
-        .catch(error => {
-            console.error('Error fetching data:', error);
-        });*/
 }, 3000); //updates every 3 seconds
 
