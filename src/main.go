@@ -11,19 +11,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 )
-
-func dataHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	err := json.NewEncoder(w).Encode(analyze.AllResults)
-	if err != nil {
-		http.Error(w, "Error encoding JSON", http.StatusInternalServerError)
-		return
-	}
-	//fmt.Println(analyze.AllResults)
-}
 
 func main() {
 
@@ -57,11 +48,12 @@ func main() {
 
 	// Channel for sending BGP messages between parsing and processing
 	msgChannel := make(chan common.Message)
-	freqInit := make(map[time.Time]float64)
-	outlierInit := make(map[time.Time]common.OutlierInfo)
-	analyze.AllResults.AllOutliers = outlierInit //init map of outliers
+	/*freqInit := make(map[time.Time]float64)
+	outlierInit := make(map[time.Time]common.OutlierInfo)*/
+	analyze.ResultMap = make(map[string]*common.Result)
+	/*analyze.AllResults.AllOutliers = outlierInit //init map of outliers
 	analyze.AllResults.AllFreq = freqInit        //initialize map frequencies
-
+	*/
 	// Start the goroutines
 
 	// Can change folder directory to any folder inside of src/static_data
@@ -91,7 +83,10 @@ func main() {
 	//http start
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/", fs)
-	http.HandleFunc("/data", dataHandler) //data handler to write data onto the local server
+	http.HandleFunc("/data", getData) //data handler to write data onto the local server
+	http.HandleFunc("/subscriptions", getSubscriptions)
+	http.HandleFunc("/frequencies", getFrequenciesFromSubscription)
+	http.HandleFunc("/outliers", getOutliersFromSubscription)
 
 	log.Println("Server started on port 8080")
 	err = http.ListenAndServe(":8080", nil)
@@ -105,4 +100,94 @@ func main() {
 	elapsedTime := time.Since(startTime)
 	fmt.Println("Elapsed Time: ", elapsedTime)
 
+}
+
+func getData(w http.ResponseWriter, r *http.Request) {
+	//fmt.Println("Data request")
+	w.Header().Set("Content-Type", "application/json")
+	err := json.NewEncoder(w).Encode(analyze.ResultMap)
+	if err != nil {
+		http.Error(w, "Error encoding JSON", http.StatusInternalServerError)
+		return
+	}
+}
+
+func getSubscriptions(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Subscriptions request")
+	w.Header().Set("Content-Type", "application/json")
+
+	var subscriptions []string
+	for sub, _ := range analyze.ResultMap {
+		subscriptions = append(subscriptions, sub)
+	}
+
+	err := json.NewEncoder(w).Encode(subscriptions)
+	if err != nil {
+		http.Error(w, "Error encoding JSON", http.StatusInternalServerError)
+		return
+	}
+}
+
+func getFrequenciesFromSubscription(w http.ResponseWriter, r *http.Request) {
+	subscription := r.URL.Query().Get("subscription")
+
+	// Check if the required parameter is missing
+	if subscription == "" {
+		http.Error(w, "Missing required parameter 'subscription'", http.StatusBadRequest)
+		return
+	}
+
+	// Removes backslashes from subscription string
+	cleanedSubscription := strings.Replace(subscription, "\\", "", -1)
+	fmt.Println("Frequency request for ", cleanedSubscription)
+
+	result, exists := analyze.ResultMap[cleanedSubscription]
+
+	var frequencies map[time.Time]float64
+
+	if exists {
+		frequencies = result.AllFreq
+	} else {
+		// Subscription not found, use an empty map
+		frequencies = map[time.Time]float64{}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err := json.NewEncoder(w).Encode(frequencies)
+	if err != nil {
+		http.Error(w, "Error encoding JSON", http.StatusInternalServerError)
+		return
+	}
+}
+
+func getOutliersFromSubscription(w http.ResponseWriter, r *http.Request) {
+	subscription := r.URL.Query().Get("subscription")
+
+	// Check if the required parameter is missing
+	if subscription == "" {
+		http.Error(w, "Missing required parameter 'subscription'", http.StatusBadRequest)
+		return
+	}
+
+	// Removes backslashes from subscription string
+	cleanedSubscription := strings.Replace(subscription, "\\", "", -1)
+	fmt.Println("Outlier request for ", cleanedSubscription)
+
+	result, exists := analyze.ResultMap[cleanedSubscription]
+
+	var outliers map[time.Time]common.OutlierInfo
+
+	if exists {
+		outliers = result.AllOutliers
+	} else {
+		// Subscription not found, use an empty map
+		outliers = map[time.Time]common.OutlierInfo{}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err := json.NewEncoder(w).Encode(outliers)
+	if err != nil {
+		http.Error(w, "Error encoding JSON", http.StatusInternalServerError)
+		return
+	}
 }
