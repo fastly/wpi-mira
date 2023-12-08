@@ -1,7 +1,10 @@
+export let numbersGiven; //this works sometimes?
 /*
 TODO: potentially link the url and the data for the prefix in one struct
  */
 // Function to populate the dropdown with values from a list of strings
+
+
 function populateDropdown(listOfStrings) {
     const select = document.getElementById("subscriptionSelect");
     const existingOptions = Array.from(select.options).map(option => option.textContent.toLowerCase());
@@ -29,9 +32,8 @@ function getEndpointForSub (query) { //take in a subscription string and turn it
     return finalUrl;
 }
 
-
 //opens up a page based on the prefix selected
-function openPage() {
+export function openPage() {
 
     //the items are the filters
     const select = document.getElementById("subscriptionSelect");
@@ -47,12 +49,32 @@ function openPage() {
                 console.log('Fetched data:', data);
                 //add subscriptions to the dropdown as they populate in the result
 
-                const filters = Object.keys(data) //create urls based localhost:8080/filter
-                const counts = Object.values(data)
+                const filters = Object.keys(data); //create urls based localhost:8080/filter
+                const counts = Object.values(data);
+                numbersGiven = [1,2,3,4]
+                console.log(numbersGiven)
+
 
                 const newPage = window.open('mainData.html', '_blank');
+
+
                 if (newPage) {
-                    newPage.document.close();
+                    // Wait for the new page to load
+                    newPage.onload = function() {
+                        // Access the document within the new window
+                        const newDoc = newPage.document;
+                        // Find an element in the new window and add data
+                        const newData =  counts.join(', '); // Your new data
+                        // For example, let's find a div with id 'dataContainer' and add the new data
+                        const dataContainer = newDoc.getElementById('outliers');
+                        if (dataContainer) {
+                            dataContainer.innerHTML = newData;
+                        } else {
+                            console.error('Element not found in new window');
+                        }
+                    };
+
+                    //newPage.document.close();
                 } else {
                     alert('Pop-up blocked! Please allow pop-ups for this website.');
                 }
@@ -61,112 +83,9 @@ function openPage() {
                 console.log('No data fetched');
             }
         });
-    /*    const select = document.getElementById("subscriptionSelect");
-        const selectedOption = select.options[select.selectedIndex];
-        const selectedUrl = selectedOption.value;
-        window.open(selectedUrl, '_blank');
-        // window.location.href = selectedUrl;
-
-     if (selectedUrl) {
-            fetchByUrl("http://localhost:8080/data")
-                .then(data => {
-                    if (data) {
-                        console.log('Fetched data:', data);
-                        // Process fetched data as needed (e.g., displaying in UI)
-                        // Example: addData(chart, data);
-                        // Example: addLabels(data);
-                    } else {
-                        console.log('No data fetched');
-                    }
-                });
-        }*/
 }
 
-/*
-function openPage() {
-    const select = document.getElementById("subscriptionSelect");
-    const selectedUrl = select.value;
-    window.location.href = selectedUrl;
-}*/
-
-function createChart(){
-    const ctx = document.getElementById('myChart').getContext('2d');
-    const chart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: [],
-            datasets: [{
-                label: 'Message Counts Per Minute',
-                data: [],
-                backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            aspectRatio: 0.5,
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
-    });
-
-
-}
-
-
-function addData(chart, result) {
-    const allFreqMap = result.AllFreq
-
-    const newData = Object.values(allFreqMap) //frequencies at each individual time stamp
-    const timeStamps = Object.keys(allFreqMap) //timestamps for labeling points
-    if (newData.length === 0) {
-        return; // No new data to add
-    }
-
-    // Clear existing data
-    chart.data.labels = [];
-    chart.data.datasets[0].data = [];
-
-    // Add new data
-    for (let i = 0; i < newData.length; i++) {
-        chart.data.labels.push(timeStamps[i]);
-        chart.data.datasets[0].data.push(newData[i]);
-    }
-    chart.update();
-}
-
-//works with a box right now; need to make this more readable
-function addLabels(result) {
-    const allOutliers = result.AllOutliers
-    const outlierList = Object.values(allOutliers)
-
-    const timestampList = [];
-    const valsList = [];
-
-    for (let i = 0; i < outlierList.length; i++) {
-        timestamp = new Date(outlierList[i].Timestamp);
-        count =outlierList[i].Count;
-        timestampList.push(timestamp)
-        valsList.push(count)
-    }
-
-    //outliers
-    const outliersContainer = document.getElementById('outliers');
-    const formattedOutliers = valsList.join(', '); // Format the array for display
-    outliersContainer.innerText = `Outliers: [${formattedOutliers}]`;
-
-    //timestamps
-    const outliersTimesContainer = document.getElementById('outliersTimes');
-    const formattedOutliersTimes = timestampList.join(', '); // Format the array for display
-    outliersTimesContainer.innerText = `Outliers Times: [${formattedOutliersTimes}]`;
-
-}
-
+document.getElementById('goButton').addEventListener('click', openPage);
 
 async function fetchByUrl(url) {
     try {
@@ -184,8 +103,6 @@ async function fetchByUrl(url) {
 }
 
 
-
-
 setInterval(() => {
     const url = 'http://localhost:8080/data';
     fetchByUrl(url)
@@ -194,10 +111,10 @@ setInterval(() => {
                 console.log('Fetched data:', data);
                 //add subscriptions to the dropdown as they populate in the results
                 const filters = Object.keys(data) //create urls based localhost:8080/filter
-                const results = Object.values(data)
+                /*const results = Object.values(data)
 
                 const firstFilter = filters[0]
-                const firstResult = results[0]
+                const firstResult = results[0]*/
 
                 populateDropdown(filters)
 
@@ -212,4 +129,3 @@ setInterval(() => {
             }
         });
 }, 3000); //updates every 3 seconds
-
