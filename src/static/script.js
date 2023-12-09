@@ -33,7 +33,16 @@ function openPage() {
     window.open(url, '_blank');
 }
 
-function addData(chart, newData, dataLabels) {
+//adding outlier messages
+function addMsgs (messages) {
+    const msgsContainer = document.getElementById('msgs');
+    const formattedOutliers = messages.join(', '); // Format the array for display
+    msgsContainer.innerText = `Outliers: [${formattedOutliers}]`;
+
+}
+
+//adding data to the graph
+function addData(chart, newData) {
     if (newData.length === 0) {
         return; // No new data to add
     }
@@ -66,7 +75,8 @@ function getData(chart, selectedUrl) {
                 const filters = Object.keys(data); //create urls based localhost:8080/filter
                 const counts = Object.values(data);
                 console.log(counts);
-                addData(chart, counts, filters);
+                addData(chart, counts);
+                addMsgs(filters);
 
             } else {
                 console.log('No data fetched');
