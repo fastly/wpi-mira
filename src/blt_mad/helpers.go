@@ -1,10 +1,15 @@
 package blt_mad
 
 import (
+	"BGPAlert/common"
+	"encoding/csv"
 	"fmt"
 	"math"
+	"os"
 	"reflect"
 	"sort"
+	"strconv"
+	"time"
 )
 
 func RemoveZeros(data []float64) ([]float64, error) {
@@ -21,6 +26,63 @@ func RemoveZeros(data []float64) ([]float64, error) {
 	}
 
 	return nonZeros, nil
+}
+
+func WriteToCsv(filename string, messages []common.BGPMessage) error {
+	var file *os.File
+	var err error
+
+	// Check if file exists
+	if _, err = os.Stat(filename); os.IsNotExist(err) {
+		// Create the file if it doesn't exist
+		file, err = os.Create(filename)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+
+		// Write CSV header
+		writer := csv.NewWriter(file)
+		defer writer.Flush()
+
+		if err := writer.Write([]string{
+			"Timestamp", "BGPMessageType", "PeerIP", "PeerASN", "Prefix",
+		}); err != nil {
+			return err
+		}
+	} else {
+		// Open the file in append mode
+		file, err = os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, 0644)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+	}
+
+	// Create a CSV writer
+	writer := csv.NewWriter(file)
+
+	for _, message := range messages {
+		// Format struct data into []string for CSV
+		data := []string{
+			message.Timestamp.Format(time.RFC3339),
+			message.BGPMessageType,
+			message.PeerIP.String(),
+			strconv.FormatUint(uint64(message.PeerASN), 10),
+			message.Prefix.String(),
+		}
+
+		if err := writer.Write(data); err != nil {
+			return err
+		}
+	}
+
+	// Flush and close the writer outside the loop
+	writer.Flush()
+	if err := writer.Error(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func FindMedian(data []float64) float64 {

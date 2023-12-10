@@ -22,6 +22,10 @@ const (
 	BOTHALERTS = 3
 )
 
+func getOutlierMessages(window common.Window, timestamp time.Time) []common.BGPMessage {
+	return window.BucketMap[timestamp]
+}
+
 // Takes in a Window, parses object into frequency counts, and then calls specified analysis functions
 //code to write the frequencies; the outliers; and the minReqs to files
 func AnalyzeBGPMessages(window common.Window, config *config.Configuration) {
@@ -76,8 +80,8 @@ func AnalyzeBGPMessages(window common.Window, config *config.Configuration) {
 		}
 
 		// Update outliers for both BLT MAD and ShakeAlert outliers
-		updateOutliers(currResult, BLTMAD, bltIndexes, sortedTimestamps, sortedFrequencies)
-		updateOutliers(currResult, SHAKEALERT, shakeAlertIndexes, sortedTimestamps, sortedFrequencies)
+		updateOutliers(window, currResult, BLTMAD, bltIndexes, sortedTimestamps, sortedFrequencies)
+		updateOutliers(window, currResult, SHAKEALERT, shakeAlertIndexes, sortedTimestamps, sortedFrequencies)
 
 	} else { //have not reached the max amount of points and can keep adding results
 		//modify the frequencies for the final results
@@ -94,8 +98,8 @@ func AnalyzeBGPMessages(window common.Window, config *config.Configuration) {
 			}
 		}
 		// Update outliers for both BLT MAD and ShakeAlert outliers
-		updateOutliers(currResult, BLTMAD, bltIndexes, sortedTimestamps, sortedFrequencies)
-		updateOutliers(currResult, SHAKEALERT, shakeAlertIndexes, sortedTimestamps, sortedFrequencies)
+		updateOutliers(window, currResult, BLTMAD, bltIndexes, sortedTimestamps, sortedFrequencies)
+		updateOutliers(window, currResult, SHAKEALERT, shakeAlertIndexes, sortedTimestamps, sortedFrequencies)
 	}
 
 }
@@ -123,7 +127,7 @@ func getSmallestTimestamp(timestamps []time.Time) time.Time {
 	return smallest
 }
 
-func updateOutliers(currResult *common.Result, algorithm int, indexes []int, sortedTimestamps []time.Time, sortedFrequencies []float64) {
+func updateOutliers(window common.Window, currResult *common.Result, algorithm int, indexes []int, sortedTimestamps []time.Time, sortedFrequencies []float64) {
 	for _, index := range indexes {
 		// Get outlier timestamp
 		outlierTimestamp := sortedTimestamps[index]
@@ -134,7 +138,13 @@ func updateOutliers(currResult *common.Result, algorithm int, indexes []int, sor
 
 		// If the outlier is not already in the map, create a new outlier for it
 		if !exists {
-			currResult.AllOutliers[outlierTimestamp] = createOutlierStruct(outlierTimestamp, algorithm, outlierFrequency)
+			outlierMsgs := getOutlierMessages(window, outlierTimestamp)
+			//filter := currResult.Filter
+			currResult.AllOutliers[outlierTimestamp] = createOutlierStruct(outlierTimestamp, algorithm, outlierFrequency, outlierMsgs)
+			//write the outlier messages onto a file
+			fullFileName := "outlierMessages.csv"
+			fmt.Println(fullFileName)
+			blt_mad.WriteToCsv(fullFileName, outlierMsgs)
 		} else { // If outlier not in map, need to possibly update it
 			if currOutlier.Count != outlierFrequency {
 				currOutlier.Count = outlierFrequency
@@ -155,11 +165,12 @@ func updateOutliers(currResult *common.Result, algorithm int, indexes []int, sor
 		}
 	}
 }
-func createOutlierStruct(timestamp time.Time, algorithm int, count float64) common.OutlierInfo {
+func createOutlierStruct(timestamp time.Time, algorithm int, count float64, msgs []common.BGPMessage) common.OutlierInfo {
 	o := common.OutlierInfo{
 		Timestamp: timestamp,
 		Algorithm: algorithm,
 		Count:     count,
+		Msgs:      msgs,
 	}
 
 	return o
