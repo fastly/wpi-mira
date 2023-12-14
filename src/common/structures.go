@@ -35,6 +35,7 @@ type Window struct {
 }
 
 type Result struct {
+	Filter      string                    `json:"Filter"`
 	AllOutliers map[time.Time]OutlierInfo `json:"AllOutliers"` //list of all the outliers
 	AllFreq     map[time.Time]float64     `json:"AllFreq"`     //map of all the frequencies by timestamp to avoid repeats and keep track of missed data
 }
