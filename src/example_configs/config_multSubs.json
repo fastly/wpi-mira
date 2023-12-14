@@ -1,0 +1,6 @@
+{
+    "dataOption": "live",
+    "subscriptions": [{"prefix": "151.101.0.0/16"}, 
+                      {"host": "rrc21", "prefix": "0.0.0.0/0"}, 
+                      {"prefix": "2a04:4e42:200::/48"}]
+}

@@ -55,23 +55,23 @@ type RisMessage struct {
 */
 
 type RisAnnouncement struct {
-	NextHop  string   `json:next_hop`
-	Prefixes []string `json:prefixes`
+	NextHop  string   `json:"next_hop"`
+	Prefixes []string `json:"prefixes"`
 }
 
 type RisLiveMessageData struct {
-	Timestamp     float64           `json:timestamp`
-	Peer          string            `json:peer`
+	Timestamp     float64           `json:"timestamp"`
+	Peer          string            `json:"peer"`
 	PeerAsn       string            `json:"peer_asn"` //"peer_asn":"396998"
-	Id            string            `json:id`
-	Host          string            `json:host`
-	Type          string            `json:type`
-	Path          []int             `json:path`
-	Community     [][]int           `json:community`
-	Origin        string            `json:origin`
-	Med           int               `json:med`
-	Announcements []RisAnnouncement `json:announcements`
-	Withdrawals   []string          `json:withdrawals` //string of prefixes being withdrawn
+	Id            string            `json:"id"`
+	Host          string            `json:"host"`
+	Type          string            `json:"type"`
+	Path          []int             `json:"path"`
+	Community     [][]int           `json:"community"`
+	Origin        string            `json:"origin"`
+	Med           int               `json:"med"`
+	Announcements []RisAnnouncement `json:"announcements"`
+	Withdrawals   []string          `json:"withdrawals"` //string of prefixes being withdrawn
 }
 
 type RisLiveMessage struct {
@@ -103,7 +103,7 @@ func handleSubscription(msgChannel chan common.Message, subscription config.Subs
 	defer conn.Close()
 
 	//call receive handler
-	go receiveHandler(msgChannel, conn, subscriptionToString(subscription), i)
+	go receiveHandler(msgChannel, conn, subscription, i)
 
 	fmt.Println("made connection")
 
@@ -154,9 +154,8 @@ func handleSubscription(msgChannel chan common.Message, subscription config.Subs
 }
 
 // keep reading in new message from connection, send msg to parser, put parsed messages into channel
-func receiveHandler(msgChannel chan common.Message, conn *websocket.Conn, subscription string, i int) {
-	var labeledMsg common.Message
-	labeledMsg.Filter = subscription
+func receiveHandler(msgChannel chan common.Message, conn *websocket.Conn, subscription config.SubscriptionMsg, i int) {
+	filterString := subscriptionToString(subscription)
 
 	for {
 		//take in next msg from connection
@@ -174,12 +173,28 @@ func receiveHandler(msgChannel chan common.Message, conn *websocket.Conn, subscr
 			fmt.Printf("Parsed BGP Message: %d %+v\n", i, bgpMsgs) //prints parsed BGP msg
 		}
 
-		//put bgp messages into channel
+		// Currently we only hold zero or one prefixes per subscription.
+		// If the config doesn't filter by prefix and we receive a message, then
+		// we're good: everything we receive matches our criteria.
+		// Otherwise, loop through all the prefixes and check whether a prefix in
+		// an update is covered by the prefix in the subscription.
 		for _, msg := range bgpMsgs {
+			if subscription.Prefix != "" {
+				// assume this prefix has already been parsed by RIS live or we wouldn't be here
+				subscriptionPrefix, _ := netip.ParsePrefix(subscription.Prefix)
+				// if this message's prefix *isn't* covered by this subscription,
+				// go to the start of the loop
+				if !subscriptionPrefix.Overlaps(msg.Prefix) {
+					log.Printf("Discarding update for non-matching prefix %+v\n", msg)
+					continue
+				}
+			}
+
+			var labeledMsg common.Message
+			labeledMsg.Filter = filterString
 			labeledMsg.BGPMessage = msg
 			msgChannel <- labeledMsg
 		}
-
 	}
 }
 
@@ -195,7 +210,6 @@ func parseLiveMessage(data []byte) ([]common.BGPMessage, error) {
 	if err != nil {
 		log.Println("Bad parse:", err)
 		return nil, err
-		//log.Println("Original message:", data)
 	}
 
 	//check is TYPE is ris message

@@ -1,0 +1,4 @@
+{
+    "dataOption": "live",
+    "subscriptions": [{"prefix": "151.101.0.0/16"}]
+}
