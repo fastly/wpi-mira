@@ -67,7 +67,7 @@ func FindOutliers(data []float64) ([]float64, []int) {
 	dataCopy := make([]float64, len(data))
 	copy(dataCopy, data)
 
-	//iterate thru each time bin
+	//iterate through each time bin
 	for i := 0; i < len(data); i++ {
 		currentBin := data[i]
 

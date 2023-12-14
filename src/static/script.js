@@ -100,10 +100,6 @@ function getData(chart, selectedUrl) {
     fetchByUrl(url)
         .then(data => {
             if (data) {
-                //console.log('Fetched data:', data);
-                //add subscriptions to the dropdown as they populate in the result
-
-                const filters = Object.keys(data); //create urls based localhost:8080/filter
                 //console.log(filters);
                 const counts = Object.values(data);
                 //console.log(selectedUrl);

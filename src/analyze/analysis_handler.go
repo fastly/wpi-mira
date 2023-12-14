@@ -12,7 +12,7 @@ import (
 
 //need to create a map of results based on filter -> filtering pr
 //var AllResults common.Result //global so that it can be added onto by parser and seen by dataHandler
-var maxPoints = 5 //i did not want to add this into config yet because it will conflic with jolene's pr
+var maxPoints = 360 //i did not want to add this into config yet because it will conflic with jolene's pr
 var ResultMap map[string]*common.Result
 
 const (
@@ -144,7 +144,7 @@ func updateOutliers(window common.Window, currResult *common.Result, algorithm i
 			//write the outlier messages onto a file
 			fullFileName := "outlierMessages.csv"
 			fmt.Println(fullFileName)
-			blt_mad.WriteToCsv(fullFileName, outlierMsgs)
+			//blt_mad.WriteToCsv(fullFileName, outlierMsgs)
 		} else { // If outlier not in map, need to possibly update it
 			if currOutlier.Count != outlierFrequency {
 				currOutlier.Count = outlierFrequency
