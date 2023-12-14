@@ -1,4 +1,5 @@
 {
   "dataOption": "live",
-  "subscriptions": [{"path": 54113}]
+  "subscriptions": [{"asn": 54113}],
+  "windowSize" : 1
 }
