@@ -25,7 +25,7 @@ var interrupt chan os.Signal
 type RisMessageData struct {
 	Host   string `json:"host,omitempty"` //aka collector
 	Peer   string `json:"peer,omitempty"`
-	Asn    int    `json:"asn,omitempty"` //aka ASN
+	Path   string `json:"path,omitempty"` //aka ASN
 	Prefix string `json:"prefix,omitempty"`
 }
 
@@ -108,7 +108,7 @@ func handleSubscription(msgChannel chan common.Message, subscription config.Subs
 	fmt.Println("made connection")
 
 	//subscribe
-	sub := RisMessage{"ris_subscribe", &RisMessageData{subscription.Host, subscription.Peer, subscription.Asn, subscription.Prefix}}
+	sub := RisMessage{"ris_subscribe", &RisMessageData{subscription.Host, subscription.Peer, subscription.Path, subscription.Prefix}}
 	out, err := json.Marshal(sub)
 	if err != nil {
 		return errors.New("Error marshalling subscription message, " + err.Error())
