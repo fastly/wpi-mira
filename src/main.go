@@ -1,15 +1,15 @@
 package main
 
 import (
+	"encoding/json"
+	"flag"
+	"fmt"
+	"log"
 	"mira/analyze"
 	"mira/common"
 	"mira/config"
 	"mira/parse"
 	"mira/process"
-	"encoding/json"
-	"flag"
-	"fmt"
-	"log"
 	"net/http"
 	"strings"
 	"sync"

@@ -5,7 +5,7 @@ import (
 	"math"
 )
 
-//Mad
+// Mad
 func Mad(data []float64) float64 {
 	//implement MAD given the list of the number of messages in each given bucket
 	sum := 0.0

@@ -40,7 +40,7 @@ func FindMedian(data []float64) float64 {
 	return med
 }
 
-//if data needs to be sorted use this function to avoid changes in the original input
+// if data needs to be sorted use this function to avoid changes in the original input
 func sortData(data []float64) []float64 {
 	// Create a copy of the original array to avoid modifying the input slice
 	sortedData := make([]float64, len(data))
@@ -73,7 +73,7 @@ func containsValue(arr []float64, target float64) bool {
 	return false
 }
 
-//https://medium.com/pragmatic-programmers/testing-floating-point-numbers-in-go-9872fe6de17f
+// https://medium.com/pragmatic-programmers/testing-floating-point-numbers-in-go-9872fe6de17f
 func WithinTolerance(a float64, b float64, e float64) bool {
 	if a == b {
 		return true

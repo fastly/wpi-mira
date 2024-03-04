@@ -1,12 +1,12 @@
 package parse
 
 import (
-	"mira/common"
-	"mira/config"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
+	"mira/common"
+	"mira/config"
 	"net/netip"
 	"os"
 	"time"
@@ -184,7 +184,7 @@ func receiveHandler(msgChannel chan common.Message, conn *websocket.Conn, subscr
 				subscriptionPrefix, _ := netip.ParsePrefix(subscription.Prefix)
 				// if this message's prefix *isn't* covered by this subscription,
 				// go to the start of the loop
-				if ! subscriptionPrefix.Overlaps(msg.Prefix) {
+				if !subscriptionPrefix.Overlaps(msg.Prefix) {
 					log.Printf("Discarding update for non-matching prefix %+v\n", msg)
 					continue
 				}

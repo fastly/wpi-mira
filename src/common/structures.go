@@ -23,7 +23,7 @@ type Message struct {
 	Filter     string
 }
 
-//used to write the struct onto a json output
+// used to write the struct onto a json output
 type OutlierMessages struct {
 	MADOutlierMessages [][]BGPMessage `json:"MADOutlierMessages"`
 	ShakeAlertMessages [][]BGPMessage `json:"ShakeAlertMessages"`

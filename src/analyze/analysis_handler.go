@@ -1,17 +1,17 @@
 package analyze
 
 import (
+	"fmt"
 	"mira/blt_mad"
 	"mira/common"
 	"mira/config"
 	"mira/shake_alert"
-	"fmt"
 	"sort"
 	"time"
 )
 
-//need to create a map of results based on filter -> filtering pr
-//var AllResults common.Result //global so that it can be added onto by parser and seen by dataHandler
+// need to create a map of results based on filter -> filtering pr
+// var AllResults common.Result //global so that it can be added onto by parser and seen by dataHandler
 var maxPoints = 5 //i did not want to add this into config yet because it will conflic with jolene's pr
 var ResultMap map[string]*common.Result
 
@@ -23,7 +23,7 @@ const (
 )
 
 // Takes in a Window, parses object into frequency counts, and then calls specified analysis functions
-//code to write the frequencies; the outliers; and the minReqs to files
+// code to write the frequencies; the outliers; and the minReqs to files
 func AnalyzeBGPMessages(window common.Window, config *config.Configuration) {
 	// Get current result from map if it exists
 	currResult, exists := ResultMap[window.Filter]
@@ -108,7 +108,7 @@ func getListOfKeys(dataMap map[time.Time]float64) []time.Time {
 	return keys
 }
 
-//use the olderst timestamp when removing the data points
+// use the olderst timestamp when removing the data points
 func getSmallestTimestamp(timestamps []time.Time) time.Time {
 	if len(timestamps) == 0 {
 		return time.Time{}
