@@ -1,10 +1,10 @@
 package analyze
 
 import (
-	"BGPAlert/blt_mad"
-	"BGPAlert/common"
-	"BGPAlert/config"
-	"BGPAlert/shake_alert"
+	"mira/blt_mad"
+	"mira/common"
+	"mira/config"
+	"mira/shake_alert"
 	"fmt"
 	"sort"
 	"time"

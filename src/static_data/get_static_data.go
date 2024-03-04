@@ -1,7 +1,7 @@
 package main
 
 import (
-	"BGPAlert/config"
+	"mira/config"
 	"fmt"
 	"io"
 	"log"

@@ -1,8 +1,8 @@
 package parse
 
 import (
-	"BGPAlert/common"
-	"BGPAlert/config"
+	"mira/common"
+	"mira/config"
 	"encoding/json"
 	"errors"
 	"fmt"

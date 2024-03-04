@@ -1,7 +1,7 @@
 package parse
 
 import (
-	"BGPAlert/common"
+	"mira/common"
 	"bufio"
 	"errors"
 	"fmt"

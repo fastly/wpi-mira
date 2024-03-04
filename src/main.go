@@ -1,11 +1,11 @@
 package main
 
 import (
-	"BGPAlert/analyze"
-	"BGPAlert/common"
-	"BGPAlert/config"
-	"BGPAlert/parse"
-	"BGPAlert/process"
+	"mira/analyze"
+	"mira/common"
+	"mira/config"
+	"mira/parse"
+	"mira/process"
 	"encoding/json"
 	"flag"
 	"fmt"

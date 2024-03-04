@@ -1,9 +1,9 @@
 package process
 
 import (
-	"BGPAlert/analyze"
-	"BGPAlert/common"
-	"BGPAlert/config"
+	"mira/analyze"
+	"mira/common"
+	"mira/config"
 	"fmt"
 	"time"
 )
