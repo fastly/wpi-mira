@@ -27,6 +27,8 @@ If no config file, then default uses `default-config.json`, which listens to the
 # Config file format
 Create a configuration json file based on the Configuration struct in config.go. For examples of various use cases, refer to example configurations contained in [example_configs](src/example_configs).
 
+The filters possible are based on the filters in the [RIS Live manual](https://ris-live.ripe.net/manual/).
+
 # How to download static file for testing:
 To provide a URL containing bz2 files, create a config.json file and insert the URL under the staticFilesLink parameter in the same format as the following: "http://routeviews.org/route-views.ny/bgpdata/2021.11/UPDATES/"
 
