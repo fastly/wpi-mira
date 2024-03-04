@@ -3,6 +3,10 @@
 A project done in collaboration between [Fastly](https://www.fastly.com/) and [WPI](https://www.wpi.edu/).
 This project is a WPI [Major Qualifying Project](https://www.wpi.edu/project-based-learning/project-based-education/major-qualifying-project).
 
+The final report will be available [here](https://digital.wpi.edu/concern/student_works/tt44pr950?locale=en).
+
+# About
+
 This tool monitors public Internet routing data and identifies anomalous routing events based on frequency of updates.
 
 The project was inspired by
